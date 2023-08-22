@@ -1,0 +1,1599 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+
+
+## [6.9.6] - 2022-10-31
+### Changed
+- Merged Zuras changes regarding call subjects
+
+### Removed
+- Removed obsolete Agent_model functions
+
+
+## [6.9.5] - 2022-10-31
+### Changed
+- Finalized realtime functions in queues/realtime
+
+### Removed
+- Removed many obsolete functions from Queue.php
+- Mark many API calls for obsolescence
+- Removed useless v6/queue.php
+
+
+## [6.9.4] - 2022-10-29
+### Changed
+- Transation updates
+- Changed the way how we get realtime status and calls for agents/index
+
+
+## [6.9.3] - 2022-10-29
+### Fixed
+- Fixed password retrieval routines in instaler and uninstaller
+
+
+## [6.9.2] - 2022-10-29
+### Changed
+- Updated uninstall.sh for correct database table removal
+
+### Removed
+- Database migration - remove obsolete tables
+- Remove obosolete model, controllers and views
+
+
+## [6.9.1] - 2022-10-26
+### Changed
+- New assets for user management pages
+- Assigning agents to agent role is no longer neccesary
+
+### Fixed
+- Fixed incorrect stats in queues/stats
+
+
+## [6.9.0] - 2022-10-14
+### Removed
+- Removed eveyrhing regarding config
+- Removed forked recordings pages
+
+
+## [6.5.0] - 2022-10-10
+### Changed
+- Hid queue setting buttons, since we won't need them in the future
+- Hide categories in start/admin if they are not available
+- Initial reskin of agents/index
+
+
+## [6.4.0] - 2022-09-19
+### Changed
+- New Queues/stats page
+
+
+## [6.3.3] - 2022-05-01
+### Fixed
+- Fixed annoying division by zero error in Export pages
+
+## [6.3.2] - 2022-04-19
+### Changed
+- Fully redesigned start/admin
+- Fully refactored export/overview
+
+
+## [6.3.1] - 2022-04-16
+### Added
+- Added call subjects to old header
+- Completely new and optimized start export routine
+- Initial implementation of new start page
+
+### Changed
+- Return jplayer for time being
+
+
+## [6.3.0] - 2022-04-15
+### Added
+- Ability to set and search call categories for recordings
+
+
+## [6.2.1]
+### Fixed
+- Fixed install script and it's migration
+
+
+## [6.2.0] - 2022-03-23
+### Added
+- Database migration: Create password reset temporary table
+- Database migration: Add can_listen and can_download fields to users
+- Database migration: Add call subjects tables and schema
+- New reset_password, check_is_valid, and set_password routes in Auth
+- New Status_messenger controller
+- New Reset_password_tmp_model
+- New auth/auth_messenger view
+- New auth/new_password view
+- New auth/reset_password view
+- New Call_subjects model
+- New Call_subject controller
+- New Call_subjects views
+
+### Changed
+- Recordings page now use new assets
+
+### Removed
+- Remove jplayer related files, since we've moved to html5 playerg
+
+
+## [6.1.0] - 2022-01-15
+### Added
+- Database migration: Remove obsolete configuration items
+- Database migration: Drop old password requests table
+- Database migration: New campaigns module
+- Added v6 assets
+- load_views() function now supports loading v6 assets
+- New header_v6 and footer_v6 components
+- Added api/v6/queue endpoint
+- Added Queue_model->get_freepbx_agents()
+- Added Queue_model->get_all_freepbx_agents()
+- Added new Bond_model
+- Added Qqctl->register function
+- New constant for product registration
+- Added Registration server files
+
+### Changed
+- Auth page is now using new assets
+- New assets for queues/index page
+- New assets for queues/realtime page
+
+### Removed
+- Removed obsolete app_application_name config item
+- Removed obsolete app_track_incoming config item
+- Removed call archiving configuration items and related codebase
+- Removed distribution_map config items
+- Removed agent_show_other_agent_status config item
+- Removed agent_download_calls config item
+- Removed agent_listen_calls config item
+- Removed password reset functions from Auth controller
+- Removed older password requests views and models
+- Removed queues/detailed_list (for now)
+
+
+## [6.0.0] - 2022-01-05
+### Added
+- Database migration: Remove qq_product_information table
+
+### Changed
+- Moved version to Qqctl
+- Moved migrattion to Qqctl
+
+### Removed
+- Removed Product controller
+- Removed Product_model model
+- Removed obsolete R3 assets
+- Removed useless doc folder
+- Removed obsolete R3 controllers
+- Removed obsolete R3 views
+
+
+## [5.164] - 2021-12-20
+### Added
+- Displaying customer info for veli store
+- Displaying customer popup for veli store
+
+
+## [5.163] - 2021-12-20
+### Changed
+- Minor changes for veli-store API
+
+
+## [5.162] - 2021-12-01
+### Added
+- When parsing EXITWITHKEY events, we take duplicates into account
+
+
+## [5.161] - 2021-11-28
+### Added
+- If downloading file, we now check if file exists in archive
+
+
+## [5.160] - 2021-11-28
+### Fixed
+- Fixed issue when agents in palitra were not able to listen and download calls
+
+
+## [5.159] - 2021-11-22
+### Added
+- Custom API controllers for Veli store
+
+
+## [5.10.158] - 2021-10-22
+### Fixed
+- Fixed dark mode dashboard for thermorum
+
+
+## [5.9.157] - 2021-09-30
+### Added
+- Displaying contact name in workspace
+- Fixed issue when setting contact name would not work
+
+### Fixed
+- Fixxed incorrect link in Agent CDRM to create tickets
+- Fixed bug when outgoing calls where not updated based on future_event
+- Fixed bug when session status was not updating in agent CRM for palira
+
+
+## [5.9.156] - 2021-09-15
+### Changed
+- Crocobet monitoring dashboard only returns active users, closes #466
+
+
+## [5.9.155] - 2021-09-13
+### Added
+- Displaying outgoing disposition brakedowns in start/admin, closes #457
+- Displaying outgoing disposition brakedowns in export/overview, closes #457
+
+### Fixed
+- Fixed issue when header did not account for notification config switch
+- Fixed issue when Answered within SLA was not showing correct percentage in start/admin
+
+
+## [5.9.154] - 2021-09-10
+### Added
+- Database migration: Add configuration switch for notifications
+- Notifications are sent when news item is created
+- Custom Tools_palitra controller, to accomodate wonky outgoing call parsing for newer FreePBX versions
+- Notifications are generated when comment is added to the call
+- Displaying number in ticket search results, closes #459
+
+### Changed
+- Answer within 10 seconds now adheres to SLA values
+
+### Fixed
+- Fixed wrong navbar in monitoring dashboard, closes #460
+
+
+## [5.9.153] - 2021-09-06
+### Added
+- Agent realtime status now reflects device status too
+
+### Fixed
+- Dow not include deleted agents for manager role users
+
+
+## [5.9.152] - 2021-09-01
+### Added
+- Database migration: Create notifications table
+- New notification model
+- Displaying queue names in agents realtime page, closes #453
+
+### Changed
+- Last call date for agents when COMPLETE event triggers is set based on call completion date, closes #454
+
+
+## [5.8.151] - 2021-08-30
+###
+- Agents overview page now displays countof unavailable agents, closes #451
+
+
+## [5.8.150] - 2021-08-30
+### Added
+- Ability to upload files when creating news posts, closes #440
+- Ability to delete news articles, closes #449
+- Database migration: Create type column for news table
+- News now have types, closes #433
+- Exporting recordings generates file according to palitra spec, closes #439
+
+
+## [5.8.149] - 2021-08-30
+### Added
+- Asterisk manager now accounts for queue pause states
+- Added custom queue_evstate agi script for custom pause processing
+
+
+## [5.8.147.1] - 2021-08-24
+### Fixed
+- Fixed syntax incompatibility in News_model, closes #448
+- Added missing tables to uninstaller script
+
+
+## [5.8.147] - 2021-08-24
+### Added
+- Agents can now start session from web
+- Agents can now pause and unpause from web
+
+
+## [5.8.146] - 2021-08-17
+### Added
+- Database migration: increase status filed constraint for calls and tickets
+- New helper function to get custom statuses for palitra
+- Ability to set status on ongoing calls
+
+### Changed
+- New recordings search interface for admins of Palitra
+- New recordings search interface for agents of Palitra, closes #432
+- Moved ticket buttons in recordings to modal, closes #441
+
+
+## [5.8.145] - 2021-08-10
+### Added
+- Database migration: create news table
+- Database migration: add config switch for news module
+- New News model
+- Ability to add, view and modify news by admin
+- Added TinyMCE
+
+
+## [5.8.144] - 2021-08-09
+### Fixed
+- Quick fix for recordings search
+
+
+## [5.8.143] - 2021-08-09
+### Added
+- Custom recordings views and assets for Palitra
+- Ability for admins to search recordings by ticket fields, closes #427
+- Ability to update ticket fields for calls, closes #428
+- Ability to search and edit ticket fields for calls from agent crm, closes #429
+
+
+## [5.8.142] - 2021-05-04
+### Added
+- Database migration: Add config switch to allow ticket fields in calls
+- Database migration: Add ticket fields to calls
+- Database migration: Add ticket fields to future events
+- Tools->parse_queue_log now accounts ticket related fields in future events
+
+### Changed
+- New layout for admin/workspace_palitra
+
+### Removed
+- Removed useless patch directory
+
+
+## [5.8.141] - 2021-08-03
+### Added
+- Displaying user names in ticket comments, closes #415
+- Ability to remove calls from tickets, closed #421
+- Ability to add call to ticket from recordings page, closes #418
+
+### Fixed
+- Fixed issue when comment section was not updated after new comment was added, closes #419
+
+
+## [5.8-140] -2021-08-02
+### Added
+- Interface to create tickets for agents is copied to agent_crm endpoint
+- Interface to edit tickets for agents is copied to agent_crm endpoint
+- Interface to search tickets for agents is copied to agent_crm endpoint
+- New API endpoint rcording/add_to_ticket to add call to existing ticket
+- Calls that are belonging to ticket are displayed in ticket edit page
+- Ticket related changes are mirrored to admin side
+
+### Changed
+- Comments for tickets are ordr by descending order
+
+
+## [5.7.10] 2021-07-30
+### Added
+- New AGI script palitra_queue_connect_notifier
+- New API endpoint palitra/misc
+- Custom agent CRM components for palitra
+- New API endpoint ticket/get_by_number
+- When agent creates ticket, it is assigned to the call
+- Database migration: Add src field to future_events
+- Ability to add ticket to ongoing calls
+
+### Fixed
+- Fixed incorrect column name in agent_last_call migration
+
+
+## [5.7.9] - 2021-07-28
+### Added
+- Database migration: Add tickets table and related foreign keys to calls and future_events tables
+- New Ticket Model
+- Database migration: Create ticket comments table
+- Database migration: Add date related fields to tickets table
+- New Ticket_model->search() function
+- Tickets search and display functionality
+- Ability to create tickets
+- Database migration: Add status field to tickets
+- New Ticket comment model
+- Ability to add comments to tickts
+
+
+## [5.7.8] - 2021-07-21
+### Added
+- Database migration: Create ticket module related tables
+- Database migration: Config switch to activate ticketing module
+- Ticket Department management
+- Ticket Category management
+- Ticket Subcategory management
+
+
+## [5.7.7] - 2021-07-19
+### Added
+- Initial R3 redesign of start
+- new qq_sidebar_svg_icon() helper function
+
+
+## [5.7.6] - 2021-07-17
+### Added
+- Create separate module for R3 signin
+
+
+## [5.7.5] - 2021-07-16
+### Added
+- New Queue_model->ingest_freepbx_queue_agents()
+
+
+## [5.7.4] - 2021-07-15
+### Added
+- New Queue_model->ingest-freepbx_queues()
+- New Tools function sync_queues
+- Display queue extension in queue settings page
+
+
+## [5.7.3] - 2021-07-15
+### Added
+- New gamma specific endpoint anonymous/misc/generate_call
+- New Gamma specoific endpoints for api api/gamma/misc
+- Database migration: Create DIALOUT* events
+- Database migration: Add custom_uniqueid field to events table
+- Tools->parse-queue_log() can now process DIALOUTATTEMPT and DIALOUTFAILED events
+- New API endpoint api/gamma/misc/get_call
+- Database migration: Add dialout_fail_reason field to events table
+- Custom gamma context now adds dialout fail reason to queue log event
+- DIALOUTFAILED reason processing
+
+
+## [5.7.2]
+### Added
+- Added New API endpoint for hotsale
+- Added custom dialplan for hotsale
+
+
+## [5.7.1]
+### Added
+- Database migration: Changed agent extension column to VARCHAR, closes #404
+- Added Call_model->get_fisrt() function
+
+### Changed
+- Renamed agents/compare to agents/detailed_stats
+
+
+## [5.6.4] - 2021-06-09
+### Added
+- Database migration: Configurtion switch to display survey scores
+- queue/get_stats_total is now aware of survey scores
+- start/admin now displays survey scores
+
+## Fixed
+- Fixed and issue when parsing SURVEYRESULT was overwriting event_type for COMPLETE events
+
+
+## [5.6.3] - 2021-06-08
+### Added
+- New function Call_model->get_auto_callback_queue()
+- New function Call_model->make_auto_callback()
+
+
+## [5.6.2] - 2021-06-01
+### Added
+- Database migration: Create new config switch for surveys - survey destination context
+- Database migration: Create auto callback related configuration switches
+
+
+## [5.6.1] - 2021-06-01
+### Added
+- Database migration: rename IVRABANDON global config
+- Database migration: create new SURVEYRESULT event type
+- Log parser can now process SURVEYRESULT events
+- MY_Model->update_by_complex() now supports arrays is WHERE values
+
+### Changed
+- Move older changelog entries to CHANGELOG.md-old
+
+
+## [5.5.6] - 2021-06-01
+### Added
+- New function Call_model->get_survey_queue()
+- New function Call_model->make_survey_call()
+- New dialplan context for survey IVR
+
+
+## [5.5.5] - 2021-05-28
+### Fixed
+- Fix uninstall script to remove newly renamed queues config table
+
+
+## [5.5.4] - 2021-05-28
+### Added
+- Database migration: Rename queue config related tables and values
+- New function for Call_model to mark calls for survey
+
+### Fixed
+- Fixed uninstaller not deleting some tables
+- Bump migration version in config
+- Minor fixes in MY_Model
+
+
+## [5.5.3] - 2021-05-27
+### Added
+- Merge Gorgia Changes
+
+
+## [5.5.2] - 2021-05-27
+### Added
+- Database migration: Introducing IVR ABANDON events
+
+
+## [5.5.1] - 2021-05-26
+### Changed
+- Merge tegeta changes
+
+
+## [5.3.3] - 2021-03-17
+### Added
+- New anonymous endpoints for API
+- Signin JS routines
+- Function to get random help topics, closes #389
+- Added verification of signin form before activating submit button, closes #388
+
+
+## [5.2.10] - 2021-02-27
+### Changed
+- Fixed call details popup window, closes #382
+
+
+## [5.2.9] - 2021-02-27
+### Fixed
+- Fixed issue when managers could not export overview
+
+### Added
+- Users can now change their passwords through config/profile page, closes #381
+
+
+## [5.2.8] - 2021-02-22
+### Fixed
+- Fixed bug when merging agents was not possible due to not changing assoctaed_agent_id propery
+
+
+## [5.2.7] - 2021-02-22
+### Added
+- New function MY_Model->exists_by_complex
+
+### Changed
+- recording/create_future_event now updates existing completed calls if they exist
+
+
+## [5.2.6] - 2021-02-20
+### Fixed
+- Our web player now supports seek in chrome too, fixes #377
+
+
+## [5.2.5] - 2021-02-20
+### Fixed
+- user_agents are now unique for manager users, closes #373
+
+
+## [5.2.4] - 2021-02-20
+### Changed
+- Merge Tegeta changes
+
+
+## [5.2.3] - 2021-02-19
+### Added
+- New function get_unique_fields_with_count_by_complex in MY_Model
+- New endpoint /export/unique_callers
+
+### Changed
+- INCOMINGOFFWORK calls now will be marked as called_back
+
+### Fixed
+- Realtime pages with agent now r4efresh seemlessly, closes #375
+
+
+## [5.2.2] - 2021-02-10
+### Fixed
+- Fixed bug when outgoing calls in start/admin linked to incorrect recordings search page
+- Fixed wrong dates in CHANGELOG.md
+
+
+## [5.2.1] - 2021-02-07
+### Changed
+- Displaying comments in service stats page
+- Displaying service_stats page for in Agent CRM
+
+### Fixed
+- Fixed when comment searchj field did not show searched content
+
+
+## [5.1.6] - 2021-01-11
+### Added
+- Vendoo: Display additional information from customer API
+
+
+## [5.1.5] - 2021-01-10
+### Added
+- Tegeta: New custom Tools_tegeta controller
+
+
+## [5.1.4] - 2021-01-10
+### Added
+- Added new agi-bin/vendoo_queue_connect_notifier.php AGI script
+- Database migration: Create qq_agent_last_call table
+- New functions to set last call for agent
+- Added new function Agent_model->get_last_call
+- New Agent api method vendo_get_agent_last_call
+- Agent workspace for admin and agent now uses get_last_call routines
+- Vendoo: Saving future call now works, thanks to get_last_call routines
+- Vendoo: Load full call information as future call, if such exists
+
+
+## [5.1.3] - 2021-01-09
+### Added
+- Database migration: INCOMINGOFFWORK event now has 'has_calls' flag set to yes
+
+### Changed
+- Updated translations
+- In agent_crm/recordings, do not limit calls to agent_ids for agent, if restrictions allow it
+- Agents can mark INCOMINGOFFWORK calls as called_back in agent_crm/recordings
+
+
+## [5.1.2] - 2021-01-08
+### Changed
+- Minor formatting change in start/admin
+
+
+## [5.1.1] - 2021-01-08
+### Changed
+- Vendoo: by default call status is now closed
+- Archive pre 2019 changelog entries
+
+### Fixed
+- Vendoo: monitoring dashboard has same navbar as other pages, #371
+- INCOMINGOFFWORK now correctly exported in overview
+
+## [4.12.12] - 2020-12-30
+### Fixed
+- Fix previous database migration
+
+
+## [4.12.11] - 2020-12-30
+### Fixed
+- Fix previous database migration
+
+
+## [4.12.10] - 2020-12-28
+### Added
+- api/queue/get_overview now supports as_admin parameter
+- Database migration: Add sensible defaults, closes #367
+
+### Fixed
+- Fixed issue when api/queue/get_overview did not work
+
+
+## [4.12.9] - 2020-12-25
+### Fixed
+- Fixed bug when monitoring stats where not displayed correctly for specific queue
+
+
+## [4.12.8] - 2020-12-24
+### Added
+- New function 'get_unique_fields_by' in core model
+- Exporting overview stats now shows brakedown by called back result
+
+### Fixed
+- Managers now see only relevant DIDs in dashboard, closes #365
+- Fixed overview export stats - calls ans events are now queried against queue IDs, closes #366
+- Fixed bug when call distribution by hour was incorrect in overview export
+
+
+## [4.12.7] - 2020-12-21
+### Added
+- Vendoo: New customer API
+
+
+## [4.12.6] - 2020-12-21
+### Added
+- Exporting Overview stats now includes calls from off-work hours
+
+### Fixed
+- Vendoo: Agent CRM overview now displays same information as for monitoring dashboard for admins
+- Vendoo: Workspace page is now the same for admins and managers
+
+
+## [4.12.5] - 2020-12-16
+### Added
+- Vendoo: Showing custom start/agent_vendoo overview
+
+### Changed
+- Some Queue and Agent API endpoints now support 'as_admin' parameter
+
+
+## [4.12.4] - 2020-12-08
+### Changed
+- Thermorum dashboard now shows calls without service instead of unanswered calls
+
+
+## [4.12.3] - 2020-12-06
+### Changed
+- Removed status filter in switchboard
+
+### Fixed
+- Switchboard now show correct status if device is unavailable
+- We can now differentiate status for InUse and Busy in switchboard
+
+
+## [4.12.2] - 2020-12-05
+### Changed
+- If agent has show_in_dashboard set to now, we dont show them in top_agents, fixes #344
+
+### Fixed
+- merge_agents() now handles associated_agent_id field, fixes #362
+
+
+## [4.12.1] - 2020-12-01
+### Added
+- When exporting from recodings, call tags, statuses are shown, closes #363
+- Custom routes for Nova, and recordings related changes
+- Database migration: add custom fields to calls table
+- Database migration: add custom fields to future events table
+- Initial implementation of custom fields
+
+
+## [4.11.4] - 2020-11-26
+### Fixed
+- VENDOO: Fixed bug when agent_crm/overview_vendoo was not showing agents when there were active calls
+- Fixed incorredt translation string
+- Fixed incorrect vuejs element name in edit_user component
+
+
+## [4.11.3] - 2020-11-19
+### Added
+- Call distribution by hour is exported in overview stats, closes #359
+
+### Fixed
+- Fixed bug when adding blacklist numbers was not working
+
+
+## [4.11.2] - 2020-11-14
+### Added
+- Database migration: Configuration switch to enable managers to manage blacklist
+- Managers can now manage blacklist if corrersponding configuration switch is active, closes #358
+
+### Removed
+- Removed useless description field when adding blacklist numbers
+
+
+## [4.11.1] - 2020-11-10
+### Changed
+- Ignore events that have wrong timestamps
+
+
+## [4.10.1] - 2020-10-29
+### Fixed
+- Fixed bug when external calls were not showing in agent comparison graphs
+
+
+## [4.9.5] - 2020-09-28
+### Added
+- Implemented intro/help functionality, closes #355
+
+
+## [4.9.4] - 2020-09-27
+### Changed
+- Called back menu entry is now shown for managers, fixes #353
+
+### Fixed
+- Fixed issue when marking calls as called back was not working, fixes #348
+
+
+## [4.9.3] - 2020-09-14
+### Added
+- Showing calls without service in monitoring dashboard for Vendoo, closes #351
+
+### Changed
+- Monitoring dashboard in Agent_crm now shows broadcast notifications, closes #350
+
+
+## [4.9.2] - 2020-09-06
+### Fixed
+- Fixed bug when period interval choosers/movers where not visible in `queues/stats`, fixes #341
+- Fixed bug when error was through for outgoing calls in `queues/stats`
+- Date selectors in `queues/stats` now select 00:00 and 23:59 times, fixes #342
+
+
+## [4.9.1] - 2020-09-03
+### Added
+- Added new `agent_crm/recordings_vendoo` controller
+
+
+## [4.8.6] - 2020-08-27
+### Fixed
+- Fixed issue when queues/stats page was not showing outgoing calls
+
+### Removed
+- Useless configuration checks in queues/stats controller
+
+
+## [4.8.5] - 2020-08-25
+### Added
+- When calling `api/misc/generate_call` trunk will be specified from agent settings
+
+
+## [4.8.4] - 2020-08-25
+### Added
+- Agents can now have Trunk specified
+
+
+## [4.8.3] - 2020-08-25
+### Added
+- New `misc/generate_call` API call for click to call functionality, closes #336
+
+### Changed
+- Stats overview for start page and queue stats now show same data, closes #305
+
+
+## [4.8.2] - 2020-08-23
+### Added
+- Separate routes/views for monitoring dashboard for Vendoo
+
+### Fixed
+- Monitoring dashboard improvements for Vendoo
+
+### Removed
+- Removed non-functional barge dropdown in agents/index view
+
+
+## [4.8.1] - 2020-08-22
+### Added
+- Database migration: Added configuration switch to parse INCOMINGOFFWORK, #331
+- Database migration: Added INCOMINGOFFWORK to event types, #331
+- Added custom dialplan `qq-track-incomingoffwork`, #331
+- Added custom routes for vendoo
+- Dashboard now shows sum of calls in brakedown for queues, closes #333
+
+### Fixed
+- Fixed bug when searching for calls without service provided incorrect results, closes #332
+
+
+## [4.7.2] - 2020-07-29
+### Added
+- Database migration: Added configuration switch to show detail in dashboard
+- Added queue and agent detailed stats tables to dashboard, closes #328
+
+
+## [4.7.1] - 2020-07-22
+### Added
+- Database migration: Added configuration switch for CDR lookup
+- Added new API route `api/misc/cdr_lookup`
+- Added ability to perform CDR lookup, closes #326
+
+
+## [4.6.1] - 2020-06-23
+### Added
+- New service stats page for service module
+
+### Fixed
+- Fixed queue distribution graph for managers. Closes #323
+- Fixed bug when recordings page does not load when service module is disabled. Closes #324
+
+
+## [4.5.6] - 2020-05-31
+### Added
+- Database migration: Added all necessary tables and columns for service module
+- Database migration: Added service module columns to future events table
+- Models for servcie module
+- API anedpoints for service kodule
+- Configuration switch for service module
+- Service module parameters can be set on future calls from workspaces
+- Administrators and managers can search service module parameters from recordings view
+
+
+## [4.5.5] - 2020-05-18
+### Added
+- Database migration: Added call subcategories
+- Database migration: Added call subcategories config switch
+- Database migration: Added call subcategories to calls table
+- New Call_subcategory_model
+- Ability to manage to call subcategories, closes #319
+- Admin workspace now show dynamic subcategories
+
+
+## [4.5.4] - 2020-05-06
+### Fixed
+- `MY_model->get_unique_fields()` now ignores empty fields
+
+
+## [4.5.3] - 2020-05-06
+### Changed
+- Temporarily disabled `collect_custom_dids()` function
+
+
+## [4.5.2] - 2020-05-03
+### Changed
+- Outgoing calls per queue in start/admin now only show external outgoing calls
+
+
+## [4.5.1] - 2020-05-02
+### Added
+- Navigation for admins and managers now displays callback queue nav entry, closes #307
+- New function to get product information
+- New function to update product registration status
+- New route `product/register` to send product information to register service. Closes #292
+
+### Fixed
+- Start dashboard now properly displays total outgoing calls in graph, closes #316
+- Translation fixes. Closes #314, closes #315
+
+
+## [4.4.5]
+### Fixed - 2020-05-01
+- Fixed bug when future events where not matching actuall call IDs
+
+
+## [4.4.4] - 2020-04-29
+### Added
+- Initial introduction of product model and controller, for product registration
+
+### Fixed
+- Fixed bug when monitoring dashboard showed incorrect amount of outgoing calls
+
+
+## [4.4.3] - 2020-04-01
+### Added
+- Dashboard now shows calls without service, if configured so. Fixes #311
+- Domino routing configuration
+
+
+## [4.4.2] - 2020-04-01
+### Changed
+- If user marks call as called back manually, and auto marking of called back is
+enabled, called_back is marked an all calls from the source of the call. fixes #308
+
+### Fixed
+- Fixed bug when auto marking was working correctly when collecting outgoing calls. fixes #308
+
+
+## [4.4.1] - 2020-04-01
+### Added
+- Minor fixes in inconsistecies
+
+### Fixed
+- Uninstaller now removes all tables created during installation, closes #304
+
+
+## [4.3.2] - 2020-03-16
+### Added
+- New function `User_model->has_queue()`
+
+### Changed
+- Agent_crm dashboard now show dealtime overview for primary queue, closes #247
+- Dashboard DND is now 'inactive', closes #214
+
+
+## [4.3.1] - 2020-03-15
+### Added
+- Initial implementation of product registration
+- Recordings page now displays contacts for calls, #170
+- Agent CRM recordings page now displays contacts for calls, #170
+- Multiple enhancements and fixes
+
+## [4.2.4] - 2020-02-19
+### Added
+- Administrators can have workspace window, this concerns #274
+
+
+## [4.2.3] - 2020-02-19
+### Added
+- Show workspace menu entry if managers and admins have associated agents
+- Load current call windows for managers who have associated agent, closes #274
+
+### Fixed
+- Fixed bug when manager dashboard was showing spinners all the time
+
+
+## [4.2.2] - 2020-02-15
+### Added
+- DB migration to create `associated_agent_id` field for users
+- DB migration to create `show_in_dashboard` field for agents
+- Ability to assign new and existing users `associated_agent_id`
+- Agent parameter `show_in_dashboard` can be edited through agent configuration page
+- Dow not show agents inrealtime views, if they have `show_in_dashboard` disabled, closes #289
+
+
+## [4.2.1] - 2020-02-06
+### Added
+- CROCOBET: Initial implementation of Crocobet_contact_model
+- CROCOBET: Initial `api/crocobet_contact` API route
+- CROCOBET: Agent workspace is now separate route for Crocobet
+- CROCOBET: Displaying contact information in agent workspace for current call
+
+### Fixed
+- Installer now correctly populates routing configuration, closes #285
+
+
+## [4.1.4] - 2020-01-24
+### Added
+- Exported file from overview shows stats date period in first row in every sheet, closes #283
+- New Custom_time_interval_model
+
+### Changed
+- TERABANK: Exporting overview now does not export queues stats and queues sheet, closes #282
+- TERABANK: Ignore EXITWITHKEY events, closes #281
+
+
+## [4.1.3] - 2020-01-20
+### Added
+- Ability to search recordings by category ID, closes #278
+- When exporting calls, show call category column
+- Migration to create configs switch for `app_auto_mark_called_back`
+- Ability to manage onfiguration switch to control `app_auto_mark_called_back`
+- If `app_auto_mark_called_back` is set, parser will automatically mark unanswered calls as `called_back` based on outgoing calls, closes #276
+- Exporting stats from overview now show brakedown of categories, closes #259
+- Calls without service now does now include ignored unanswered calls, closes #275
+- Migration to add config switch `app_round_to_hundredth`
+- Stats share percentages are now optionally rounded to hundredth, closes #277
+
+
+## [4.1.2] - 2020-01-16
+### Added
+- Displaying spinner when loading agents/compare stats
+
+### Fixed
+- Fixed bug when agents/compare was not retaining interval dates
+
+
+## [4.1.1] - 2020-01-06
+### Added
+- Users are now able to select interface language upon login, closes #249
+
+### Fixed
+- Fixed error when start page was always try to show top agents
+- routes.php would be ignored in future for nore reliable upgrades
+
+
+## [3.12.4] - 2019-12-24
+### Changed
+- Start dashboard for managers is now the same as for administrators
+- Finalized Top agents feature
+
+
+## [3.12.3] - 2019-12-23
+### Added
+- Configuration switch to control tracking of top agents, closes #188
+- Agent_model now can return top agents
+- `custom_routes` folder to map site specific routes
+- Custom monitoring/dashboard for crocobet
+
+### Changed
+- Broadcast notifications are now fixed height in crocobet dashboard admin, closes #212
+
+### Fixed
+- Fixed uninstall script not deleting all tables
+- Fixed annoying NOTICE messages about HTTP_HOST
+- Installer now creates proper cron jobs, closes #12
+- Installer properly configures config.php, closes #263
+- Default settings will be applied to newly created agents, closes #245
+- Fixed bug when user could not comment on calls, closes #260
+- Temporary workaround for bug when many clls are marked as duplicate, closes #265
+- Links in start/admin now link to correct searc results, closes #264
+
+
+## [3.12.2] - 2019-12-23
+### Added
+- Agent CRM displays pause times, closes #227
+- Show percentage of stats in export/overview, closes #252
+- Exporting recordings exports call categories and comments, closes #258
+
+### Changed
+- Do not show COMPLETE* event breakdown in export/overview, closes #255
+- Do not show breakdown of unansnwered calls in export/overview
+- Do not show breakdown of called back calls per event in export/overview
+- Show average reaction time in agent stats in export/overview, closes #256
+
+### Removed
+- Remove collect_outgoing_from and collect_incoming_from related configuration and code, closes #250
+
+
+## [3.12.1] - 2019-12-19
+### Added
+- Exporting stats from overview, exports stats brakedown by day, closes #236
+- Admin dashboard now show max calls waiting, closes #248
+
+### Changed
+- Collecting incoming and outgoing calls is done from QQ_TODAY_START, for optimization purposes
+- Origposition is now called calls waiting
+- New versioning scheme - $qq-epoch.month.release
+
+### Fixed
+- Fixed bug when monitoring dashboard showed NaN for outgoing calls, closes #246
+
+
+## [2.25] - 2019-12-15
+### Added
+- Broadcast notifications can now be edited, closes #215
+- Ability to search calls by comment, closes #222
+- Dashboard can differentiate internal and external outgoing calls, closes #241
+- Recordings search can now filter based on internal and external outgoing calls
+- Exporting overview exports both internal and external calls
+- Agent comparative stats now display total stats and graphs, closes #238
+- Agent comparative stats now display average stats and graphs, closes #234
+- Ability to export agent comparative report
+- Displaying percentage of ignore abandon, calls without share in dashboard admin, closes #244
+
+### Changed
+- Broadcast notification index loads list via old school PHP
+
+
+## [2.16] - 2019-12-11
+### Added
+- New simple queue list page, closes #239
+- Added dropdown menu in monitoring dashboard to display realtime data per queue, closes #229
+- Migration to create config switch to ignore abandoned calls below specified hold time
+- Ability to set configuration item to ignore specific abandoned calls
+- Overview now shows ignored unanswered calls, closes #232
+- Exporting overview exports ignored unanswered calls
+- MY_Model.php: count_by_complex() now supports 'isnull' filtering
+- Call_model.php can now filter based on 'isnull' values
+- Start page now shows answered elsewhere calls
+- Exporting overview exports answered elsewhere calls
+- Start page shows calls without service
+- Exporting overview exports calls without service
+
+### Changed
+- Queue realtime page is now mirror of monitoring dashboard
+- Minor translation updates
+
+
+## [2.6] - 2019-11-26
+### Added
+- Added dark mode for monitoring dashboard, closes #186
+- Broadcast notifications now have colors
+- Recordings search now support search by calltimes in mm:ss format, closes #210
+- Agent CRM: callback table now displays hold times, closes #223
+- MY_Model.php: new function get_unique_fields_by_complex
+- Overview page now displays number of unique callers, closes #228
+- Call recordings now shows different icons for calls with comments, and without, closes #221
+- Migration to create creation_date, deleted and creator_user_id columns for qq_broadcast_notifications table
+- MY_Model->restore() function restore soft deleted items
+- Administrators can now restore broaddcast notifications
+- Notifications now display creator user
+
+### Changed
+- Monitoring dashboard fullscreen can now be toggled by button and escape key, closes #197
+- Monitoring dashboard now shows only available agents, closes #193
+- Redesigned monitoring dashboard, closed #205
+- Agent CRM overview now is monitoring dashboard, closes #211
+- Broadcast notifications are now soft deleted, closes #226
+- Broadcast_notification_model->create() now stores user ID and creation date
+
+### Fixed
+- Fixed bug when switchbord nav entry was not visible from monitoring dashboard, closes #213
+
+
+## [1.95] - 2019-11-02
+### Added
+- Switchboard is visible for agents too
+- Ability to filter extensions by state in switchboard, closes #202
+- Agents now change passwords, closes #201
+
+### Changed
+- Migration in this version brakes compatibility for agent permissions
+- Agent interface now updates in every two seconds
+- When creating user from agent, important data is filled out, closes #198
+- Call windows is always visible in agent workspace, closes #184
+- Switchboard orders states by their extension, closes #196
+- All agent related settings are set on per agent basis, closes #203
+
+### Fixed
+- New agents will not be created from event unrelated to calls, closes #200
+
+
+## [1.89] - 2019-10-30
+### Added
+- License files for all third party components
+- New pbx-bridge API system
+- Queue_model->get_asterisk_config() function
+- New API call api/queue/get_asterisk_config
+- New api/custom controller
+- New configuration switch to enable or disable switchboard functionality
+- Initial implementation of switchboard functionality, closes #192
+
+## [1.85] - 2019-10-24
+### Added
+- Added Agent CRM custom mode for Thermorum
+- Asterisk dialplans
+- Agent stats now display agent pause events
+- Fullscreen mode for monitoring, closes #187
+- Initial implementation of dark mode for dashboard, closes #186
+
+### Changed
+- Username can be 3 characters long now
+
+
+## [1.82] - 2019-10-11
+### Added
+- Practically implemented agent CRM mode, closes #158
+- Simple agent interface is finalized, closes #163
+- Agent CRM header has now indicator for ongoing calls
+
+### Changed
+- Current call window does not dissapear, when call ends, closes #147
+
+
+## [1.79] - 2019-09-30
+### Added
+- New migration to create boradcast notitications table
+- New Broadcast notification model
+- New Broadcast notification API controller
+- Administrator can now fully manage broadcast notifications
+
+
+## [1.78] - 2019-09-30
+### Added
+- New migration to create configuration switch for call tags
+- New migration to create call tags table
+- New `Call_tag_model`
+- Administrators now can manage configuration switch to (de)activate call tags
+- Administrators now can assign call tags to specific calls, closes #135
+- Config section to manage call tags
+
+### Changed
+- Agent can no longer export stats from their interace, closes #177
+
+### Fixed
+- Fixed bug when agent display name was not visible in header in agent inreface
+
+
+## [1.77] - 2019-09-28
+### Added
+- New migration to create configuration switch for call curators
+- Administrators now can manage configuration switch to (de)activate call curators
+- Administrators now can assign curators to specific calls, closes #172
+
+
+## [1.76] - 2019-09-28
+### Added
+- New migration to create configuration switch for call priorities
+- Administrators now can manage configuration switch to (de)activate call priorities
+- Administrators now can assign priorities to specific calls, closes #146
+
+
+## [1.75] - 2019-09-28
+### Added
+- Configuration switch to control call status management
+- Global configuration is now loaded in $this->data->config object in MY_Controller
+- Initial implementation of call update modal window
+- Ability for administrators to update call status, closes #171
+
+
+## [1.74] - 2019-09-28
+### Added
+- agent_crm: Implemented stats page
+- simple_agent_interface: Added recordings page
+- simple_agent_interface: Added stats page
+- Introduced new agent wallboard, closes #167
+
+### Fixed
+- Fixed bug when date error was showing up, closed #81
+
+
+## [1.69] - 2019-09-24
+### Added
+- New `Tools->reset_all_agents_settings` function, #157
+- `Agent_model` now handles agent settings, #157
+- New `agent` API calls to handle agent settings, #157
+- Agents settings page now manages agent related settings, closes #157
+- Implemented agent session markers, to track late starts and early ends, closes #155
+- Recordings search now supports search by uniqueid
+- Missed calls reports in agent stats now links to relevant call search results, closes #108, closes #121
+- Ongoing calls now have direction indicator, closes #114
+- Ability to add user to the agent, with correct agent associations and roles, closes #7
+- Ability to create agents manually, through agents/create, closes #10
+- Handle cases when queues/ and agents/ pages request non existent queues and agents, closes #159
+- Clicking on max holdtime and max calltime calls on admin dashboard will link to actual call recordinng search, closes #105
+- Ability to navigate stats with incremental interval, closes #113
+- Administrators can configure CRM mode from settings page
+- Introduced `future event` abstraction
+- Agent CRM mode - new overview page 99% ready
+- Agent CRM mode - new calledback queue page
+- Agent CRM mode - new recordings page
+- Agent CRM mode - new workspace page
+
+
+## [1.49] - 2019-08-31
+### Added
+- Agent dropdowns now display agent extension also, closes #128
+- New config option to mark duplicate calls
+- Collecting and displaying duplicate calls, closes #107
+- Only incoming calls are marked as duplicates, closes #139
+- Added configuration option to track agent pause times
+- Added configuration option to track agent session times
+- Displaying agent pause time in agent dashboard
+- New EditorConfig configuration. all files now have unix style line endings
+- Added configuration option to control call recording archiving
+- Added new Tools->archive_recordings to call recordiding archiving, closes #136
+- New common helper function to get call recording path `qq_get_call_recording_path`
+- Displaying pause time in agent/stats for day distribution
+- Displaying missed calls for agent/stats for day distribution
+- Agent stats graphs display pause time distribution by hour, closes #140
+- Initial session tracking through queue_log, closes #42
+- Agent API calls to start and end sessions
+- Agent API calls to pause and unpause agents
+- Agent stats now display stats breakdown by week day, closes #106
+- Queue stats now display stats breakdown by week day, closes #106
+- New agent settings table
+
+### Changed
+- When adding number to blacklist, only number is required, closes #119
+- Changed layout of agent stats page, fixes #77
+- Agents overview page lists agents ordered by extension, closes #115
+
+### Fixed
+- Fixed bug when user was not able to download call that ended ont next calendar day, closes #116
+- Fixed bug when language setting was not correctly shown in preferences page, closes #75
+- Fixed bug resulted by directly calling qq_get_called_back_styles() function was causing error, closes #133
+- Incorrect agent/stats label showing ring time as hold time in graphs, fixes #141, fixes #142
+- Fixed bug when hitting enter in recordings search form would cause time period dropdown to activate, closes #152
+- Fixed typo in some migrations where dbforge was referred by incorrect name
+
+
+## [1.22] - 2019-08-11
+### Added
+- Complete agent interface overhaul
+- New config parameter to control which calls agents can view in their dashboards
+- New config parameter to control where or not to show other agents in agent dashboard
+
+### Changed
+- Complete overhaul of agent interface
+
+### Fixed
+- Showing notifications when agent agent updates ongoing call, closes #124 and #125
+
+
+## [1.12] - 2019-08-08
+### Added
+- Called back calls can now be assigned two different statuses: Not needed and Failed
+- Ability to search calls recordings by called back status
+
+
+## [1.11] - 2019-08-02
+### Added
+- Settings to control whether agents can listen and download their own calls, closes #55
+
+## [1.10] - 2019-07-31
+### Added
+- Navigation improvements when creating users
+
+### Removed
+- Removed comment and categorty buttons for calls in agent interface, until further improvements
+
+### Fixed
+- Fixed bug when when numbers in stats where shown as NaN, closes #76
+
+
+## [1.9] - 2019-07-31
+### Changed
+- Recordings are displayed based on user role in recordings/search
+
+
+## [1.8] - 2019-07-30
+### Added
+- Ability to listen to calls withour downloading, fixes #49
+- Mark answered elsewhere functionality, fixes #109
+- Initial implementatiom to parse PAUSE events
+- Events table now has pausetime column for PAUSE events
+- Displaying agent pause times in agent/index
+- MY_Model->get_all() can be sorted
+- New Password_reset_request model
+- Ability for users to reset passwords
+- Interface for users with manager role
+
+### Fixed
+- Incorrect check when authenticating manager role users
+
+
+## [1.7] - 2019-06-27
+### Added
+- Ability to manage blacklist numbers, fixes #99
+- Data on dashboard and stats pages redirect to call search based on selected date and time
+- Initial implementation of user activity logging, fixes #19
+- Showing agent status overview in agent/index, fixes #87
+- Agent call distribution graph
+- Implemented command line function to merge/migrate agents, fixes #102
+- Ability to set user extension
+- Realtime calls in agent/index now always display proper caller ID, fixes #83
+- Agent stats now shows breakdown of complete events, fixes #111
+- Added ability to search random recordings, fixes #112
+
+### Changed
+- Changed how data is exported, using XLSXWriter instead of generating CSV
+- Changed how we treat DID events - to ensure their timestamp matches corresponding calls timestamp
+- We do not store RINGNOANSWER events with 0 ringtime
+
+### Fixed
+- Events not related to calls are not showing up in recordings search. Fixes #97
+- Optimizations in various queue and agent stats routines
+- Navbar entries are highlighted even when URL has # sign in it, fixes #110
+
+
+## [1.6] - 2019-06-09
+### Added
+- Users can now differentiate did events by did, in start and queue stats pages. Fixes #38
+- In dashboard, users can differentiate outgoing calls by queue
+- Ability to collect incoming internal calls, fixes #94
+- Ability to collect transferred calls, fixes #95
+
+### Changed
+- Displaying agent extensions in agent/index, fixes #86
+- Total calls value now includes outgoing calls, fixes #91
+
+### Fixed
+- Fix bug when uninstaller did not remove all tables
+- Minor fixes in installer
+- Fixed incorrect ringtime lookup in RINGNOANSWER events, fixes #92
+- Agent last call property is updated after outgoing calls, fixes #89
+- Fixed issue, when missed calls where not showing properly in agent stats, fixes #88
+
+
+## [1.5] - 2019-05-23
+### Added
+- Showing answered percentage in agent stats, fixes #61
+- Showing unanswered percentage in agent stats
+- Two new graphs in dashboard
+- Ability to export recordings
+- Administrators can now download files
+- Introduced agent sessions model
+- Abillity to export starts from start/admin
+- Very early implementation of qqctl
+- Users can now see breakdown of unanswered calls by event, fixes #70
+- Users can now see breakdown of answered calls by event, fixes #71
+- Users can now see breakdown of called back calls by event
+- Installer now creates qqctl binary, fixes #78
+
+### Changed
+- Called back flag is only set on EXIT* events, fixes #69
+- Changed agent status colors, fixes #74
+
+### Fixed
+- Recording search result pagination is done with codeigniter library, fixes #54
+- Showing numeration on recordings search results, fixes #48
+- Fixed incorrect links in stats pages, fixes #67
+
+
+## [1.4] - 2019-05-09
+### Added
+- Queue configuration management, fixes #21
+- Initial implementation of agent configuration management, fixes #22
+- Introduced new header logo
+- Icons as stats indicators, fixes #63
+- Search fields have labels now, fixes #64
+
+### Changed
+- More fixes regarding proper vuejs data loading
+- Redesigned agent stats page, to be more consistent with other stats pages
+- Rearranged recordings search tables, fixes #59
+- Modified main CSS so that fonts are more compact and pleasant to read
+- Seconds are now represented as hh:mm:ss format, even when seconds is less then one hour, fixes #62
+- Redesigned stats pages for more clean look
+
+## [1.3] - 2019-05-06
+### Added
+- Asterisk_manager->queue_log() function to add custom queue event logs
+- We can now parse ADDCOMMENT event
+- We can now parse ADDCATEGORY events
+- Agents can no add categories and comments to ongoing calls
+
+### Changed
+- More detailed overview in queues/index
+
+### Fixed
+- database.php is removed after installation from source tree, fixes #33
+
+
+## [1.2] - 2019-05-03
+### Added
+- Administrator can choose whether or not to manage call categories
+- Initial implementation of call category management
+- Ability to search recordings by categories
+- Administrators can add comments to the call
+- Administrators can now add categories to calls
+- Various fixes and imporvements
+
+### Changed
+- Source and destination numbers now linke to their respective search results in recordings search
+- Data on admin dashboard now displays loading state when loading, relates to #30
+- Slight redesign of agents overview page
+- More compact recordings search form
+
+### Fixed
+- Fixed bug when called back search option appeared even if called_back tracking functonality was disabled
+
+
+## [1.1] - 2019-04-29
+### Added
+- Initial implementation of agent interface, fixes #26
+- Comment and category fields for calls in database
+
+### Changed
+- Agent index page provides bit more information now
+- Tables in recording search are now responsive and more compact
+- Translation updates
+- Various fixes
+
+
+## [1.0] - 2019-04-26
+### Added
+- Fully localized user management
+- Notification system in php
+- Functionality to add and remove queues from user, fixes #27
+- Functionality to add and remove agents from user, fixes #28
+- Navbar entries are now highlighted based on url, fixes #13
+- Footer now displays application version, fixes #23
+- Admin dashboard can now display stats from different time periods, fixes #35
+- Calls can now optionally have called back field, fixes #40
+- Showing call direction in recordings search, fixes #44
+- Showing call status icon in recordings search, fixed #45
+- Displaying agent and queue names in recording search, fixes #46 and #47
+- Ability to select predefined time periods in recordings searcg, fixes #50
+- Ability to search calls by calltime, fixes #51
+
+### Changed
+- Admin dashboard now displays graphs with outgoing and missed calls
+- Queue stats now display graphs with outgoing calls
+- Agent stats now display graphs with outgoing calls
+- Deleting user completely deletes user data
+- Users can no longer login if they have no queues or agents assigned, fixes #32
+- All controllers no obey user role permissions, fixes #34
+- MY_Model.php now provides defaults to its function, fixes #3
+- Agent stats are always gathered according to user queues, fixes #17
+- Updated Georian translation
+
+### Fixed
+- Fixed #24, footer is properly displayed on every page
+- Fixed #31, User role can not be changed if user has queues or agents assigned
+- Fixed #36, displaying number of queues in dashboard
+- Fixed #37, displaying number of queues in dashboard
+- Fixed #39, number of calls link to relevant recordings search in dashboard
+- Fixed #29, page titles are now localized
+- Fixed #25, search form is now remembers its search fields
+- Fixed #53, when search by called back did not work
+
+
+## [0.74] - 2019-04-22
+### Added
+- Application settings management
+- Initial implementation of noification system
+- Added ability to collect outgoing calls. Fixes #8
+- Initial support for primary queues in agents. Fixes #14
+- Georgian translation. Fixes #5
+- Recordings search now can fetch and display  call events, fixes #15
+- Added footer, fixes #18
+
+### Changed
+- Queue overview page design, providing more informative overview of queues, fixes #1
+- Agent overbiew page design, providing more informative overview of agents, fixes #2
+
+### Fixed
+- Incorrect graph in dashboard for agent distribution
+
+
+## [0.52] - 2019-04-19
+### Added
+- Displaying agent realtime status in agents/stats
+- Displaying agent statistics in agent/stats
+- Displaying unique calls in queue/stats
+- Ability to select predefined periods for queue stats
+- Better navigation between queues and agents pages
+- Initial user management
+- Misc API route
+- New dashboard for application administrators
+- Initial translation framework
+
+
+## [0.34] - 2019-04-13
+### Added
+- Initial release
+- Queue overview page
+- Queue realtime page
+- Queue stats page
+- Basic user authentication

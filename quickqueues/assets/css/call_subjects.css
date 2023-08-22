@@ -1,0 +1,27 @@
+quickqueues/assets/css/call_subjects.css.w100{
+    width:100%;
+}
+
+.div_inline{
+    display:inline-block;
+}
+
+.div_right{
+    float:right;
+}
+
+.div_h_30{
+    height:30px;
+}
+
+.div_w_30{
+    width:30px;
+}
+
+.bg_green{
+    background-color: green;
+}
+
+.bg_red{
+    background-color: red;
+}

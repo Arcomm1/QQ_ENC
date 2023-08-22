@@ -1,0 +1,965 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+
+class Recordings extends MY_Controller {
+
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->data->page_title = lang('recordings');
+
+        if ($this->session->userdata('role') == 'agent') {
+            redirect(site_url('start'));
+        }
+
+        if ($this->data->config->app_contacts == 'yes') {
+            foreach ($this->Contact_model->get_all() as $c) {
+                $this->data->contacts[$c->number] = $c->name;
+            }
+        }
+    }
+
+
+    public function index_terabank()
+    {
+        $this->data->js_include = base_url('assets/js/components/recordings/index.js');
+
+        $this->data->interesting_events = $this->Event_type_model->get_many_by('has_calls', 'yes');
+
+        $this->data->track_called_back = $this->Config_model->get_item('app_track_called_back_calls');
+        $this->data->track_duplicates = $this->Config_model->get_item('app_track_duplicate_calls');
+
+        $this->data->called_back_styles = qq_get_called_back_styles();
+
+        $this->data->queues = array();
+        $this->data->agents = array();
+        $this->data->queue_ids = array();
+
+        if ($this->data->config->app_call_curators == 'yes') {
+            $this->data->users = $this->User_model->get_all();
+        }
+
+        foreach ($this->data->user_queues as $q) {
+            $this->data->queues[$q->id] = $q->display_name;
+            $this->data->queue_ids[] = $q->id;
+        }
+
+        foreach ($this->data->user_agents as $a) {
+            $this->data->agents[$a->id] = $a->display_name;
+        }
+
+
+        $where = array();
+        $like = array();
+
+
+        $where['calltime >'] = $this->input->get('calltime_gt') ? $this->input->get('calltime_gt') : false;
+        $where['calltime <'] = $this->input->get('calltime_lt') ? $this->input->get('calltime_lt') : false;
+
+        if (strpos($where['calltime >'], ':')) {
+            $t = explode(':', $where['calltime >']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime >'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+        if (strpos($where['calltime <'], ':')) {
+            $t = explode(':', $where['calltime <']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime <'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+
+        $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
+        $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+
+        if ($this->data->logged_in_user->role == 'admin') {
+            $where['queue_id'] = $this->input->get('queue_id');
+        } else {
+            $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
+        }
+
+        $where['agent_id']    = $this->input->get('agent_id');
+
+        $where['called_back'] = $this->input->get('called_back');
+        $where['category_id'] = $this->input->get('search_category_id');
+
+        $where['transferred'] = $this->input->get('transferred');
+        $where['duplicate']   = $this->input->get('duplicate');
+        $where['calltime']    = $this->input->get('calltime');
+        $where['holdtime']    = $this->input->get('holdtime');
+
+        $where['holdtime >']  = $this->input->get('holdtime_gt');
+        $where['holdtime <']  = $this->input->get('holdtime_lt');
+
+        $where['waittime >']  = $this->input->get('waittime_gt');
+        $where['waittime <']  = $this->input->get('waittime_lt');
+
+        if ($this->input->get('answered_elsewhere')) {
+            $where['answered_elsewhere >'] = 1;
+        }
+
+
+        if ($this->input->get('calls_without_service')) {
+            $where['called_back'] = 'no';
+            $where['answered_elsewhere'] = 'isnull';
+            $where['waittime >='] = $this->data->config->app_ignore_abandon;
+        }
+
+
+        if (strpos($this->input->get('uniqueid'), ',') !== false) {
+            $where['uniqueid'] = explode(',', $this->input->get('uniqueid'));
+        } else {
+            $where['uniqueid'] = $this->input->get('uniqueid');
+        }
+
+        if ($this->input->get('event_type') == 'ANSWERED') {
+            $where['event_type'] = array('COMPLETECALLER', 'COMPLETEAGENT');
+        } elseif ($this->input->get('event_type') == 'UNANSWERED') {
+            if ($this->data->config->app_track_ivrabandon == 'yes') {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
+            } else {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
+            }
+        } elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) <='] = 4;
+        } elseif ($this->input->get('event_type') == 'OUTGOING_EXTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) >'] = 4;
+        } elseif ($this->input->get('event_type') == 'INCOMING') {
+            $where['event_type'] = array('INC_FAILED', 'INC_ANSWERED', 'INC_NOANSWER', 'INC_BUSY');
+        } else {
+            $where['event_type'] = $this->input->get('event_type');
+        }
+
+        $like['src'] = $this->input->get('src');
+        $like['dst'] = $this->input->get('dst');
+        $like['transferdst'] = $this->input->get('transferred_to');
+        $like['comment'] = $this->input->get('search_comment');
+
+        //zura
+        $like['subject_comment'] = $this->input->get('subject_search_array');
+
+        $this->config->load('pagination');
+        $config                 = $this->config->item('pagination');
+        $config['base_url']     = site_url('recordings/');
+        if ($this->input->get('random') == 'true') {
+            $this->data->num_calls = 20;
+        } else{
+            $this->data->num_calls  = $this->Call_model->count($where, $like);
+        }
+        $config['total_rows']   = $this->data->num_calls;
+        $config['per_page']     = 20;
+        $config['anchor_class'] = 'follow_link';
+        $config['suffix']       = '&action=search';
+
+
+        // $g = $this->input->get();
+
+        foreach ($this->input->get() as $f => $v) {
+            if ($f == 'per_page') { continue; }
+            $config['suffix'] .= '&'.$f."=".$v;
+        }
+
+
+        $config['first_url'] = '?per_page=1'.$config['suffix'];
+        $this->load->library('pagination');
+        $this->pagination->initialize($config);
+
+        $page = $this->input->get('per_page');
+        $this->data->page = $page;
+
+        if ($this->input->get('random') == 'true') {
+            $this->data->calls = $this->Call_model->search($where, $like, 20, 0, true);
+        } else{
+            $this->data->calls = $this->Call_model->search($where, $like, $config["per_page"], $page);
+        }
+
+        $this->data->pagination_links  = $this->pagination->create_links();
+
+
+        if ($this->data->config->app_call_categories == 'yes') {
+            $this->data->call_categories = $this->Call_category_model->get_all();
+        }
+
+        if ($this->data->config->app_call_tags == 'yes') {
+            $this->data->call_tags = $this->Call_tag_model->get_all();
+        }
+
+        load_views(array('recordings/index'), $this->data);
+    }
+
+    public function index()
+    {
+        $this->data->js_include = base_url('assets/js/components/recordings/index.js');
+
+        $this->data->interesting_events = array(
+            'ANSWERED' => 'answered',
+            'UNANSWERED' => 'unanswered',
+            'COMPLETEAGENT' => 'COMPLETEAGENT',
+            'COMPLETECALLER' => 'COMPLETECALLER'
+        );
+
+        foreach ($this->data->user_queues as $q) {
+            $this->data->queues[$q->id] = $q->display_name;
+            $this->data->queue_ids[] = $q->id;
+        }
+
+        foreach ($this->data->user_agents as $a) {
+            $this->data->agents[$a->id] = $a->display_name;
+        }
+
+        $where = array();
+        $like = array();
+
+        $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
+        $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+
+        if ($this->data->logged_in_user->role == 'admin') {
+            $where['queue_id'] = $this->input->get('queue_id');
+        } else {
+            $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
+        }
+
+        $where['agent_id']    = $this->input->get('agent_id');
+        $where['called_back'] = $this->input->get('called_back');
+        $where['transferred'] = $this->input->get('transferred');
+        $where['duplicate']   = $this->input->get('duplicate');
+        $where['calltime']    = $this->input->get('calltime');
+        $where['holdtime']    = $this->input->get('holdtime');
+        $where['holdtime >']  = $this->input->get('holdtime_gt');
+        $where['holdtime <']  = $this->input->get('holdtime_lt');
+        $where['waittime >']  = $this->input->get('waittime_gt');
+        $where['waittime <']  = $this->input->get('waittime_lt');
+
+        if ($this->input->get('answered_elsewhere')) {
+            $where['answered_elsewhere >'] = 1;
+        }
+
+        if ($this->input->get('calls_without_service')) {
+            $where['called_back'] = 'no';
+            $where['answered_elsewhere'] = 'isnull';
+            $where['waittime >='] = $this->data->config->app_ignore_abandon;
+            $this->data->calls_without_service = 'yes';
+        } else {
+            $this->data->calls_without_service = false;
+        }
+
+        if (strpos($this->input->get('uniqueid'), ',') !== false) {
+            $where['uniqueid'] = explode(',', $this->input->get('uniqueid'));
+        } else {
+            $where['uniqueid'] = $this->input->get('uniqueid');
+        }
+
+        if ($this->input->get('event_type') == 'ANSWERED') {
+            $where['event_type'] = array('COMPLETECALLER', 'COMPLETEAGENT');
+        } elseif ($this->input->get('event_type') == 'UNANSWERED') {
+            if ($this->data->config->app_track_ivrabandon == 'yes') {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
+            } else {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
+            }
+        } elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) <='] = 4;
+        } elseif ($this->input->get('event_type') == 'OUTGOING_EXTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) >'] = 4;
+        } elseif ($this->input->get('event_type') == 'INCOMING') {
+            $where['event_type'] = array('INC_FAILED', 'INC_ANSWERED', 'INC_NOANSWER', 'INC_BUSY');
+        } else {
+            $where['event_type'] = $this->input->get('event_type');
+        }
+
+        $like['src'] = $this->input->get('src');
+        $like['dst'] = $this->input->get('dst');
+        $like['transferdst'] = $this->input->get('transferred_to');
+        $like['comment'] = $this->input->get('search_comment');
+        //zura
+        $like['subject_family'] = $this->input->get('subject_search_array');
+        
+        /* Set Pagination Value Per Page */
+        $pagination_res=$this->Config_model->use_pagination('app_pagination');
+        $pagination_limit=$pagination_res['value'];
+        
+        $this->config->load('pagination');
+        $config                 = $this->config->item('pagination');
+        $config['base_url']     = site_url('recordings/');
+        if ($this->input->get('random') == 'true') {
+            $this->data->num_calls = $pagination_limit;
+        } else{
+            $this->data->num_calls  = $this->Call_model->count($where, $like);
+        }
+        $config['total_rows']   = $this->data->num_calls;
+        $config['per_page']     = $pagination_limit;
+        $config['anchor_class'] = 'follow_link';
+        $config['suffix']       = '&action=search';
+
+        foreach ($this->input->get() as $f => $v) {
+            if ($f == 'per_page') { continue; }
+            $config['suffix'] .= '&'.$f."=".$v;
+        }
+
+
+        $config['first_url'] = '?per_page=1'.$config['suffix'];
+        $this->load->library('pagination');
+        $this->pagination->initialize($config);
+
+        $page = $this->input->get('per_page');
+        $this->data->page = $page;
+
+        if ($this->input->get('random') == 'true') {
+            $this->data->calls = $this->Call_model->search($where, $like, $pagination_limit, 0, true);
+        } else{
+            $this->data->calls = $this->Call_model->search($where, $like, $config["per_page"], $page);
+        }
+
+        $this->data->pagination_links  = $this->pagination->create_links();
+
+
+        if ($this->data->config->app_call_categories == 'yes') {
+            $this->data->call_categories = $this->Call_category_model->get_all();
+        }
+
+        if ($this->data->config->app_call_tags == 'yes') {
+            $this->data->call_tags = $this->Call_tag_model->get_all();
+        }
+
+        load_views('recordings/index', $this->data, true);
+    }
+
+
+    public function index_old()
+    {
+        $this->data->js_include = base_url('assets/js/components/recordings/index.js');
+
+        $this->data->interesting_events = $this->Event_type_model->get_many_by('has_calls', 'yes');
+
+        $this->data->track_called_back = $this->Config_model->get_item('app_track_called_back_calls');
+        $this->data->track_duplicates = $this->Config_model->get_item('app_track_duplicate_calls');
+
+        $this->data->called_back_styles = qq_get_called_back_styles();
+
+        $this->data->queues = array();
+        $this->data->agents = array();
+        $this->data->queue_ids = array();
+
+        if ($this->data->config->app_call_curators == 'yes') {
+            $this->data->users = $this->User_model->get_all();
+        }
+
+        foreach ($this->data->user_queues as $q) {
+            $this->data->queues[$q->id] = $q->display_name;
+            $this->data->queue_ids[] = $q->id;
+        }
+
+        foreach ($this->data->user_agents as $a) {
+            $this->data->agents[$a->id] = $a->display_name;
+        }
+
+
+        $where = array();
+        $like = array();
+
+
+        $where['calltime >'] = $this->input->get('calltime_gt') ? $this->input->get('calltime_gt') : false;
+        $where['calltime <'] = $this->input->get('calltime_lt') ? $this->input->get('calltime_lt') : false;
+
+        if (strpos($where['calltime >'], ':')) {
+            $t = explode(':', $where['calltime >']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime >'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+        if (strpos($where['calltime <'], ':')) {
+            $t = explode(':', $where['calltime <']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime <'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+
+        $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
+        $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+
+        if ($this->data->logged_in_user->role == 'admin') {
+            $where['queue_id'] = $this->input->get('queue_id');
+        } else {
+            $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
+        }
+
+        $where['agent_id']    = $this->input->get('agent_id');
+
+        $where['called_back'] = $this->input->get('called_back');
+        $where['category_id'] = $this->input->get('search_category_id');
+
+        $where['transferred'] = $this->input->get('transferred');
+        $where['duplicate']   = $this->input->get('duplicate');
+        $where['calltime']    = $this->input->get('calltime');
+        $where['holdtime']    = $this->input->get('holdtime');
+
+        $where['holdtime >']  = $this->input->get('holdtime_gt');
+        $where['holdtime <']  = $this->input->get('holdtime_lt');
+
+        $where['waittime >']  = $this->input->get('waittime_gt');
+        $where['waittime <']  = $this->input->get('waittime_lt');
+
+        $this->data->js_vars['app_service_module'] = $this->data->config->app_service_module;
+
+        if ($this->data->config->app_service_module == 'yes') {
+            $where['service_id'] = $this->input->get('service_id');
+            $where['service_product_id'] = $this->input->get('service_product_id');
+            $where['service_product_type_id'] = $this->input->get('service_product_type_id');
+            $where['service_product_subtype_id'] = $this->input->get('service_product_subtype_id');
+
+            $this->data->js_vars['service_module_params'] = json_encode(
+                array(
+                    'service_id' => $this->input->get('service_id'),
+                    'service_product_id' => $this->input->get('service_product_id'),
+                    'service_product_type_id' => $this->input->get('service_product_type_id'),
+                    'service_product_subtype_id' => $this->input->get('service_product_subtype_id'),
+                )
+            );
+
+            $this->data->services = $this->Service_model->get_all();
+        }
+
+
+
+        if ($this->input->get('calls_without_service')) {
+            $where['called_back'] = 'no';
+            $where['answered_elsewhere'] = 'isnull';
+            $where['waittime >='] = $this->data->config->app_ignore_abandon;
+            $this->data->calls_without_service = 'yes';
+        } else {
+            $this->data->calls_without_service = false;
+        }
+
+
+        if (strpos($this->input->get('uniqueid'), ',') !== false) {
+            $where['uniqueid'] = explode(',', $this->input->get('uniqueid'));
+        } else {
+            $where['uniqueid'] = $this->input->get('uniqueid');
+        }
+
+        if ($this->input->get('event_type') == 'ANSWERED') {
+            $where['event_type'] = array('COMPLETECALLER', 'COMPLETEAGENT');
+        } elseif ($this->input->get('event_type') == 'UNANSWERED') {
+            if ($this->data->config->app_track_ivrabandon == 'yes') {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
+            } else {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
+            }
+        } elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) <='] = 4;
+        } elseif ($this->input->get('event_type') == 'OUTGOING_EXTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) >'] = 4;
+        } elseif ($this->input->get('event_type') == 'INCOMING') {
+            $where['event_type'] = array('INC_FAILED', 'INC_ANSWERED', 'INC_NOANSWER', 'INC_BUSY');
+        } else {
+            $where['event_type'] = $this->input->get('event_type');
+        }
+
+        $like['src'] = $this->input->get('src');
+        $like['dst'] = $this->input->get('dst');
+        $like['transferdst'] = $this->input->get('transferred_to');
+        $like['comment'] = $this->input->get('search_comment');
+        //zura
+        $like['subject_comment'] = $this->input->get('subject_search_array');
+
+        $this->config->load('pagination');
+        $config                 = $this->config->item('pagination');
+        $config['base_url']     = site_url('recordings/');
+        if ($this->input->get('random') == 'true') {
+            $this->data->num_calls = 20;
+        } else{
+            $this->data->num_calls  = $this->Call_model->count($where, $like);
+        }
+        $config['total_rows']   = $this->data->num_calls;
+        $config['per_page']     = 20;
+        $config['anchor_class'] = 'follow_link';
+        $config['suffix']       = '&action=search';
+
+        foreach ($this->input->get() as $f => $v) {
+            if ($f == 'per_page') { continue; }
+            $config['suffix'] .= '&'.$f."=".$v;
+        }
+
+
+        $config['first_url'] = '?per_page=1'.$config['suffix'];
+        $this->load->library('pagination');
+        $this->pagination->initialize($config);
+
+        $page = $this->input->get('per_page');
+        $this->data->page = $page;
+
+        if ($this->input->get('random') == 'true') {
+            $this->data->calls = $this->Call_model->search($where, $like, 20, 0, true);
+        } else{
+            $this->data->calls = $this->Call_model->search($where, $like, $config["per_page"], $page);
+        }
+
+        $this->data->pagination_links  = $this->pagination->create_links();
+
+
+        if ($this->data->config->app_call_categories == 'yes') {
+            $this->data->call_categories = $this->Call_category_model->get_all();
+        }
+
+        if ($this->data->config->app_call_tags == 'yes') {
+            $this->data->call_tags = $this->Call_tag_model->get_all();
+        }
+
+        load_views(array('recordings/index_old'), $this->data);
+    }
+
+
+    public function index_nova()
+    {
+        $this->data->js_include = base_url('assets/js/components/recordings/index_nova.js');
+
+        $this->data->interesting_events = $this->Event_type_model->get_many_by('has_calls', 'yes');
+
+        $this->data->track_called_back = $this->Config_model->get_item('app_track_called_back_calls');
+        $this->data->track_duplicates = $this->Config_model->get_item('app_track_duplicate_calls');
+
+        $this->data->called_back_styles = qq_get_called_back_styles();
+
+        $this->data->queues = array();
+        $this->data->agents = array();
+        $this->data->queue_ids = array();
+
+        if ($this->data->config->app_call_curators == 'yes') {
+            $this->data->users = $this->User_model->get_all();
+        }
+
+        foreach ($this->data->user_queues as $q) {
+            $this->data->queues[$q->id] = $q->display_name;
+            $this->data->queue_ids[] = $q->id;
+        }
+
+        foreach ($this->data->user_agents as $a) {
+            $this->data->agents[$a->id] = $a->display_name;
+        }
+
+
+        $where = array();
+        $like = array();
+
+
+        $where['calltime >'] = $this->input->get('calltime_gt') ? $this->input->get('calltime_gt') : false;
+        $where['calltime <'] = $this->input->get('calltime_lt') ? $this->input->get('calltime_lt') : false;
+
+        if (strpos($where['calltime >'], ':')) {
+            $t = explode(':', $where['calltime >']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime >'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+        if (strpos($where['calltime <'], ':')) {
+            $t = explode(':', $where['calltime <']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime <'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+
+        $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
+        $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+
+        if ($this->data->logged_in_user->role == 'admin') {
+            $where['queue_id'] = $this->input->get('queue_id');
+        } else {
+            $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
+        }
+
+        $where['agent_id']      = $this->input->get('agent_id');
+
+        $where['called_back']   = $this->input->get('called_back');
+        $where['category_id']   = $this->input->get('search_category_id');
+        $where['tag_id']        = $this->input->get('search_tag_id');
+
+        $where['transferred']   = $this->input->get('transferred');
+        $where['duplicate']     = $this->input->get('duplicate');
+        $where['calltime']      = $this->input->get('calltime');
+        $where['holdtime']      = $this->input->get('holdtime');
+
+        $where['holdtime >']    = $this->input->get('holdtime_gt');
+        $where['holdtime <']    = $this->input->get('holdtime_lt');
+
+        $where['waittime >']    = $this->input->get('waittime_gt');
+        $where['waittime <']    = $this->input->get('waittime_lt');
+
+        $this->data->js_vars['app_service_module'] = $this->data->config->app_service_module;
+
+        if ($this->data->config->app_service_module == 'yes') {
+            $where['service_id'] = $this->input->get('service_id');
+            $where['service_product_id'] = $this->input->get('service_product_id');
+            $where['service_product_type_id'] = $this->input->get('service_product_type_id');
+            $where['service_product_subtype_id'] = $this->input->get('service_product_subtype_id');
+
+            $this->data->js_vars['service_module_params'] = json_encode(
+                array(
+                    'service_id' => $this->input->get('service_id'),
+                    'service_product_id' => $this->input->get('service_product_id'),
+                    'service_product_type_id' => $this->input->get('service_product_type_id'),
+                    'service_product_subtype_id' => $this->input->get('service_product_subtype_id'),
+                )
+            );
+
+            $this->data->services = $this->Service_model->get_all();
+        }
+
+        if ($this->input->get('answered_elsewhere')) {
+            $where['answered_elsewhere >'] = 1;
+        }
+
+        if ($this->input->get('calls_without_service')) {
+            $where['called_back'] = 'no';
+            $where['answered_elsewhere'] = 'isnull';
+            $where['waittime >='] = $this->data->config->app_ignore_abandon;
+            $this->data->calls_without_service = 'yes';
+        } else {
+            $this->data->calls_without_service = false;
+        }
+
+
+        if (strpos($this->input->get('uniqueid'), ',') !== false) {
+            $where['uniqueid'] = explode(',', $this->input->get('uniqueid'));
+        } else {
+            $where['uniqueid'] = $this->input->get('uniqueid');
+        }
+
+        if ($this->input->get('event_type') == 'ANSWERED') {
+            $where['event_type'] = array('COMPLETECALLER', 'COMPLETEAGENT');
+        } elseif ($this->input->get('event_type') == 'UNANSWERED') {
+            if ($this->data->config->app_track_ivrabandon == 'yes') {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
+            } else {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
+            }
+        } elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) <='] = 4;
+        } elseif ($this->input->get('event_type') == 'OUTGOING_EXTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) >'] = 4;
+        } elseif ($this->input->get('event_type') == 'INCOMING') {
+            $where['event_type'] = array('INC_FAILED', 'INC_ANSWERED', 'INC_NOANSWER', 'INC_BUSY');
+        } else {
+            $where['event_type'] = $this->input->get('event_type');
+        }
+
+        $like['src'] = $this->input->get('src');
+        $like['dst'] = $this->input->get('dst');
+        $like['transferdst'] = $this->input->get('transferred_to');
+        $like['comment'] = $this->input->get('search_comment');
+
+        //zura
+        $like['subject_comment'] = $this->input->get('subject_search_array');
+        $this->config->load('pagination');
+        $config                 = $this->config->item('pagination');
+        $config['base_url']     = site_url('recordings/');
+        if ($this->input->get('random') == 'true') {
+            $this->data->num_calls = 20;
+        } else{
+            $this->data->num_calls  = $this->Call_model->count($where, $like);
+        }
+        $config['total_rows']   = $this->data->num_calls;
+        $config['per_page']     = 20;
+        $config['anchor_class'] = 'follow_link';
+        $config['suffix']       = '&action=search';
+
+
+        // $g = $this->input->get();
+
+        foreach ($this->input->get() as $f => $v) {
+            if ($f == 'per_page') { continue; }
+            $config['suffix'] .= '&'.$f."=".$v;
+        }
+
+
+        $config['first_url'] = '?per_page=1'.$config['suffix'];
+        $this->load->library('pagination');
+        $this->pagination->initialize($config);
+
+        $page = $this->input->get('per_page');
+        $this->data->page = $page;
+
+        if ($this->input->get('random') == 'true') {
+            $this->data->calls = $this->Call_model->search($where, $like, 20, 0, true);
+        } else{
+            $this->data->calls = $this->Call_model->search($where, $like, $config["per_page"], $page);
+        }
+
+        $this->data->pagination_links  = $this->pagination->create_links();
+
+
+        if ($this->data->config->app_call_categories == 'yes') {
+            $this->data->call_categories = $this->Call_category_model->get_all();
+        }
+
+        if ($this->data->config->app_call_tags == 'yes') {
+            $this->data->call_tags = $this->Call_tag_model->get_all();
+        }
+
+        load_views(array('recordings/index_nova'), $this->data);
+    }
+
+
+    public function index_palitra()
+    {
+        $this->data->js_include = base_url('assets/js/components/recordings/index_palitra.js');
+
+        $this->data->interesting_events = $this->Event_type_model->get_many_by('has_calls', 'yes');
+
+        $this->data->track_called_back = $this->Config_model->get_item('app_track_called_back_calls');
+        $this->data->track_duplicates = $this->Config_model->get_item('app_track_duplicate_calls');
+
+        $this->data->called_back_styles = qq_get_called_back_styles();
+
+        $this->data->queues = array();
+        $this->data->agents = array();
+        $this->data->queue_ids = array();
+
+        if ($this->data->config->app_call_curators == 'yes') {
+            $this->data->users = $this->User_model->get_all();
+        }
+
+        foreach ($this->data->user_queues as $q) {
+            $this->data->queues[$q->id] = $q->display_name;
+            $this->data->queue_ids[] = $q->id;
+        }
+
+        foreach ($this->data->user_agents as $a) {
+            $this->data->agents[$a->id] = $a->display_name;
+        }
+
+        if ($this->data->config->app_ticket_fields_in_calls == 'yes') {
+            $this->data->departments = $this->Ticket_department_model->get_all();
+            foreach ($this->data->departments as $d) {
+                $this->data->t_departments[$d->id] = $d->name;
+            }
+            $this->data->categories = $this->Ticket_category_model->get_all();
+            foreach ($this->data->categories as $c) {
+                $this->data->t_categories[$c->id] = $c->name;
+            }
+            $this->data->subcategories = $this->Ticket_subcategory_model->get_all();
+            foreach ($this->data->subcategories as $s) {
+                $this->data->t_subcategories[$s->id] = $s->name;
+            }
+        }
+
+
+        $where = array();
+        $like = array();
+
+
+        $where['calltime >'] = $this->input->get('calltime_gt') ? $this->input->get('calltime_gt') : false;
+        $where['calltime <'] = $this->input->get('calltime_lt') ? $this->input->get('calltime_lt') : false;
+
+        if (strpos($where['calltime >'], ':')) {
+            $t = explode(':', $where['calltime >']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime >'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+        if (strpos($where['calltime <'], ':')) {
+            $t = explode(':', $where['calltime <']);
+            $m = $t[0];
+            $s = $t[1] + (60 * $m);
+            $where['calltime <'] = $s;
+            unset($t);
+            unset($m);
+            unset($s);
+        }
+
+
+        $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
+        $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+
+        if ($this->data->logged_in_user->role == 'admin') {
+            $where['queue_id'] = $this->input->get('queue_id');
+        } else {
+            $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
+        }
+
+        $where['agent_id']    = $this->input->get('agent_id');
+
+        $where['called_back'] = $this->input->get('called_back');
+        $where['category_id'] = $this->input->get('search_category_id');
+
+        $where['transferred'] = $this->input->get('transferred');
+        $where['duplicate']   = $this->input->get('duplicate');
+        $where['calltime']    = $this->input->get('calltime');
+        $where['holdtime']    = $this->input->get('holdtime');
+
+        $where['holdtime >']  = $this->input->get('holdtime_gt');
+        $where['holdtime <']  = $this->input->get('holdtime_lt');
+
+        $where['waittime >']  = $this->input->get('waittime_gt');
+        $where['waittime <']  = $this->input->get('waittime_lt');
+
+        $where['ticket_department_id'] = $this->input->get('search_ticket_department_id');
+        $where['ticket_category_id'] = $this->input->get('search_ticket_category_id');
+        $where['ticket_subcategory_id'] = $this->input->get('search_ticket_subcategory_id');
+
+        if ($this->input->get('search_ticket_department_id')) {
+            $this->data->json_vars['recordings_search.search_ticket_department_id'] = $this->input->get('search_ticket_department_id');
+        }
+
+        $this->data->js_vars['app_service_module'] = $this->data->config->app_service_module;
+
+        if ($this->data->config->app_service_module == 'yes') {
+            $where['service_id'] = $this->input->get('service_id');
+            $where['service_product_id'] = $this->input->get('service_product_id');
+            $where['service_product_type_id'] = $this->input->get('service_product_type_id');
+            $where['service_product_subtype_id'] = $this->input->get('service_product_subtype_id');
+
+            $this->data->js_vars['service_module_params'] = json_encode(
+                array(
+                    'service_id' => $this->input->get('service_id'),
+                    'service_product_id' => $this->input->get('service_product_id'),
+                    'service_product_type_id' => $this->input->get('service_product_type_id'),
+                    'service_product_subtype_id' => $this->input->get('service_product_subtype_id'),
+                )
+            );
+
+            $this->data->services = $this->Service_model->get_all();
+        }
+
+        if ($this->input->get('answered_elsewhere')) {
+            $where['answered_elsewhere >'] = 1;
+        }
+
+        if ($this->input->get('calls_without_service')) {
+            $where['called_back'] = 'no';
+            $where['answered_elsewhere'] = 'isnull';
+            $where['waittime >='] = $this->data->config->app_ignore_abandon;
+            $this->data->calls_without_service = 'yes';
+        } else {
+            $this->data->calls_without_service = false;
+        }
+
+
+        if (strpos($this->input->get('uniqueid'), ',') !== false) {
+            $where['uniqueid'] = explode(',', $this->input->get('uniqueid'));
+        } else {
+            $where['uniqueid'] = $this->input->get('uniqueid');
+        }
+
+        if ($this->input->get('event_type') == 'ANSWERED') {
+            $where['event_type'] = array('COMPLETECALLER', 'COMPLETEAGENT');
+        } elseif ($this->input->get('event_type') == 'UNANSWERED') {
+            if ($this->data->config->app_track_ivrabandon == 'yes') {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
+            } else {
+                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
+            }
+        } elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) <='] = 4;
+        } elseif ($this->input->get('event_type') == 'OUTGOING_EXTERNAL') {
+            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+            $where['LENGTH(dst) >'] = 4;
+        } elseif ($this->input->get('event_type') == 'INCOMING') {
+            $where['event_type'] = array('INC_FAILED', 'INC_ANSWERED', 'INC_NOANSWER', 'INC_BUSY');
+        } else {
+            $where['event_type'] = $this->input->get('event_type');
+        }
+
+        $like['src'] = $this->input->get('src');
+        $like['dst'] = $this->input->get('dst');
+        $like['transferdst'] = $this->input->get('transferred_to');
+        $like['comment'] = $this->input->get('search_comment');
+        //zura
+        $like['subject_comment'] = $this->input->get('subject_search_array');
+
+        $this->config->load('pagination');
+        $config                 = $this->config->item('pagination');
+        $config['base_url']     = site_url('recordings/');
+        if ($this->input->get('random') == 'true') {
+            $this->data->num_calls = 20;
+        } else{
+            $this->data->num_calls  = $this->Call_model->count($where, $like);
+        }
+        $config['total_rows']   = $this->data->num_calls;
+        $config['per_page']     = 20;
+        $config['anchor_class'] = 'follow_link';
+        $config['suffix']       = '&action=search';
+
+
+        // $g = $this->input->get();
+
+        foreach ($this->input->get() as $f => $v) {
+            if ($f == 'per_page') { continue; }
+            $config['suffix'] .= '&'.$f."=".$v;
+        }
+
+
+        $config['first_url'] = '?per_page=1'.$config['suffix'];
+        $this->load->library('pagination');
+        $this->pagination->initialize($config);
+
+        $page = $this->input->get('per_page');
+        $this->data->page = $page;
+
+        if ($this->input->get('random') == 'true') {
+            $this->data->calls = $this->Call_model->search($where, $like, 20, 0, true);
+        } else{
+            $this->data->calls = $this->Call_model->search($where, $like, $config["per_page"], $page);
+        }
+
+        $this->data->pagination_links  = $this->pagination->create_links();
+
+
+        if ($this->data->config->app_call_categories == 'yes') {
+            $this->data->call_categories = $this->Call_category_model->get_all();
+        }
+
+        if ($this->data->config->app_call_tags == 'yes') {
+            $this->data->call_tags = $this->Call_tag_model->get_all();
+        }
+
+        load_views(array('recordings/index_palitra'), $this->data);
+    }
+
+
+    public function export()
+    {
+
+    }
+
+
+
+}

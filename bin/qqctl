@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [[ $EUID -ne 0 ]]; then
+    echo "qqctl Utility must be run as root"
+    exit
+fi
+
+QQPATH=/var/www/html/callcenter
+QQBIN=$QQPATH/index.php
+CONTINUE=NO
+
+if [ ! -f $QQBIN ]; then
+    echo "Could not find Quickqueues installation folder"
+    exit
+fi
+
+if [[ $# == 0 ]]; then
+    echo "Please provide arguments"
+    exit
+fi
+
+php $QQBIN qqctl $1;
