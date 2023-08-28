@@ -25,3 +25,4 @@ quickqueues/application/VERSION
 quickqueues/application/PRODUCTINFO
 quickqueues/uploads/*
 
+quickqueues/qq_sessions/
