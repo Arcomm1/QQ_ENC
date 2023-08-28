@@ -265,6 +265,9 @@ class Recording extends MY_Controller {
 
         $path = qq_get_call_recording_path($call);
 
+        $path = (defined('DB_URL') == true ? DB_URL : '') . $path;
+        //echo $path; // path is incorrect for localhost!
+        
         if (file_exists($path)) {
             header('Content-Description: File Transfer');
             header('Content-Type: application/octet-stream');

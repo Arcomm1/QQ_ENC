@@ -18,9 +18,9 @@ application/logs/*
 /vendor/
 
 .install_dest
-quickqueues/application/config/database.php
-quickqueues/application/config/config.php
-quickqueues/application/config/routes.php
+#quickqueues/application/config/database.php
+#quickqueues/application/config/config.php
+#quickqueues/application/config/routes.php
 quickqueues/application/VERSION
 quickqueues/application/PRODUCTINFO
 quickqueues/uploads/*
