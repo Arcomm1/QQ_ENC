@@ -1324,6 +1324,19 @@ class Queue extends MY_Controller {
             $this->r->data = $this->asterisk_manager->queue_status($queue->name);
         }
 
+        $queueData = $this->Queue_model->get_queue_entries();
+
+        for ($num1 = 0; $num1 < count($this->r->data); $num1++)
+        {
+            for ($num2 = 0; $num2 < count($queueData); $num2++)
+            {
+                if($this->r->data[$num1]['data']['Queue'] == $queueData[$num2]['name'])
+                {
+                    $this->r->data[$num1]['data']['displayName'] = $queueData[$num2]['display_name'];
+                }
+            }
+        }
+        
         $this->r->status = 'OK';
         $this->r->message = 'Queue realtime data will follow';
         $this->_respond();

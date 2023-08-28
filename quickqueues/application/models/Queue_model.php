@@ -263,4 +263,11 @@ class Queue_model extends MY_Model {
         return $agents;
     }
 
+    public function get_queue_entries()
+    {
+        $this->db->select('id');
+        $this->db->select('name');
+        $this->db->select('display_name');
+        return $this->db->get($this->_table)->result_array();
+    }
 }
