@@ -29,9 +29,9 @@ if (array_key_exists('HTTP_HOST', $_SERVER))
     $config['base_url'] = 'http://'.$_SERVER['HTTP_HOST'].'/';
 }
 
-define('DB_URL' ,'10.10.11.250');
+define('HOST'   ,'10.10.11.250');
 define('DB_PORT','3306');
-define('DB_PATH',DB_URL.':'.DB_PORT);
+define('DB_PATH',HOST.':'.DB_PORT);
 
 /*
 |--------------------------------------------------------------------------

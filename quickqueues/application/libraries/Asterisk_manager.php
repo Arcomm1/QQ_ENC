@@ -55,7 +55,7 @@ class Asterisk_manager
     public function __construct()
     {
         $this->ci =& get_instance();
-        $this->ast_host = defined('DB_URL') == true ? DB_URL : $this->ci->Config_model->get_item('ast_ami_host');
+        $this->ast_host = defined('HOST') == true ? HOST : $this->ci->Config_model->get_item('ast_ami_host');
         $this->ast_port = $this->ci->Config_model->get_item('ast_ami_port');
         $this->ast_user = $this->ci->Config_model->get_item('ast_ami_user');
         $this->ast_pass = $this->ci->Config_model->get_item('ast_ami_password');

@@ -250,6 +250,13 @@ class Recording extends MY_Controller {
 
     public function get_file($id = false)
     {
+        if(defined('HOST') == true)
+        {
+            // we can't listen to sound while in dev mode, but we can download existing audio from virtual machine by redirecting (monkeypatch for development) 
+            header('Location: http://'.HOST.'/callcenter/index.php/api/recording/get_file/'.$id);
+            exit();
+        }
+        
         $this->load->library('user_agent');
         if (!$id) {
             set_flash_notif('danger', lang('something_wrong'));
@@ -265,9 +272,6 @@ class Recording extends MY_Controller {
 
         $path = qq_get_call_recording_path($call);
 
-        $path = (defined('DB_URL') == true ? DB_URL : '') . $path;
-        //echo $path; // path is incorrect for localhost!
-        
         if (file_exists($path)) {
             header('Content-Description: File Transfer');
             header('Content-Type: application/octet-stream');
