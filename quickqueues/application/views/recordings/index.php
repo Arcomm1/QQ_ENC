@@ -169,6 +169,7 @@
                                 <table class="table">
                                     <thead class="table table-light fw-semibold">
                                         <tr>
+                                            <th scope="col">&#35</th> <!-- New column for numeration -->
                                             <th scope="col"></th>
                                             <th scope="col"><?php echo lang('src'); ?></th>
                                             <th scope="col"><?php echo lang('dst'); ?></th>
@@ -179,10 +180,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <?php foreach ($calls as $c) {
+                                    <?php 
+                                    $rowNumber = 1; // Initialize row number counter
+                                    foreach ($calls as $c) {
                                         //print_r($c);
                                         ?>
-                                    <tr>
+                                    <tr class="table-row">
+                                        <td scope="row"><?php echo $rowNumber; ?></td> <!-- Display row number -->
                                         <td scope="row">
                                             <?php if (in_array($c->event_type, array('COMPLETECALLER', 'COMPLETEAGENT', 'CONNECT'))) { ?>
                                                 <i class="cil-arrow-thick-left text-success"></i>
@@ -238,9 +242,9 @@
                                                 ?>
                                             </div>
                                         </td>
-                                        <td scope="row">
+                                        <td scope="row" class="clickable-cell">
                                             <?php if ($logged_in_user->can_listen == 'yes') { ?>
-                                                <a @click="load_player(<?php echo $c->id; ?>)" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>)" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_listen == 'own') { ?>
                                                 <?php if ($logged_in_user->associated_agent_id == $c->agent_id) { ?>
@@ -269,7 +273,10 @@
                                             <?php } } ?>
                                         </td>
                                     </tr>
-                                    <?php } ?>
+                                    <?php 
+
+                                    $rowNumber++; // Increment row number counter
+                                } ?>
                                     <tbody>
                                 </table>
                             </div>
@@ -323,7 +330,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel"><?php echo lang('play_recording'); ?></h5>
+                <h5 class="modal-title" id="exampleModalLabel"><?php echo lang('play_recording'); ?><span id="row-number"></span></h5>
                 </button>
             </div>
             <div class="modal-body">
@@ -387,7 +394,9 @@
 /* --- End Of Modal Add Subject--- */
 ?>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function() 
+    {
+
         family_array=[];
 
         //Pass Reocrd Id And All Required Data To Modal Window
@@ -770,6 +779,27 @@
             $('#child_1_subject').find('option:not(:first)').remove();
             $('#child_2_subject').find('option:not(:first)').remove();
             $('#child_3_subject').find('option:not(:first)').remove();
-        })
+        });
+
+        //click event fot tabe row
+        $(".table-row").click(function() 
+        {
+            $(".table-row").removeClass("table-active");
+            $(".table-row").css("background-color", ""); // Reset background color for other rows
+            $(this).addClass("table-active");
+            $(this).css("background-color", "#c0c0c0"); // Set desired background color for the active row
+        });
+
+        // Click event for the document
+        $(document).click(function(event) 
+        {
+            // Check if the clicked element is not within the table or the modal
+            if (!$(event.target).closest(".table").length && !$(event.target).closest(".modal.fade").length) 
+            {
+                $(".table-row").removeClass("table-active");
+                $(".table-row").css("background-color", ""); // Reset background color for all rows
+            }
+        });
+        
     });
 </script>

@@ -13,8 +13,11 @@ var recordings = new Vue({
     },
 
     methods: {
-        load_player: function(id) {
-            var player = document.getElementById('qq_player');
+        load_player: function(id, rowNumber) {
+            var player                    = document.getElementById('qq_player');
+            var rowNumberPlaceholder      = document.getElementById('row-number');
+            rowNumberPlaceholder.innerText= " #" + rowNumber;
+            
             player.src=api_url+'recording/get_file/'+id;
             player.load();
         },
