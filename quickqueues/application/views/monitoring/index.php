@@ -218,7 +218,7 @@
             <div class="card border-top-danger border-danger border-top-3">
                 <div class="card-body">
                     <div v-for="queue in realtime_data">
-                        <h5 class="card-title">{{ lang['queue']+': '+queue['data']['Queue']+" ("+lang['callers']+")" }}</h5>
+                        <h5 class="card-title">{{ lang['queue'] + ': ' + queue['data']['Queue'] + ' (' + queue['data']['displayName'] + ')' }}</h5>
                         <table class="table table-sm">
                             <thead class="table-light fw-semibold">
                                 <tr class="align-middle">
