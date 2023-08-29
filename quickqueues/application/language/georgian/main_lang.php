@@ -283,6 +283,7 @@ $lang['blacklist_del_success']  = "ნომერი ამოღებულ�
 $lang['on_call']            = "საუბრობს";
 $lang['free']               = "თავისუფალი";
 $lang['busy']               = "დაკავებული";
+$lang['paused']             = "დაპაუზებული";
 
 
 $lang['connect_silently']   = "ჩართვა შეუმჩნევლად";
@@ -453,6 +454,7 @@ $lang['switchboard']        = 'სტატუს პანელი';
 
 $lang['available']          = "თავისუფალი";
 $lang['unavailable']        = "მიუწვდომელი";
+$lang['logged_out']         = "გათიშული";
 
 $lang['change_password']    = "პაროლი შეცვლა";
 

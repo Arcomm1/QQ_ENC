@@ -287,6 +287,7 @@ $lang['blacklist_del_success']  = "Number removed from blacklist";
 $lang['on_call']            = "On call";
 $lang['free']               = "Free";
 $lang['busy']               = "Busy";
+$lang['paused']             = "Paused"
 
 
 $lang['connect_silently']   = "Connect silently";
@@ -455,6 +456,7 @@ $lang['switchboard']        = "Switchboard";
 
 $lang['available']          = "Available";
 $lang['unavailable']        = "Unavailable";
+$lang['logged_out']         = "Logged out"
 
 $lang['change_password']    = "Change password";
 

@@ -113,12 +113,12 @@
                             </div>
                         </div>
                         <div class="col">
-                            <div class="border-start border-start-4 border-start-danger px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('busy'); ?></small>
+                            <div class="border-start border-start-4 border-start-danger px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('paused'); ?></small> 
                                 <div class="fs-5 fw-semibold">{{ agents_busy }}</div>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="border-start border-start-4 border-start-dark px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('unavailable'); ?></small>
+                            <div class="border-start border-start-4 border-start-dark px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('logged_out'); ?></small>
                                 <div class="fs-5 fw-semibold">{{ agents_unavailable }}</div>
                             </div>
                         </div>
