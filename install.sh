@@ -72,6 +72,15 @@ AMPMGRPASS=`cat /etc/amportal.conf | grep AMPMGRPASS | tr '=' ' ' | gawk '{print
 AMPMGRHOST=`cat /etc/amportal.conf | grep ASTMANAGERHOST | tr '=' ' ' | gawk '{print $2}'`
 AMPMGRPORT=`cat /etc/amportal.conf | grep ASTMANAGERPORT | tr '=' ' ' | gawk '{print $2}'`
 
+echo "Checking Development Folder"
+echo "================================================================================"
+if [ -d "quickqueues/application/config/development" ]; then
+    rm -rf "quickqueues/application/config/development"
+    echo "Development config Folder deleted."
+else
+    echo "Development Folder does not exist."
+fi
+
 
 echo ""
 echo "Generating configuration files"
@@ -160,14 +169,17 @@ if [ -d $DEST ]; then
         exit
     else
         echo "Overwriting existing installation destination"
-        /bin/cp -rf QQ/* $DEST/
+        echo "destination is " $DEST/
+        /bin/cp -rf quickqueues/* $DEST/
         echo $DEST > .install_dest
     fi
 
 else
     echo "Copying installation files"
+    echo "Source: " $(pwd)/quickqueues/
+    echo "Dest  : " $DEST
     mkdir -p $DEST
-    /bin/ln -s $(pwd)/QQ/* $DEST/
+    /bin/ln -s $(pwd)/quickqueues/* $DEST/
     /bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
     #/bin/cp VERSION $DEST/application/VERSION
     #/bin/cp -r quickqueues/* $DEST/
