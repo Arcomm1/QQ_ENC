@@ -160,14 +160,14 @@ if [ -d $DEST ]; then
         exit
     else
         echo "Overwriting existing installation destination"
-        /bin/cp -rf quickqueues/* $DEST/
+        /bin/cp -rf QQ/* $DEST/
         echo $DEST > .install_dest
     fi
 
 else
     echo "Copying installation files"
     mkdir -p $DEST
-    /bin/ln -s $(pwd)/quickqueues/* $DEST/
+    /bin/ln -s $(pwd)/QQ/* $DEST/
     /bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
     #/bin/cp VERSION $DEST/application/VERSION
     #/bin/cp -r quickqueues/* $DEST/
