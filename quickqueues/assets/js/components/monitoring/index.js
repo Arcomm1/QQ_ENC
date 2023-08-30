@@ -20,6 +20,9 @@ var monitoring_dashboard = new Vue({
             agent_current_calls: {},
             agent_current_calls_loading: true,
 
+            overal:{},
+            overal_loading: true,
+
             agents_free: 0,
             agents_busy: 0,
             agents_on_call: 0,
@@ -34,6 +37,7 @@ var monitoring_dashboard = new Vue({
                 .then(response => {
                     this.basic_stats = response.data.data;
                     this.basic_stats_loading = false;
+                    console.log(this.basic_stats);
                 });
         },
 
@@ -104,6 +108,7 @@ var monitoring_dashboard = new Vue({
             .then(response => {
                 this.agent_stats_loading = false;
                 this.agent_stats = response.data.data;
+                console.log(this.agent_stats, 'stats');
             });
         }
     },
@@ -126,6 +131,7 @@ var monitoring_dashboard = new Vue({
         this.get_freepbx_agents();
         this.get_agent_stats();
         this.get_realtime_data();
+        
 
         setInterval( () => this.get_basic_stats(), 60000);
         setInterval( () => this.get_agent_stats(), 60000);

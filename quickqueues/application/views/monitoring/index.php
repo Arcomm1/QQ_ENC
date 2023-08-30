@@ -130,10 +130,13 @@
                                     <thead class="table-light fw-semibold">
                                         <tr class="align-middle">
                                             <th scope="col"><?php echo lang('agent'); ?></th>
+                                            <th scope="col"><?php echo lang('status'); ?></th>
                                             <th scope="col"><?php echo lang('calls_answered'); ?></th>
+                                            <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
                                             <th scope="col"><?php echo lang('calls_missed'); ?></th>
-                                            <th scope="col"><?php echo lang('calls_outgoing'); ?></th>
-                                            <th scope="col"><?php echo lang('time'); ?></th>
+                                            <th scope="col"><?php echo lang('calls_outgoing_answered'); ?></th>
+                                            <th scope="col"><?php echo lang('outgoing_talk_time_sum'); ?></th>
+                                            <th scope="col"><?php echo lang('calls_outgoing_failed'); ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -158,10 +161,13 @@
                                                     {{ " | "+agent.last_call }}
                                                 </div>
                                             </td>
+                                            <td v-if="agent_current_calls[agent.extension]">--</td>
                                             <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_answered }}</td>
+                                            <td v-if="agent_current_calls[agent.extension]">{{ sec_to_time(agent_stats[agent.id].incomig_total_calltime) }}</td>
                                             <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_missed }}</td>
-                                            <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_outgoing }}</td>
-                                            <td v-if="agent_current_calls[agent.extension]">{{ sec_to_time(agent_stats[agent.id].total_calltime) }}</td>
+                                            <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_outgoing_answered }}</td>
+                                            <td v-if="agent_current_calls[agent.extension]">{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
+                                            <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_outgoing_unanswered }}</td>
                                         </tr>
                                         <tr v-for="agent in freepbx_agents">
                                             <td  v-bind:id="'agent_status_'+agent.agent_id"
@@ -179,7 +185,7 @@
                                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                                         {{ agent_current_calls[agent.extension].second_party }}
                                                     </span>
-                                                    <span v-else></span>
+                                                    <span v-else></span> 
                                                 </div>
                                                 <div class="small text-medium-emphasis">
                                                     <span>
@@ -188,6 +194,11 @@
                                                     {{ " | "+agent.last_call }}
                                                 </div>
                                             </td>
+
+                                            <td  v-if="agent_statuses[agent.extension].Status == 0 ||
+                                                 agent_statuses[agent.extension].Status == 2 ||
+                                                 agent_statuses[agent.extension].Status == 4 ||
+                                                 agent_statuses[agent.extension].Status == 8">--</td>
                                             <td  v-if="agent_statuses[agent.extension].Status == 0 ||
                                                  agent_statuses[agent.extension].Status == 2 ||
                                                  agent_statuses[agent.extension].Status == 4 ||
@@ -195,15 +206,23 @@
                                             <td  v-if="agent_statuses[agent.extension].Status == 0 ||
                                                  agent_statuses[agent.extension].Status == 2 ||
                                                  agent_statuses[agent.extension].Status == 4 ||
+                                                 agent_statuses[agent.extension].Status == 8">{{ sec_to_time(agent_stats[agent.id].incomig_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension].Status == 0 ||
+                                                 agent_statuses[agent.extension].Status == 2 ||
+                                                 agent_statuses[agent.extension].Status == 4 ||
                                                  agent_statuses[agent.extension].Status == 8">{{ agent_stats[agent.id].calls_missed }}</td>
                                             <td  v-if="agent_statuses[agent.extension].Status == 0 ||
                                                  agent_statuses[agent.extension].Status == 2 ||
                                                  agent_statuses[agent.extension].Status == 4 ||
-                                                 agent_statuses[agent.extension].Status == 8">{{ agent_stats[agent.id].calls_outgoing }}</td>
+                                                 agent_statuses[agent.extension].Status == 8">{{ agent_stats[agent.id].calls_outgoing_answered }}</td>
                                             <td  v-if="agent_statuses[agent.extension].Status == 0 ||
                                                  agent_statuses[agent.extension].Status == 2 ||
                                                  agent_statuses[agent.extension].Status == 4 ||
-                                                 agent_statuses[agent.extension].Status == 8">{{ sec_to_time(agent_stats[agent.id].total_calltime) }}
+                                                 agent_statuses[agent.extension].Status == 8">{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension].Status == 0 ||
+                                                 agent_statuses[agent.extension].Status == 2 ||
+                                                 agent_statuses[agent.extension].Status == 4 ||
+                                                 agent_statuses[agent.extension].Status == 8">{{ agent_stats[agent.id].calls_outgoing_unanswered }}
                                             </td>
                                         </tr>
                                     </tbody>
