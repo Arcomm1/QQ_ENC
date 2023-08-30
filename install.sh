@@ -191,7 +191,7 @@ elif [ $GENCRON != "y" ]; then
 else
     echo "Generating Cron job (this will overwrite any previous Quickqueues cron jobs schedules)"
     /bin/rm -f /etc/cron.d/quickqueues
-    echo "* * * * * root php $DEST/index.php tools parse_queue_log" > /etc/cron.d/quickqueues
+	echo "* * * * * root sleep \$((RANDOM\%10)) && php $DEST/index.php tools parse_queue_log" > /etc/cron.d/quickqueues
 fi
 echo "================================================================================"
 
