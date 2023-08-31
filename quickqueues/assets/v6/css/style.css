@@ -15100,3 +15100,19 @@ select option {
 }
 
 /*# sourceMappingURL=style.css.map */
+
+
+.customRow
+{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width:100%;
+    font-size: 12px;
+}
+
+.customRowTitle
+{
+  font-weight: bold;
+  margin-right: 20%;
+}

@@ -205,7 +205,7 @@
                                             <?php } ?>
                                         </td>
                                         <td scope="row">
-                                            <div><?php echo $c->src; ?></div>
+                                            <div scrPlaceholder><?php echo $c->src; ?></div>
                                             <?php if (in_array($c->event_type, array('OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY', 'OUT_FAILED'))) { ?>
                                             <div class="small text-medium-emphasis">
                                                 <?php echo $agents[$c->agent_id]; ?>
@@ -244,11 +244,11 @@
                                         </td>
                                         <td scope="row" class="clickable-cell">
                                             <?php if ($logged_in_user->can_listen == 'yes') { ?>
-                                                <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>)" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>, '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_listen == 'own') { ?>
                                                 <?php if ($logged_in_user->associated_agent_id == $c->agent_id) { ?>
-                                                    <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>)" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                    <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>,  '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                                 <?php } ?>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_download == 'yes') { ?>
@@ -324,31 +324,39 @@
         </div>
     </div>
 
-</div>
-
-<div class="modal fade" id="play_recording" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel"><?php echo lang('play_recording'); ?><span id="row-number"></span></h5>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col">
-                    <audio id="qq_player" controls>
-                        <source id="qq_player_src" src="test.wav" type="audio/wav" />
-                    </audio>
+    <div class="modal fade" id="play_recording" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="customRow">
+                        <div class="customRowTitle">
+                            <?php echo lang('play_recording'); ?><span> {{recordingsPopUp.name}}</span> <br>
+                        </div>
+                        <div>
+                            <?php echo lang('src'); ?> : {{ recordingsPopUp.from}}
+                        </div>
+                        <div>
+                            <?php echo lang('dst'); ?> : {{ recordingsPopUp.to}}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" class="close" data-coreui-dismiss="modal"><?php echo lang('close'); ?></button>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                        <audio id="qq_player" :src="recordingsPopUp.audioFile" type="audio/wav" controls></audio>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" class="close" data-coreui-dismiss="modal"><?php echo lang('close'); ?></button>
+                </div>
             </div>
         </div>
     </div>
+    
 </div>
 <?php
+
 /* ---- Modal Add Subject---*/
     echo "<div class='modal fade' id='call_subjects' tabindex='-1' role='dialog' aria-labelledby='add_subjects_modal_Title' aria-hidden='true'>";
     echo "<div class='modal-dialog modal-dialog-centered modal-lg' role='document'>";

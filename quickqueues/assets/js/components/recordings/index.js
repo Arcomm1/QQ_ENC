@@ -9,19 +9,23 @@ var recordings = new Vue({
             call_events        : {},
             call_events_error  : {},
             call_events_loading: {},
+            recordingsPopUp              : 
+            {
+                audioFile: '',
+                name     : '',
+                from     : '',
+                to       : ''
+            },
         }
     },
 
     methods: {
-        load_player: function(id, rowNumber) 
+        load_player: function(id, rowNumber, src, dst) 
         {
-            
-            var player                    = document.getElementById('qq_player');
-            var rowNumberPlaceholder      = document.getElementById('row-number');
-            rowNumberPlaceholder.innerText= " #" + rowNumber;
-            
-            player.src=api_url+'recording/get_file/'+id;
-            player.load();
+            this.recordingsPopUp.audioFile = api_url+'recording/get_file/'+id;
+            this.recordingsPopUp.name      = rowNumber;
+            this.recordingsPopUp.from      = src;
+            this.recordingsPopUp.to        = dst;
         },
 
         get_events: function (uniqueid)
@@ -29,7 +33,8 @@ var recordings = new Vue({
             console.log(uniqueid);
             axios.post(api_url+'recording/get_events/'+uniqueid, {})
                 .then(
-                    response => {
+                    response => 
+                    {
                         this.call_events = response.data.data;
                     })
                 .finally(() => this.call_events_loading = false)
@@ -39,27 +44,35 @@ var recordings = new Vue({
         {
             axios.post(api_url+'agent/get_all/')
                 .then(
-                    response => {
+                    response => 
+                    {
                         this.agents = response.data.data;
                     })
                 .finally(() => this.agent_loading = false)
         },
 
-        toggle_called_back: function(id, called_back) {
+        toggle_called_back: function(id, called_back) 
+        {
             axios.get(api_url+'recording/called_back/'+id+'/'+called_back)
                 .then(
-                    response => {
-                        if (response.data.status == 'OK') {
-                            if (called_back == 'no') {
+                    response => 
+                    {
+                        if (response.data.status == 'OK') 
+                        {
+                            if (called_back == 'no') 
+                            {
                                 $('#called_back_'+id).removeClass('text-success').removeClass('text-danger').removeClass('text-info').removeClass('text-warning').addClass('text-danger');
                             }
-                            if (called_back == 'yes') {
+                            if (called_back == 'yes') 
+                            {
                                 $('#called_back_'+id).removeClass('text-success').removeClass('text-danger').removeClass('text-info').removeClass('text-warning').addClass('text-success');
                             }
-                            if (called_back == 'nop') {
+                            if (called_back == 'nop') 
+                            {
                                 $('#called_back_'+id).removeClass('text-success').removeClass('text-danger').removeClass('text-info').removeClass('text-warning').addClass('text-warning');
                             }
-                            if (called_back == 'nah') {
+                            if (called_back == 'nah') 
+                            {
                                 $('#called_back_'+id).removeClass('text-success').removeClass('text-danger').removeClass('text-info').removeClass('text-warning').addClass('text-info');
                             }
                         }
@@ -78,7 +91,8 @@ var recordings = new Vue({
 
 });
 
-$('#play_recording').on('hidden.coreui.modal', function() {
+$('#play_recording').on('hidden.coreui.modal', function() 
+{
     var player = document.getElementById('qq_player');
     player.pause();
     player.removeAttribute('src'); // empty source
