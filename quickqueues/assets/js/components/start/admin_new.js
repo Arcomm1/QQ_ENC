@@ -290,6 +290,15 @@ var start = new Vue({
                 return '0%';
             }
         },
+
+        sla_count_grate_than_10_percent: function() {
+            if (this.total_stats.sla_count_total > 0) {
+                let grate_than_10 = (this.total_stats.sla_count_grate_than_10 / this.total_stats.sla_count_total) * 100;
+                return grate_than_10.toFixed(2)+'%';
+            } else {
+                return '0%';
+            }
+        },
         /* --- End Of SLA Hold Time --- */
 
         /* --- ATA Hold Time --- */
