@@ -15109,6 +15109,7 @@ select option {
     justify-content: space-between;
     width:100%;
     font-size: 12px;
+    font-weight: bold;
 }
 
 .customRowTitle
