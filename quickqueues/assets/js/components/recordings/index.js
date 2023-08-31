@@ -3,17 +3,19 @@ var recordings = new Vue({
     el: '#recordings',
     data () {
         return {
-            agents: {},
-            agents_error: {},
-            agents_loading: {},
-            call_events: {},
-            call_events_error: {},
+            agents             : {},
+            agents_error       : {},
+            agents_loading     : {},
+            call_events        : {},
+            call_events_error  : {},
             call_events_loading: {},
         }
     },
 
     methods: {
-        load_player: function(id, rowNumber) {
+        load_player: function(id, rowNumber) 
+        {
+            
             var player                    = document.getElementById('qq_player');
             var rowNumberPlaceholder      = document.getElementById('row-number');
             rowNumberPlaceholder.innerText= " #" + rowNumber;
@@ -22,7 +24,8 @@ var recordings = new Vue({
             player.load();
         },
 
-        get_events: function (uniqueid){
+        get_events: function (uniqueid)
+        {
             console.log(uniqueid);
             axios.post(api_url+'recording/get_events/'+uniqueid, {})
                 .then(
@@ -32,7 +35,8 @@ var recordings = new Vue({
                 .finally(() => this.call_events_loading = false)
         },
 
-        get_agents: function () {
+        get_agents: function () 
+        {
             axios.post(api_url+'agent/get_all/')
                 .then(
                     response => {

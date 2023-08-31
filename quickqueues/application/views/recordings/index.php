@@ -248,7 +248,7 @@
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_listen == 'own') { ?>
                                                 <?php if ($logged_in_user->associated_agent_id == $c->agent_id) { ?>
-                                                    <a @click="load_player(<?php echo $c->id; ?>)" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                    <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>)" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                                 <?php } ?>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_download == 'yes') { ?>
@@ -275,7 +275,7 @@
                                     </tr>
                                     <?php 
 
-                                    $rowNumber++; // Increment row number counter
+                                $rowNumber++; // Increment row number counter
                                 } ?>
                                     <tbody>
                                 </table>
