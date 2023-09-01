@@ -91,6 +91,21 @@
                                         </span>
                                         <span>{{ calls_total }}</span>
                                     </li>
+									
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="cil-list-rich text-primary mr-2"></i>
+                                            <a class="text-decoration-none link-dark">{{ lang['calls_unique_in'] }}</a>
+                                        </span>
+                                        <span>{{ unique_incoming_calls }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="cil-list-rich text-primary mr-2"></i>
+                                            <a class="text-decoration-none link-dark">{{ lang['calls_unique_users'] }}</a>
+                                        </span>
+                                        <span>{{ unique_calls }}</span>
+                                    </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-check text-success mr-4"></i>
@@ -121,10 +136,16 @@
                                             <i class="cil-watch text-danger mr-2"></i>
                                              {{ lang['start_menu_sla_greate_20'] }}
                                         </span>
-                                        <span>{{ total_stats.sla_count_grate_than_20 + ' ('+ sla_count_grate_than_20_percent +')' }}</span>
+                                        <span>{{ total_stats.sla_count_grate_than_10 + ' ('+ sla_count_grate_than_10_percent +')' }}</span>
                                     </li>
                                     <!-- End Of SLA Hold Time -->
-                                    
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="cil-av-timer text-warning mr-4"></i>
+                                            {{ lang['hold_time']+' ('+lang['max']+')' }}
+                                        </span>
+                                        <span>{{ hold_time_max }}</span>
+                                    </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-av-timer text-warning mr-4"></i>
@@ -132,15 +153,13 @@
                                         </span>
                                         <span>{{ hold_time_avg }}</span>
                                     </li>
+									
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-warning mr-2"></i>
-                                            <a class="text-decoration-none link-dark link-dark" 
-                                                :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">
-                                                {{ lang['start_menu_calls_unanswered'] }}
-                                            </a>
+                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['start_menu_calls_unanswered'] }}</a>
                                         </span>
-                                        <span>{{ total_stats.calls_unanswered }}</span>
+                                        <span>{{ calls_unanswered_percent }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
@@ -152,50 +171,35 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-danger mr-2"></i>
-                                            <a class="text-decoration-none link-dark" 
-                                                :href="app_url+'/recordings?event_type=calls_without_service&calls_without_service=yes&date_gt='+date_gt+'&date_lt='+date_lt">
-                                                <?php echo lang('calls_without_service'); ?>
-                                            </a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&calls_without_service=yes&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('calls_without_service'); ?></a>
                                         </span>
                                         <span>{{ total_stats.calls_without_service }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-check text-warning mr-4"></i>
-                                            <a class="text-decoration-none link-dark" 
-                                                :href="app_url+'/recordings?answered_elsewhere=yes&date_gt='+date_gt+'&date_lt='+date_lt">
-                                                <?php echo lang('answered_elsewhere'); ?>
-                                            </a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?answered_elsewhere=yes&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('answered_elsewhere'); ?></a>
                                         </span>
                                         <span>{{ total_stats.answered_elsewhere }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-reload text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" 
-                                                :href="app_url+'/recordings?called_back=yes&date_gt='+date_gt+'&date_lt='+date_lt">
-                                                <?php echo lang('answered_aoutcall'); ?>
-                                            </a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?called_back=yes&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('answered_aoutcall'); ?></a>
                                         </span>
                                         <span>{{ total_stats.called_back }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-arrow-thick-right text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" 
-                                                :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">
-                                                <?php echo lang('calls_outgoing_answered'); ?>
-                                            </a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('calls_outgoing_answered'); ?></a>
                                         </span>
                                         <span>{{ total_stats.calls_outgoing_answered }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-arrow-thick-right text-danger mr-4"></i>
-                                            <a class="text-decoration-none link-dark" 
-                                                :href="app_url+'/recordings?event_type=OUT_UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">
-                                                <?php echo lang('calls_outgoing_failed'); ?>
-                                            </a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('calls_outgoing_failed'); ?></a>
                                         </span>
                                         <span>{{ total_stats.calls_outgoing_unanswered }}</span>
                                     </li>
@@ -209,10 +213,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-lock-locked text-danger mr-4"></i>
-                                            <a class="text-decoration-none link-dark" 
-                                            :href="app_url+'/recordings?event_type=INCOMINGOFFWORK &date_gt='+date_gt+'&date_lt='+date_lt">
-                                            <?php echo lang('start_menu_calls_offwork'); ?>
-                                        </a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=INCOMINGOFFWORK &date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('start_menu_calls_offwork'); ?></a>
                                             <!-- {{ lang['calls_offwork'] }} -->
                                         </span>
                                         <!-- total -->
@@ -234,6 +235,13 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
+                                            <i class="cil-arrow-thick-left text-success mr-4"></i>
+                                            {{ lang['incoming_talk_time_max'] }}
+                                        </span>
+                                        <span>{{ incoming_total_calltime_max }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
                                             <i class="cil-arrow-thick-right text-primary mr-4"></i>
                                             {{ lang['outgoing_talk_time_sum'] }}
                                         </span>
@@ -245,6 +253,13 @@
                                             {{ lang['outgoing_talk_time_avg'] }}
                                         </span>
                                         <span>{{ outgoing_total_calltime_avg }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="cil-arrow-thick-right text-primary mr-4"></i>
+                                            {{ lang['outgoing_talk_time_max'] }}
+                                        </span>
+                                        <span>{{ outgoing_total_calltime_max }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
@@ -288,7 +303,7 @@
                     <div class="row mt-2">
                         <div class="col">
                             <div class="card border-top-warning border-warning border-top-3">
-                                <table class="table table-striped">
+                                <table class="table">
                                     <thead>
                                         <tr>
                                             <th scope="col" style="width:60%">{{ lang['agent'] }}</th>
@@ -457,13 +472,13 @@
                             <div id="subject_div"><!-- Placeholder For Subjects --></div>
                             </div>
                             <div class="p-2">
-                                <button @click="export_category" type="button" class="btn btn-primary">
-                                    {{ lang['category_export']}} 
-                                    <i class="cil cil-cloud-download"></i>
-                                </button>
+                                <button @click="export_category" type="button" class="btn btn-primary">{{ lang['category_export']}} <i class="cil cil-cloud-download"></i></button>
 
                                 <button  id="cat-refresh-button" type="button" class="btn btn-warning">{{ lang['category_refresh'] }}</button>
                             </div>
+                            <!--<div class="p-2">
+                                <button @click="show_category" type="button" class="btn btn-primary">Show</i></button>
+                            </div>-->
                         </div>
                     </div>
                 </div>
@@ -613,8 +628,12 @@ $(document).ready(function() {
                             child_1_html+="<ul><li id='li_1_"+ch_1_id+"'><button type='button' class='btn child_1_subject' id='"+ch_1_id+"'>";
                             child_1_html+=ch_1_title;
                             child_1_html+=" (" + child_1_count[i] + ")";
-                           
+                           /* if(child_2_count[i]>0) {
+                                child_1_html+=" -> (" + child_2_count[i] + ")";
+                            }*/
                             child_1_html+="</button></li></ul>";
+
+                            //open_list(ch_1_parent_id, ch_1_id, ch_1_title, child_2_count[i]);
                         }
                     }
                     $('#subject_col_2').html(child_1_html);
@@ -640,7 +659,7 @@ $(document).ready(function() {
 
         main_subject_id= $('#subject_family_input').val();
         child_id_2_for_request=child_id_2.substring(2);
-
+        //alert(child_id_2_for_reques);
         $('#subject_sub_family_input').val(child_id_2_for_request);
 
         date_lt_gt_array=get_date_lt_gt();
@@ -670,8 +689,16 @@ $(document).ready(function() {
                             child_2_html += "<ul><li id='li_2_" + ch_2_id + "'><button type='button' class='btn child_2_subject' id='" + ch_2_id + "'>";
                             child_2_html += ch_2_title;
                             child_2_html += " (" + child_2_count[i] + ")";
+                            /*if (child_3_count[i] > 0) {
+                                child_2_html += " -> (" + child_3_count[i] + ")";
+                            }*/
                             child_2_html += "</button></li></ul>";
                         }
+                        //if(child_3_count[i]>0){
+                            //child_2_html+="<ul><li id='li_2_"+ch_2_id+"'><button type='button' class='btn child_2_subject' id='"+ch_2_id+"' >"+ch_2_title+" ( "+child_3_count[i]+" ) </button></li></ul>";
+                            /* child_id_2='li_1_'+child_id_2;
+                            open_list('li_1_'+child_id_2, ch_2_id, ch_2_title, child_3_count[i]); */
+                        //}
                     }
                     $('#subject_col_3').html(child_2_html);
                 }
@@ -696,6 +723,7 @@ $(document).ready(function() {
         main_subject_id= $('#subject_family_input').val();
         main_sub_subject_id= $('#subject_sub_family_input').val();
         child_id_3_for_reques=child_id_3.substring(2);
+        //alert(child_id_3);
         date_lt_gt_array=get_date_lt_gt();
 
         $.post('<?php echo base_url() ?>index.php/Call_subjects_statistics/get_child_3_subjects',
@@ -711,20 +739,24 @@ $(document).ready(function() {
                 if(dataResult.statusCode==200){
                     var child_3_id=dataResult.child_3_subject;
                     var child_3_title=dataResult.child_3_subject;
-                    
+                    //var child_2_parent_id=dataResult.child_2_subject;
                     var child_4_count=dataResult.child_4_count;
-                    
+                    //console.log(child_4_count);
                     child_3_html="";
                     for(var i=0; i<child_3_title.length; i++){
                         ch_3_id='c_'+child_3_id[i]['id'];
                         ch_3_title=child_3_title[i]['title'];
-                       
+                        //ch_2_parent_id='b_'+child_2_parent_id[i]['parent_id'];
+                        //if(child_4_count[i]>0){
                         if(child_4_count[i]>0) {
                             child_3_html += "<ul><li id='li_3_" + ch_3_id + "'><button type='button' class='btn child_3_subject' id='" + ch_3_id + "' >";
                             child_3_html += ch_3_title;
                             child_3_html += " (" + child_4_count[i] + ")";
                             child_3_html += "</button></li></ul>";
                         }
+                            /* child_id_3='li_2_'+child_id_3;
+                            open_list(child_id_3, ch_3_id, ch_3_title, child_4_count[i]); */
+                        //}
                     }
                     $('#subject_col_4').html(child_3_html);
                 }

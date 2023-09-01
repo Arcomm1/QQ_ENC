@@ -631,8 +631,8 @@ $lang['new_article_in_news_directory'] = "New article in news directory";
 
 $lang['your_call_has_new_comment'] = "Your call has new comment";
 
-$lang['calls_outgoing_answered']  = "Outgoing calls (answered)";
-$lang['calls_outgoing_failed']    = "Outgoing calls (failed)";
+$lang['calls_outgoing_answered'] = "Outgoing calls (answered)";
+$lang['calls_outgoing_failed'] = "Outgoing calls (failed)";
 
 $lang['edit_customer_name'] = "Edit customer name";
 

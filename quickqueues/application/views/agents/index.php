@@ -102,6 +102,7 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Ordering -->
                     <table class="table">
                         <thead class="table-light fw-semibold">
                         <tr>
@@ -115,57 +116,107 @@
                         </tr>
                         </thead>
                         <tbody>
+                            
+                            
                             <tr v-for="agent in agents" v-if="agent.display_name">
-                                <td v-bind:id="'agent_status_'+agent.agent_id" scope="row">
-                                    <div>
-                                        <span>
-                                            <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-headphones mr-3 text-'+agent_statuses[agent.extension].status_color"></i>
-                                            <i v-else class="cil-headphones mr-3 text-dark"></i>
-                                        </span>
-                                        <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
-                                        <span v-if="agent_current_calls[agent.extension]">
-                                            <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
-                                            {{ agent_current_calls[agent.extension].second_party }}
-                                        </span>
-                                        <span v-else></span>
-                                    </div>
-                                    <div class="small text-medium-emphasis">
-                                        <span>
-                                            <span>{{ agent.extension }}<!--  {{ agent_statuses[agent.extension].Status }} --></span>
-                                        </span>
-                                        {{ " | "+agent.last_call }}
-                                    </div>
-                                </td>
-                                <td>{{ agent.calls_answered }}</td>
-                                <td>{{ agent.calls_missed }}</td>
-                                <td>{{ agent.calls_outgoing }}</td>
-                                <td>
-                                    {{ sec_to_time(agent.total_calltime) }}
-                                    <div class="small text-medium-emphasis">
-                                        <span>
-                                            <span>{{ sec_to_time(agent.total_pausetime) }}</span>
-                                        </span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span v-if="agent.dnd_status_pushed == 'on'" style="color:red">
-                                        {{ agent.dnd_status_pushed }} - {{ agent.dnd_subject_title_pushed }}
-                                        <div>
-                                            {{ agent.dnd_duration_pushed }}
-                                        </div>
+                                <td v-bind:id="'agent_status_'+agent.agent_id"
+                                v-if="agent_statuses[agent.extension].Status == 0 ||
+                                agent_statuses[agent.extension].Status == 2 ||
+                                agent_statuses[agent.extension].Status == 4 ||
+                                agent_statuses[agent.extension].Status == 8">
+                                <div>
+                                    <span>
+                                        <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-headphones mr-3 text-'+agent_statuses[agent.extension].status_color"></i>
+                                        <i v-else class="cil-headphones mr-3 text-dark"></i>
                                     </span>
-                                        <span v-else>
-                                        {{ agent.dnd_status_pushed}}
-                                   </span>
-                                    </td>
-                                    <td>
-                                        <a v-bind:href="'agents/dndperagent/'+agent.agent_id" class="btn btn-ghost-success">
-                                            <i class="cil-clock"></i>
-                                        </a>
-                                    </td>
-                            </tr>
-                        <tbody>
+                                    <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
+                                    <span v-if="agent_current_calls[agent.extension]">
+                                        <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
+                                        {{ agent_current_calls[agent.extension].second_party }}
+                                    </span>
+                                    <span v-else></span>
+                                </div>
+                                <div class="small text-medium-emphasis">
+                                    <span>
+                                        <span>{{ agent.extension }}</span>
+                                    </span>
+                                    {{ " | "+agent.last_call }}
+                                </div>
+                            </td>
+                            <td v-if="agent_statuses[agent.extension].Status == 0 ||
+                            agent_statuses[agent.extension].Status == 2 ||
+                            agent_statuses[agent.extension].Status == 4 ||
+                            agent_statuses[agent.extension].Status == 8">{{ agent.calls_answered }}</td>
+                            <td v-if="agent_statuses[agent.extension].Status == 0 ||
+                            agent_statuses[agent.extension].Status == 2 ||
+                            agent_statuses[agent.extension].Status == 4 ||
+                            agent_statuses[agent.extension].Status == 8">{{ agent.calls_missed }}</td>
+                            <td v-if="agent_statuses[agent.extension].Status == 0 ||
+                            agent_statuses[agent.extension].Status == 2 ||
+                            agent_statuses[agent.extension].Status == 4 ||
+                            agent_statuses[agent.extension].Status == 8">{{ agent.calls_outgoing }}</td>
+                            <td v-if="agent_statuses[agent.extension].Status == 0 ||
+                            agent_statuses[agent.extension].Status == 2 ||
+                            agent_statuses[agent.extension].Status == 4 ||
+                            agent_statuses[agent.extension].Status == 8">
+                            {{ sec_to_time(agent.total_calltime) }}
+                            <div class="small text-medium-emphasis">
+                                <span>
+                                    <span>{{ sec_to_time(agent.total_pausetime) }}</span>
+                                </span>
+                            </div>
+                        </td>
+                        <td v-bind:id="'agent_status_'+agent.agent_id" v-if="agent_current_calls[agent.extension]">
+                            <div>
+                                <span>
+                                    <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-headphones mr-3 text-'+agent_statuses[agent.extension].status_color"></i>
+                                    <i v-else class="cil-headphones mr-3 text-dark"></i>
+                                </span>
+                                    <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
+                                    <span v-if="agent_current_calls[agent.extension]">
+                                <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
+                                {{ agent_current_calls[agent.extension].second_party }}
+                                </span>
+                                    <span v-else></span>
+                            </div>
+                            <div class="small text-medium-emphasis">
+                                <span>
+                                    <span>{{ agent.extension }}</span>
+                                </span>
+                                    {{ " | "+agent.last_call }}
+                            </div>
+                        </td>
+                        <td v-if="agent_current_calls[agent.extension]">{{ agent.calls_answered }}</td>
+                        <td v-if="agent_current_calls[agent.extension]">{{ agent.calls_missed }}</td>
+                        <td v-if="agent_current_calls[agent.extension]">{{ agent.calls_outgoing }}</td>
+                        <td v-if="agent_current_calls[agent.extension]">
+                            {{ sec_to_time(agent.total_calltime) }}
+                            <div class="small text-medium-emphasis">
+                                <span>
+                                    <span>{{ sec_to_time(agent.total_pausetime) }}</span>
+                                </span>
+                            </div>
+                        </td>
+                            <td>
+                                <span v-if="agent.dnd_status_pushed == 'on'" style="color:red">
+                                    {{ agent.dnd_status_pushed }} - {{ agent.dnd_subject_title_pushed }}
+                                    <div>
+                                        {{ agent.dnd_duration_pushed }}
+                                    </div>
+                                </span>
+                                 <span v-else>
+                                    {{ agent.dnd_status_pushed}}
+                                </span>
+                                </td>
+                                <td>
+                                    <a v-bind:href="'agents/dndperagent/'+agent.agent_id" class="btn btn-ghost-success">
+                                        <i class="cil-clock"></i>
+                                    </a>
+                            </td>
+                    </tr>
+                        </tbody>
                     </table>
+                    <!--End Of Ordering-->
                 </div>
             </div>
         </div>

@@ -35,7 +35,7 @@ var start = new Vue({
                 .then(response => {
                     this.total_stats_loading = false;
                     this.total_stats = response.data.data;
-                    console.log(this.total_stats);
+                    console.log(this.total_stats, 'Total stats for start');
                     ctx_event_distrib = document.getElementById("canvas_event_distrib").getContext('2d');
                     this.chart_event_distrib = new Chart(ctx_event_distrib, {
                         type: 'bar',
