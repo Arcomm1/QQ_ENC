@@ -1,3 +1,5 @@
+Vue.config.devtools = true;
+
 var agent_overview = new Vue({
 
     el: '#agent_overview',
@@ -32,8 +34,9 @@ var agent_overview = new Vue({
             axios.get(api_url+'agent/get_stats_for_start/')
                 .then(response => {
                     if (typeof(response.data.data) == 'object') {
-                        this.agents = response.data.data;
                         
+                        this.agents = response.data.data;
+                       
                          /* DnD Status for Agents */
                          agent_id = '';
                          for (const agentId in this.agents) {
