@@ -125,8 +125,8 @@
                                  agent_statuses[agent.extension].Status == 8)">
                                 <div>
                                     <span>
-                                        <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-headphones mr-3 text-'+agent_statuses[agent.extension].status_color"></i>
-                                        <i v-else class="cil-headphones mr-3 text-dark"></i>
+                                        <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
+                                        <i v-else class="cil-phone mr-3 text-dark"></i>
                                     </span>
                                     <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
                                     <span v-if="agent_current_calls[agent.extension]">
@@ -172,8 +172,8 @@
                         <td v-bind:id="'agent_status_'+agent.agent_id" v-if="agent_current_calls[agent.extension]">
                             <div>
                                 <span>
-                                    <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-headphones mr-3 text-'+agent_statuses[agent.extension].status_color"></i>
-                                    <i v-else class="cil-headphones mr-3 text-dark"></i>
+                                    <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
+                                    <i v-else class="cil-phone mr-3 text-dark"></i>
                                 </span>
                                     <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
                                     <span v-if="agent_current_calls[agent.extension]">

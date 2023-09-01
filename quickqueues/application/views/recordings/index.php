@@ -330,7 +330,7 @@
                 <div class="modal-header">
                     <div class="customRow">
                         <div class="customRowTitle">
-                            <?php echo lang('play_recording'); ?><span> : #{{recordingsPopUp.name}}</span> <br>
+                            <?php echo lang('play_recording'); ?><span> : #{{recordingsPopUp.name}}</span>
                         </div>
                         <div>
                             <?php echo lang('src'); ?> : {{ recordingsPopUp.from}}

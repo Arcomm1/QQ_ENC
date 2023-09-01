@@ -15106,7 +15106,8 @@ select option {
 {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 20px;
     width:100%;
     font-size: 12px;
     font-weight: bold;
@@ -15115,5 +15116,4 @@ select option {
 .customRowTitle
 {
   font-weight: bold;
-  margin-right: 20%;
 }
