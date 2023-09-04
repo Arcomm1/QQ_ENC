@@ -98,7 +98,7 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-8 col-md-12 col-xs-12 col-sm-12 mb-3">
+        <div class="col-lg-8 col-md-12 col-xs-12 col-sm-12 mb-3 monitoring_dashboard_table">
             <div class="card border-top-primary border-primary border-top-3">
                 <div class="card-body">
                     <div class="row">
@@ -244,8 +244,8 @@
         <div class="col">
             <div class="card border-top-danger border-danger border-top-3">
                 <div class="card-body">
-                    <div v-for="queue in realtime_data">
-                        <h5 class="card-title">{{ lang['queue'] + ': ' + queue['data']['Queue'] + ' (' + queue['data']['displayName'] + ')' }}</h5>
+                    <div v-for="queue in realtime_data" class="monitoring_dashboard_queue_cell">
+                        <h6 class="card-title">{{ lang['queue'] + ': ' + queue['data']['Queue'] + ' (' + queue['data']['displayName'] + ')' }}</h6>
                         <table class="table table-sm">
                             <thead class="table-light fw-semibold">
                                 <tr class="align-middle">

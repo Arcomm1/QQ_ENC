@@ -15117,3 +15117,16 @@ select option {
 {
   font-weight: bold;
 }
+
+.monitoring_dashboard_table
+{
+  font-size: 10px;
+  width    : 80%;
+
+}
+
+.monitoring_dashboard_queue_cell
+{
+  font-size: 10px;
+}
+

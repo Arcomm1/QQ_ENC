@@ -269,7 +269,7 @@
                                                     <a @click="toggle_called_back(<?php echo $c->id; ?>, 'nah')" href="javascript:void(0)" class="dropdown-item" href="javascript:void(0)"><?php echo lang('cb_nah'); ?></a>
 
                                                 </div>
-                                                <a id="called_back_<?php echo $c->id; ?>" class="<?php echo $called_back_styles[$c->called_back]; ?>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="cil-reload"></i></a>
+                                                <a id="called_back_<?php echo $c->id; ?>" class="<?php echo $called_back_styles[$c->called_back]; ?>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display:none;"><i class="cil-reload"></i></a> <!-- called back icon, hidden temporarily -->
                                             <?php } } ?>
                                         </td>
                                     </tr>
