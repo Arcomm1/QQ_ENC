@@ -15113,6 +15113,14 @@ select option {
     font-weight: bold;
 }
 
+.agent-stat-numbers
+{
+  font-size: 18px;
+}
+.monitoring-table-head
+{
+  font-size: 16px;
+}
 .customRowTitle
 {
   font-weight: bold;
@@ -15120,13 +15128,16 @@ select option {
 
 .monitoring_dashboard_table
 {
-  font-size: 10px;
   width    : 80%;
+}
 
+.monitoring-dashboard-table-body
+{
+  font-size: 16px;
 }
 
 .monitoring_dashboard_queue_cell
 {
-  font-size: 10px;
+  font-size: 16px;
 }
 

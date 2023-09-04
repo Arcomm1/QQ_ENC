@@ -17,7 +17,7 @@ $lang['last']               = "ბოლო";
 $lang['last_call']          = "ბოლო ზარი";
 $lang['actions']            = "ქმედებები";
 
-$lang['calls_answered']     = "ნაპასუხები";
+$lang['calls_answered']     = "შემომავალი (ნაპასუხები)";
 $lang['calls_unanswered']   = "უპასუხო";
 $lang['calls_ongoing']      = "მიმდინარე ზარები";
 $lang['calls_waiting']      = "მოლოდინში";
@@ -96,7 +96,7 @@ $lang['last_30_days']       = "ბოლო 30 დღე";
 $lang['refresh']            = "განახლება";
 
 $lang['status']             = "სტატუსი";
-$lang['calls_missed']       = "გამოტოვებული ზარები";
+$lang['calls_missed']       = "გამოტოვებული (შემომავალი)";
 $lang['call_distrib_by_hour']   = "ზარების განაწილება საათის მიხედვით";
 $lang['call_distrib_by_day']    = "ზარების განაწილება დღის მიხედვით";
 $lang['not_implemented']    = "მზადების პროცესში";
@@ -705,18 +705,18 @@ $lang['start_menu_calls_unanswered'] = "უპასუხო შემომა
 $lang['start_menu_calls_offwork'] = "შემოსული არასამუშაო საათებში";
 $lang['start_menu_calls_waiting'] = "პოზიცია რიგში";
 
-$lang['start_menu_sla_less_10'] = "SLA < 10 წამზე";
-$lang['start_menu_sla_greate_10_less_20'] = "SLA > 10 and SLA < 20 წამზე";
-$lang['start_menu_sla_greate_20'] = "SLA > 20 წამზე";
+$lang['start_menu_sla_less_than_or_equal_to_10'] = "SLA <= 10 წამზე"; 
+$lang['start_menu_sla_greater_than_10_less_then_or_equal_to_20'] = "SLA > 10 and SLA <= 20 წამზე";
+$lang['start_menu_sla_greater_than_20'] = "SLA > 20 წამზე";
 
 $lang['ata'] = "ATA (საშუალო დრო)";
 $lang['answered_aoutcall'] = "ნაპასუხები (გადარეკილი)";
 
-$lang['incoming_talk_time_sum'] = "შემომავალი  საუბრის დრო (ჯამური)";
+$lang['incoming_talk_time_sum'] = "დრო (ჯამური)";
 $lang['incoming_talk_time_avg'] = "შემომავალი  საუბრის დრო (საშუალო)";
 $lang['incoming_talk_time_max'] = "შემომავალი  საუბრის დრო (მაქსიმალური)";
 
-$lang['outgoing_talk_time_sum'] = "გამავალი  საუბრის დრო (ჯამური)";
+$lang['outgoing_talk_time_sum'] = "დრო (ჯამური)";
 $lang['outgoing_talk_time_avg'] = "გამავალი  საუბრის დრო (საშუალო)";
 $lang['outgoing_talk_time_max'] = "გამავალი  საუბრის დრო (მაქსიმალური)";
 
