@@ -29,6 +29,9 @@ var monitoring_dashboard = new Vue({
             agents_on_call             : 0,
             agents_unavailable         : 0,
             total_callers              : 0,
+
+            isAgentSpeaking            : false,
+            callDuration               : 0,
         }
     },
 
@@ -68,6 +71,7 @@ var monitoring_dashboard = new Vue({
                     this.agents_on_call     = 0;
                     this.agents_free        = 0;
                     this.agents_unavailable = 0;
+                    let anyAgentSpeaking    = false;
                     for (fa in this.freepbx_agents) 
                     {
                         if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Idle') 
@@ -80,12 +84,23 @@ var monitoring_dashboard = new Vue({
                         }
                         if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'InUse') 
                         {
+
+                            anyAgentSpeaking = true;
                             this.agents_on_call++;
                         }
                         if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Busy') 
                         {
                             this.agents_busy++;
                         }
+                    }
+                    if (!anyAgentSpeaking) 
+                    {
+                        this.isAgentSpeaking = false;
+                        this.callDuration = 0;
+                    }
+                    else 
+                    {
+                        this.isAgentSpeaking = true;
                     }
                 })
         },
@@ -112,6 +127,7 @@ var monitoring_dashboard = new Vue({
                 {
                     this.agent_current_calls         = response.data.data;
                     this.agent_current_calls_loading = false;
+
                 }
             })
         },
@@ -148,6 +164,7 @@ var monitoring_dashboard = new Vue({
         this.get_agent_stats();
         this.get_realtime_data();
         
+        
 
         setInterval(() => this.get_basic_stats(), 2000);
         setInterval(() => this.get_agent_stats(), 2000);
@@ -155,6 +172,14 @@ var monitoring_dashboard = new Vue({
         setInterval(() => this.get_agent_realtime_status(), 2000);
         setInterval(() => this.get_realtime_data(), 2000);
         setInterval(() => this.get_current_calls(), 3000);
+
+        setInterval(() => 
+        {
+            if (this.isAgentSpeaking)
+            {
+                this.callDuration++
+            }
+        }, 1000)
     }
 
 });

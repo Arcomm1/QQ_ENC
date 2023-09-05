@@ -101,7 +101,7 @@
         <div class="col-lg-8 col-md-12 col-xs-12 col-sm-12 mb-3 monitoring_dashboard_table">
             <div class="card border-top-primary border-primary border-top-3">
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row agent-stat-numbers">
                         <div class="col">
                             <div class="border-start border-start-4 border-start-success px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('available'); ?></small>
                                 <div class="fs-5 fw-semibold">{{ agents_free }}</div>
@@ -128,7 +128,7 @@
                             <div class="table-responsive">
                                 <table class="table table-border mb-0">
                                     <thead class="table-light fw-semibold">
-                                        <tr class="align-middle">
+                                        <tr class="align-middle monitoring-table-head">
                                             <th scope="col"><?php echo lang('agent'); ?></th>
                                             <th scope="col"><?php echo lang('status'); ?></th>
                                             <th scope="col"><?php echo lang('calls_answered'); ?></th>
@@ -139,7 +139,7 @@
                                             <th scope="col"><?php echo lang('calls_outgoing_failed'); ?></th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody class="monitoring-dashboard-table-body">
                                         <tr v-cloak v-for="agent in freepbx_agents" class="align-middle">
                                             <td v-bind:id="'agent_status_'+agent.agent_id" v-if="agent_current_calls[agent.extension]">
                                                 <div>
@@ -152,6 +152,7 @@
                                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                                         {{ agent_current_calls[agent.extension].second_party }}
                                                     </span>
+                                                    <span>{{ sec_to_time(callDuration) }}</span>
                                                     <span v-else></span>
                                                 </div>
                                                 <div class="small text-medium-emphasis monitoring-dashboard-small-text">
@@ -245,7 +246,7 @@
             <div class="card border-top-danger border-danger border-top-3">
                 <div class="card-body">
                     <div v-for="queue in realtime_data" class="monitoring_dashboard_queue_cell">
-                        <h6 class="card-title">{{ lang['queue'] + ': ' + queue['data']['Queue'] + ' (' + queue['data']['displayName'] + ')' }}</h6>
+                        <h5 class="card-title">{{ lang['queue'] + ': ' + queue['data']['Queue'] + ' (' + queue['data']['displayName'] + ')' }}</h5>
                         <table class="table table-sm">
                             <thead class="table-light fw-semibold">
                                 <tr class="align-middle">
