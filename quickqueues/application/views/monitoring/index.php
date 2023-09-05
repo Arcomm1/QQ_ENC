@@ -154,7 +154,7 @@
                                                     </span>
                                                     <span v-else></span>
                                                 </div>
-                                                <div class="small text-medium-emphasis">
+                                                <div class="small text-medium-emphasis monitoring-dashboard-small-text">
                                                     <span>
                                                         <span>{{ agent.extension }}</span>
                                                     </span>
@@ -188,7 +188,7 @@
                                                     </span>
                                                     <span v-else></span> 
                                                 </div>
-                                                <div class="small text-medium-emphasis">
+                                                <div class="small text-medium-emphasis monitoring-dashboard-small-text">
                                                     <span>
                                                         <span>{{ agent.extension }}</span>
                                                     </span>
