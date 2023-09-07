@@ -652,7 +652,7 @@ $lang['new_article_in_news_directory'] = "ცნობარში დაემ�
 $lang['your_call_has_new_comment'] = "თქვენს ზარს დაემატა ახალი კომენტარი";
 
 $lang['calls_outgoing_answered'] = "გამავალი (ნაპასუხები)";
-$lang['calls_outgoing_failed'] = "გამავალი (წარუმატებელი)";
+$lang['calls_outgoing_failed'] = "გამავალი (უპასუხო)";
 
 $lang['edit_customer_name'] = "სახელის რედაქტირება";
 
@@ -705,9 +705,9 @@ $lang['start_menu_calls_unanswered'] = "უპასუხო შემომა
 $lang['start_menu_calls_offwork'] = "შემოსული არასამუშაო საათებში";
 $lang['start_menu_calls_waiting'] = "პოზიცია რიგში";
 
-$lang['start_menu_sla_less_10'] = "SLA < 10 წამზე"; 
-$lang['start_menu_sla_greate_10_less_20'] = "SLA > 10 and SLA < 20 წამზე";
-$lang['start_menu_sla_greate_20'] = "SLA > 20 წამზე";
+$lang['start_menu_sla_less_than_or_equal_to_10'] = "SLA < 10 წამზე"; 
+$lang['start_menu_sla_greater_than_10_less_then_or_equal_to_20'] = "SLA > 10 and SLA < 20 წამზე";
+$lang['start_menu_sla_greater_than_20'] = "SLA > 20 წამზე";
 
 $lang['ata'] = "ATA (საშუალო დრო)";
 $lang['answered_aoutcall'] = "ნაპასუხები (გადარეკილი)";

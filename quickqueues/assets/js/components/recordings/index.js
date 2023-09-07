@@ -9,17 +9,19 @@ var recordings = new Vue({
             call_events        : {},
             call_events_error  : {},
             call_events_loading: {},
-            recordingsPopUp              : 
+            recordingsPopUp    : 
             {
                 audioFile: '',
                 name     : '',
                 from     : '',
                 to       : ''
             },
+            recordings         : {}
         }
     },
 
     methods: {
+
         load_player: function(id, rowNumber, src, dst) 
         {
             this.recordingsPopUp.audioFile = api_url+'recording/get_file/'+id;
@@ -83,6 +85,7 @@ var recordings = new Vue({
 
     mounted () {
         this.get_agents();
+     
     },
 
     created () {

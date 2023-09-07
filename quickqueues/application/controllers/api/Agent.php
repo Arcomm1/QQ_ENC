@@ -64,7 +64,6 @@ class Agent extends MY_Controller {
     public function get_all()
     {
         $agents = array();
-
         foreach ($this->data->user_agents as $a) {
             $agents[$a->id] = $a;
         }
@@ -1202,7 +1201,7 @@ class Agent extends MY_Controller {
         $agent_event_stats = $this->Event_model->get_agent_stats_for_agent_stats_page($agent_id, $date_range);
         $agent_call_stats->calls_missed = $agent_event_stats->calls_missed;
 
-        $this->r->status = 'OK';
+        $this->r->status = 'OK'; 
         $this->r->message = 'Total queue stats will follow';
         $this->r->data = $agent_call_stats;
         $this->_respond();

@@ -169,6 +169,7 @@ class Recording extends MY_Controller {
             $this->_respond();
             exit();
         }
+        
 
         $this->Call_model->update($id, array('comment' => urldecode($comment)));
 

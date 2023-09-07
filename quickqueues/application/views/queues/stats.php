@@ -103,23 +103,23 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-watch text-success mr-2"></i>
-                                             {{ lang['start_menu_sla_less_10'] }}
+                                             {{ lang['start_menu_sla_less_than_or_equal_to_10'] }}
                                         </span>
-                                        <span>{{ total_stats.sla_count_less_than_10 + ' (' + sla_count_less_than_10_percent + ')' }}</span>
+                                        <span>{{ total_stats.sla_count_less_than_or_equal_to_10 + ' (' + sla_count_less_than_or_equal_to_10_percent + ')' }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-watch text-info mr-2"></i>
-                                            {{ lang['start_menu_sla_greate_10_less_20'] }}
+                                            {{ lang['start_menu_sla_greater_than_10_less_then_or_equal_to_20'] }}
                                         </span>
-                                        <span>{{ total_stats.sla_count_between_10_20 + ' ('+ sla_count_between_10_20_percent +')' }}</span>
+                                        <span>{{ total_stats.sla_count_greater_than_10_and_less_than_or_equal_to_20 + ' ('+ sla_count_greater_than_10_and_less_than_or_equal_to_20_percent +')' }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-watch text-danger mr-2"></i>
-                                             {{ lang['start_menu_sla_greate_20'] }}
+                                             {{ lang['start_menu_sla_greater_than_20'] }}
                                         </span>
-                                        <span>{{ total_stats.sla_count_grate_than_10 + ' ('+ sla_count_grate_than_10_percent +')' }}</span>
+                                        <span>{{ total_stats.sla_count_greater_than_20 + ' ('+ sla_count_greater_than_20_percent +')' }}</span>
                                     </li>
                                     <!-- End Of SLA Hold Time -->
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -256,7 +256,7 @@
                                             <i class="cil-list-filter text-danger mr-4"></i>
                                             {{ lang['start_menu_calls_waiting']+' ('+lang['max']+')' }}
                                         </span>
-                                        <span>{{ total_stats.origposition_max }}</span>
+                                        <span>{{ total_stats.origposition_max == null ? 0 : total_stats.origposition_max }}</span>
                                     </li>
                                 </ul>
                             </div>

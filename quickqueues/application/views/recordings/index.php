@@ -259,7 +259,24 @@
                                                     <a href="<?php echo site_url('api/recording/get_file/'.$c->id); ?>" class="text-decoration-none"><i class="cil-cloud-download text-info"></i></a>
                                                 <?php } ?>
                                             <?php } ?>
-                                            <i class="cil-comment-bubble text-warning modal_clear get_id" id="<?php echo $c->id; ?>"  data-toggle='modal' data-target='#call_subjects'><!-- Call Subjects --></i>
+                                            <i class="cil-comment-bubble text-warning modal_clear get_id" style="cursor:pointer; position:relative;" id="<?php echo $c->id ?>" data-toggle="modal" data-target="#call_subjects">
+                                                <?php 
+                                                        // $comment = $this->Call_subjects_model->get_call_params($c->id);
+                                                        // $commentText = $comment['comment'];
+                                                        // $categoryID  = $comment['category_id'];
+                                                        
+                                                        // if(strlen($commentText) > 0)
+                                                        // {
+                                                        //     $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:-3px; left:6px; font-weight: bold;";
+                                                        //     echo '<i class="cil-check-alt text-success" style="'.$inlineStyle.'" ></i>';
+                                                        // }
+                                                        // if(strlen($categoryID) > 0)
+                                                        // {
+                                                        //     $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:5px; left:6px; font-weight: bold;";
+                                                        //     echo '<i class="cil-check-alt text-info" style="'.$inlineStyle.'" ></i>';
+                                                        // }
+                                                ?>
+                                            </i>
                                             <a @click="get_events(<?php echo "'".$c->uniqueid."'"; ?>)" data-coreui-toggle="modal" data-coreui-target="#call_details" class="text-decoration-none"><i class="cil-list text-primary"></i></a>
                                             <?php if($config->app_track_called_back_calls == 'yes') { if (in_array($c->event_type, array('ABANDON', 'EXITEMPTY', 'EXITWITHKEY', 'EXITWITHTIMEOUT'))) {?>
                                                 <div class="dropdown-menu" aria-labelledby="predefined_periods" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 36px, 0px);">
@@ -404,7 +421,6 @@
 <script>
     $(document).ready(function() 
     {
-
         family_array=[];
 
         //Pass Reocrd Id And All Required Data To Modal Window
@@ -425,8 +441,6 @@
                     var dataResult = JSON.parse(dataResult);
                     var subject_comment_result=dataResult[0].comment;
                     var subject_family_result=dataResult[0].subject_family;
-
-
                     var parent_selected_id_array=[];
                     var id_to_find_childs_array=[];
                     //IF Result Is Not Empty
