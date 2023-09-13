@@ -181,7 +181,7 @@
                                     </thead>
                                     <tbody>
                                     <?php 
-                                    $rowNumber = 1; // Initialize row number counter
+                                    $rowNumber = ($this->pagination->cur_page - 1) * $this->pagination->per_page + 1; // Initialize row number counter
                                     foreach ($calls as $c) {
                                         //print_r($c);
                                         ?>
@@ -275,6 +275,7 @@
                                                             $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:5px; left:6px; font-weight: bold;";
                                                             echo '<i class="cil-check-alt text-info" style="'.$inlineStyle.'" ></i>';
                                                         }
+
                                                 ?>
                                             </i>
                                             <a @click="get_events(<?php echo "'".$c->uniqueid."'"; ?>)" data-coreui-toggle="modal" data-coreui-target="#call_details" class="text-decoration-none"><i class="cil-list text-primary"></i></a>
