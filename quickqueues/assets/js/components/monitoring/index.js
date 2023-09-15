@@ -115,7 +115,7 @@ var monitoring_dashboard = new Vue({
                     for (queue in response.data.data) 
                     {
                         this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
-                    }
+                    }  
                 });
         },
 
@@ -139,10 +139,22 @@ var monitoring_dashboard = new Vue({
                 this.agent_stats_loading = false;
                 this.agent_stats = response.data.data;
             });
-        }
+        },
     },
 
     computed: {
+        sortedRealtimeData: function()
+        {
+            const queuesArray = Object.values(this.realtime_data).map(queue =>
+                {
+                    const callers     = queue['callers'];
+                    const callerCount = callers ? Object.keys(callers).length : 0;
+                    return { queue, callerCount };
+                });
+                
+                return queuesArray.sort((a, b) => b.callerCount - a.callerCount);
+        },
+
         total_callers: function() 
         {
             a = 0;
@@ -164,7 +176,6 @@ var monitoring_dashboard = new Vue({
         this.get_agent_stats();
         this.get_realtime_data();
         
-        
 
         setInterval(() => this.get_basic_stats(), 60000);
         setInterval(() => this.get_agent_stats(), 60000);
@@ -180,6 +191,9 @@ var monitoring_dashboard = new Vue({
                 this.callDuration++
             }
         }, 1000)
+
+        
     }
+
 
 });
