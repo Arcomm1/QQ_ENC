@@ -122,7 +122,8 @@ var queue_stats = new Vue({
                 });
         },
 
-        get_hourly_stats: function() {
+        get_hourly_stats: function() 
+        {
             axios.post(api_url+'queue/get_hourly_stats_for_queue_stats/'+queue_id,this.form_data)
                 .then(response => {
                     this.hourly_stats_loading = false;

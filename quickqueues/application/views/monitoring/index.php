@@ -245,8 +245,8 @@
         <div class="col">
             <div class="card border-top-danger border-danger border-top-3">
                 <div class="card-body">
-                    <div v-for="queueData in sortedRealtimeData" class="monitoring_dashboard_queue_cell">
-                    <h5 class="card-title">{{ lang['queue'] + ': ' + queueData.queue['data']['Queue'] + ' (' + queueData.queue['data']['displayName'] + ')' }}</h5>
+                    <div v-for="queueData in sortedQueueData" class="monitoring_dashboard_queue_cell">
+                        <h5 class="card-title">{{ lang['queue'] + ': ' + queueData.queue + ' (' + queueData.queueId + ')' }}</h5>
                         <table class="table table-sm">
                             <thead class="table-light fw-semibold">
                                 <tr class="align-middle">
@@ -256,7 +256,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="caller in queueData.queue.callers">
+                                <tr v-for="caller in queueData.callers">
                                     <td>{{ caller.Position }}</td>
                                     <td>{{ caller.CallerIDNum }}</td>
                                     <td>{{ sec_to_min(caller.Wait) }}</td>

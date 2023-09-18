@@ -1869,7 +1869,6 @@ class Queue extends MY_Controller {
         $this->_respond();
     }
 
-
     public function get_basic_stats_for_today($id = false)
     {
         if (!$id) {

@@ -32,6 +32,11 @@ var monitoring_dashboard = new Vue({
 
             isAgentSpeaking            : false,
             callDuration               : 0,
+
+            queueStats                 : {},
+            queueStats_loading         : false,
+            totalCallsByQueue          : {},
+            form_data                  : new FormData,
         }
     },
 
@@ -42,8 +47,43 @@ var monitoring_dashboard = new Vue({
                 .then(response => {
                     this.basic_stats         = response.data.data;
                     this.basic_stats_loading = false;
+                    console.log(this.basic_stats);
                 });
         },
+
+        get_queue_stats: function() 
+        {
+            this.queueStats_loading = true;
+            axios
+              .get(api_url + 'queue/get_stats_by_queue/', this.form_data)
+              .then((response) => {
+                this.queueStats = response.data.data;
+                console.log(this.queueStats);
+      
+                // Calculate total calls for each queue
+                const totalCallsByQueue = {};
+      
+                for (const queueId in this.queueStats) {
+                  if (this.queueStats.hasOwnProperty(queueId)) {
+                    const queueData  = this.queueStats[queueId];
+                    const totalCalls =
+                      queueData.calls_answered +
+                      queueData.calls_unanswered +
+                      queueData.calls_outgoing;
+                    totalCallsByQueue[queueId] = totalCalls;
+                  }
+                }
+      
+                // Assign the total calls by queue to a variable or update  component's state
+                this.totalCallsByQueue = totalCallsByQueue;
+      
+                // Debugging: log the calculated totals
+                console.log(this.totalCallsByQueue);
+      
+                this.queueStats_loading = false;
+              });
+          },
+        
 
         get_freepbx_agents: function() 
         {
@@ -143,17 +183,35 @@ var monitoring_dashboard = new Vue({
     },
 
     computed: {
-        sortedRealtimeData: function()
-        {
-            const queuesArray = Object.values(this.realtime_data).map(queue =>
-                {
-                    const callers     = queue['callers'];
-                    const callerCount = callers ? Object.keys(callers).length : 0;
-                    return { queue, callerCount };
-                });
-                
-                return queuesArray.sort((a, b) => b.callerCount - a.callerCount);
-        },
+        sortedQueueData: function() {
+            // Sort the object keys (queue IDs) in descending order based on totalCalls
+            const sortedQueueIds = Object.keys(this.totalCallsByQueue).sort((a, b) => {
+              return this.totalCallsByQueue[b] - this.totalCallsByQueue[a];
+            });
+          
+            // Create an array of queue objects based on the sorted order
+            const queuesArray = sortedQueueIds.map(queueId => {
+              let realtimeData = {};
+              
+              // Iterate through the keys of realtime_data to find the matching queueId
+              for (const key in this.realtime_data) {
+                if (this.realtime_data.hasOwnProperty(key) && this.realtime_data[key].data.displayName === queueId) {
+                  realtimeData = this.realtime_data[key];
+                  break; // Exit the loop once a match is found
+                }
+              }
+          
+              return {
+                queueId: queueId,
+                totalCalls: this.totalCallsByQueue[queueId],
+                callers: realtimeData.callers || {},
+                queue: realtimeData.data.Queue || "",
+              };
+            });
+          
+            return queuesArray;
+          },
+          
 
         total_callers: function() 
         {
@@ -175,8 +233,10 @@ var monitoring_dashboard = new Vue({
         this.get_freepbx_agents();
         this.get_agent_stats();
         this.get_realtime_data();
+        this.get_queue_stats();
         
 
+        setInterval(() => this.get_queue_stats(), 5000);
         setInterval(() => this.get_basic_stats(), 60000);
         setInterval(() => this.get_agent_stats(), 60000);
         setInterval(() => this.get_freepbx_agents(), 3000);
