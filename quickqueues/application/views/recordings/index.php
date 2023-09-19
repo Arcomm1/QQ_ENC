@@ -181,7 +181,12 @@
                                     </thead>
                                     <tbody>
                                     <?php 
-                                    $rowNumber = ($this->pagination->cur_page - 1) * $this->pagination->per_page + 1; // Initialize row number counter
+                                    $totalRowsBeforePage = ($this->pagination->cur_page - 1) * $this->pagination->per_page;
+                                    $rowNumber           = $totalRowsBeforePage + 1;
+                                    if ($totalRowsBeforePage < 0) 
+                                    {
+                                        $rowNumber = 1;
+                                    }
                                     foreach ($calls as $c) {
                                         //print_r($c);
                                         ?>
@@ -293,7 +298,7 @@
                                     </tr>
                                     <?php 
 
-                                $rowNumber++; // Increment row number counter
+                                    $rowNumber++; // Increment row number counter
                                 } ?>
                                     <tbody>
                                 </table>
