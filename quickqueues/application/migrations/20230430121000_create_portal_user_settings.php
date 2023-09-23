@@ -8,25 +8,18 @@ class Create_portal_user_settings extends CI_Migration {
     {
         $this->dbforge->add_field(
             array(
-                'id' => array(
-                        'type' => 'int',
-                        'constraint' => 11,
-                        'unsigned' => true,
-                        'auto_increment' => true
-                ),
-                'overload' => array(
+                'call_overload' => array(
                         'type' => 'int',
                         'constraint' => 255,
                         'null' => false,
                 ),
-                'sms_comment' => array(
+                'sms_content' => array(
                         'type' => 'varchar',
                         'constraint' => 255,
                         'null' => true,
                 )
             )
         );
-        $this->dbforge->add_key('id', TRUE);
         $this->dbforge->create_table('qq_portal_user_settings');
 
     }
