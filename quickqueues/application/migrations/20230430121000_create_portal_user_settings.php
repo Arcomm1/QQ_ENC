@@ -23,9 +23,7 @@ class Create_portal_user_settings extends CI_Migration {
                         'type' => 'varchar',
                         'constraint' => 255,
                         'null' => true,
-                ),
-                'dnd_started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-                'dnd_ended_at datetime',
+                )
             )
         );
         $this->dbforge->add_key('id', TRUE);
