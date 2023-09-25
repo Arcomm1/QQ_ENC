@@ -74,7 +74,7 @@
                     <li class="nav-item">
                         <a id="nav_start" class="nav-link" href="<?php echo site_url('start'); ?>">Quickqueues</a>
                     </li>
-                    <?php if ($logged_in_user->associated_agent_id) { ?>
+                    <?php if (isset($logged_in_user->associated_agent_id)) { ?>
                         <li class="nav-item" id="nav_workspace">
                             <a class="nav-link" href="<?php echo site_url('workspace'); ?>">
                                 <?php echo lang('workspace'); ?>
@@ -108,7 +108,7 @@
                         </a>
                     </li>
                     <?php } ?>
-                    <?php if ($logged_in_user->role == 'admin') { ?>
+                    <?php if (isset($logged_in_user) && $logged_in_user->role == 'admin') { ?>
                     <li class="nav-item dropdown d-flex align-items-center">
                         <a class="nav-link py-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
                             <?php echo lang('manage'); ?>
@@ -151,6 +151,13 @@
 
                 <!-- user menu -->
                 <ul class="header-nav me-4">
+                <li class="nav-item">
+                    <a class="nav-link" href="<?php echo site_url('Settings'); ?>">
+                        <svg class="icon">
+                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-settings'); ?>"></use>
+                        </svg>
+                    </a>
+                </li>
                     <li class="nav-item dropdown d-flex align-items-center">
                         <a class="nav-link py-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
                             <div class="avatar avatar-md">

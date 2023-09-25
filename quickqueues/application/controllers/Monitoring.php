@@ -9,12 +9,14 @@ class Monitoring extends MY_Controller {
     {
         parent::__construct();
         $this->data->page_title = lang('monitoring');
+        $this->load->model('./../models/Settings_model', 'globalSettings');
     }
 
 
     public function index()
     {
         $this->data->js_include = base_url('assets/js/components/monitoring/index.js');
+        $this->data->global_settings = $this->globalSettings->getSettings();
         load_views('monitoring/index', $this->data, true);
     }
 

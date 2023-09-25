@@ -1,4 +1,9 @@
 <?php
+//For settings page
+
+$lang['settings']           = "პარამეტრები";
+$lang['overload']           = "დატვირთვა რიგზე";
+$lang['sms_text']           = "SMS ტექსტი";
 
 $lang['recordings']         = "ჩანაწერები";
 $lang['queues']             = "რიგები";

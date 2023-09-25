@@ -7,6 +7,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class User_model extends MY_Model {
 
+    
+
     public function __construct()
     {
         $this->_reqquired_fields = array('name', 'password', 'role', 'enabled');
@@ -16,8 +18,6 @@ class User_model extends MY_Model {
         $this->_user_queues_table = 'qq_user_queues';
 
     }
-
-
     /**
      * Get all queues for specific user
      *

@@ -11,6 +11,7 @@ class Auth extends CI_Controller
     public function __construct()
     {
         parent::__construct();
+        
         $this->app_language = $this->Config_model->get_item('app_language');
 
         if ($this->app_language) {

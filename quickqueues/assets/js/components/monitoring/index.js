@@ -180,35 +180,48 @@ var monitoring_dashboard = new Vue({
                 this.agent_stats = response.data.data;
             });
         },
+
+        queueIsOverloaded: function(queue) 
+        {
+            const callers = queue.callers;
+            
+            if (callers && Object.keys(callers).length > Number.parseInt(window.globalSettings.call_overload)) 
+            {
+                return true;
+            }
+            return false;
+        },
+        
     },
 
     computed: {
-        sortedQueueData: function() {
-            // Sort the object keys (queue IDs) in descending order based on totalCalls
-            const sortedQueueIds = Object.keys(this.totalCallsByQueue).sort((a, b) => {
+        sortedQueueData: function() 
+        {
+            const sortedQueueIds = Object.keys(this.totalCallsByQueue).sort((a, b) => 
+            {
               return this.totalCallsByQueue[b] - this.totalCallsByQueue[a];
-            });
-          
-            // Create an array of queue objects based on the sorted order
-            const queuesArray = sortedQueueIds.map(queueId => {
+            });  
+    
+            const queuesArray = sortedQueueIds.map(queueId => 
+            {
               let realtimeData = {};
-              
-              // Iterate through the keys of realtime_data to find the matching queueId
-              for (const key in this.realtime_data) {
-                if (this.realtime_data.hasOwnProperty(key) && this.realtime_data[key].data.displayName === queueId) {
+              for (const key in this.realtime_data) 
+              {
+                if (this.realtime_data.hasOwnProperty(key) && this.realtime_data[key].data.displayName === queueId) 
+                {
                   realtimeData = this.realtime_data[key];
-                  break; // Exit the loop once a match is found
                 }
               }
-          
+              const queueName = realtimeData.data ? realtimeData.data.Queue : "";
+        
               return {
                 queueId: queueId,
                 totalCalls: this.totalCallsByQueue[queueId],
                 callers: realtimeData.callers || {},
-                queue: realtimeData.data.Queue || "",
+                queue: queueName,
               };
             });
-          
+        
             return queuesArray;
           },
           

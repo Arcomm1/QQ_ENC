@@ -1,6 +1,9 @@
 <?php
+//For settings page
+$lang['settings']                                                = "Settings";
+$lang['overload']                                                = "Overload";
+$lang['sms_text']                                                = "SMS Text";
 //For start page
-
 $lang['start_menu_calls_answered']                               = "Answered calls";
 $lang['start_menu_sla_less_than_or_equal_to_10']                 = "SLA < 10 seconds"; 
 $lang['start_menu_sla_greater_than_10_less_then_or_equal_to_20'] = "SLA > 10 and SLA < 20 seconds";

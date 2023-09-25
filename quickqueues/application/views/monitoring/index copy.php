@@ -1,6 +1,4 @@
-<script>
-        window.globalSettings = <?php echo json_encode($this->data->global_settings); ?>;
-</script>
+<?php var_dump($this->data); ?>
 <div class="container-lg mt-3" id="monitoring_dashboard">
     <div class="row mb-3">
         <div class="col">
@@ -249,7 +247,7 @@
             <div class="card border-top-danger border-danger border-top-3">
                 <div class="card-body">
                     <div v-for="queueData in sortedQueueData" v-bind:style="{ 'border'
-                        : queueIsOverloaded(queueData, ) ? '3px solid red' : '', 'border-radius': queueIsOverloaded(queueData) ? '5px' : '' }"  class="monitoring_dashboard_queue_cell">
+                        : queueIsOverloaded(queueData, ) ? '3px dotted red' : '' }"  class="monitoring_dashboard_queue_cell">
                         <h5 class="card-title">{{ lang['queue'] + ': ' + queueData.queue + ' (' + queueData.queueId + ')' }}</h5>
                         <table class="table table-sm">
                             <thead class="table-light fw-semibold">
