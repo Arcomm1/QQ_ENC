@@ -15143,6 +15143,7 @@ select option {
 .monitoring_dashboard_queue_cell
 {
   font-size: 16px;
+  padding: 10px;
 }
 .settings-page-container
 {
