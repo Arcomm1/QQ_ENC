@@ -17,7 +17,16 @@ class Tools extends CI_Controller {
             'create', 'edit', 'reset'
         );
         parent::__construct();
+        $this->load->model('./../models/Settings_model', 'globalSettings');
+        //$this->parse_queue_log();
     }
+
+    /*
+    public function index()
+    {
+        load_views(array('agents/index'), $this->data, true);
+    }
+    */
 
 
     /** User management */
@@ -112,6 +121,7 @@ class Tools extends CI_Controller {
         parser_lock();
 
 
+        $globalConfig = $this->globalSettings->getSettings();
         $queue_log_path = $this->Config_model->get_item('ast_queue_log_path');
         if (!$queue_log_path) {
             log_to_file('ERROR', 'Quickqueues is not configured properly, ast_queue_log_path not specified, Exitting');
@@ -128,6 +138,7 @@ class Tools extends CI_Controller {
 
         $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
+        echo $globalConfig['sms_content'];
         $queue_log = @fopen($queue_log_path, 'r');
         if (!$queue_log) {
             log_to_file("ERROR", "Can not open log file, Exitting");
@@ -440,14 +451,15 @@ class Tools extends CI_Controller {
                 $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
 
                 /*----CURL SEND SMS---*/
-                if($send_sms_on_exit_event=='yes') {
+                if($send_sms_on_exit_event=='yes') 
+                {
                     if ($ev_data[4] == 'EXITWITHTIMEOUT') {
                         $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
                         $sms_number = $number_for_sms['src'];
                         /*----CURL SEND SMS---*/
                         $data = array(
                             "number" => $sms_number,
-                            "text" => "თქვენი მოთხოვნა მიღებულია. ოპერატორი დაგიკავშირდებათ უახლოეს პერიოდში.",
+                            "text" => $globalConfig['sms_content'],
                             "key" => "AQNAZExUHB8EPTun"
                         );
 

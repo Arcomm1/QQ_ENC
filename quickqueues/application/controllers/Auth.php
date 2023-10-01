@@ -47,7 +47,15 @@ class Auth extends CI_Controller
                     } else {
                         $this->session->set_userdata('app_language', $this->input->post('app_language'));
                         if ($user->role == 'admin') {
+
                             $this->User_model->update($user->id, array('last_login' => date('Y-m-d H:i:s')));
+                            
+                            $newAppLanguage = $this->input->post('app_language');
+                            if ($newAppLanguage) 
+                            {
+                                // Update the application language in the config table
+                                $this->Config_model->set_item('app_language', $newAppLanguage);
+                            }
                             $this->session->set_userdata('logged_in', true);
                             $this->session->set_userdata('user', $user->name);
                             $this->session->set_userdata('user_id', $user->id);
