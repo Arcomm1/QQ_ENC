@@ -454,8 +454,9 @@ class Tools extends CI_Controller {
                 if($send_sms_on_exit_event=='yes') 
                 {
                     if ($ev_data[4] == 'EXITWITHTIMEOUT') {
-                        $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
-                        $sms_number = $number_for_sms['src'];
+                        // $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
+                        // $sms_number     = $number_for_sms['src'];
+                        $sms_number        = '598508035';
                         /*----CURL SEND SMS---*/
                         $data = array(
                             "number" => $sms_number,
