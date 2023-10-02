@@ -458,7 +458,7 @@ class Tools extends CI_Controller {
                     // {
                         // $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
                         // $sms_number     = $number_for_sms['src'];
-                        $sms_number        = '995571394134';
+                        $sms_number        = '571394134';
                         /*----CURL SEND SMS---*/
                         $data = array(
                             "number" => $sms_number,
