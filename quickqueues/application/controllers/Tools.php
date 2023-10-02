@@ -444,8 +444,8 @@ class Tools extends CI_Controller {
              * ABANDON, EXIT* - call was terminated in some way.
              * Call entry matching ENTERQUEUE and currect unique ID should updated
              */
-            if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') 
-            {
+            // if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') 
+            // {
                 $event['position'] = $ev_data[5];
                 $event['origposition'] = $ev_data[6];
                 $event['waittime'] = $ev_data[7];
@@ -458,7 +458,7 @@ class Tools extends CI_Controller {
                     // {
                         // $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
                         // $sms_number     = $number_for_sms['src'];
-                        $sms_number        = '+995571394134';
+                        $sms_number        = '995571394134';
                         /*----CURL SEND SMS---*/
                         $data = array(
                             "number" => $sms_number,
