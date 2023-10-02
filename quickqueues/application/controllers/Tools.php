@@ -444,8 +444,7 @@ class Tools extends CI_Controller {
              * ABANDON, EXIT* - call was terminated in some way.
              * Call entry matching ENTERQUEUE and currect unique ID should updated
              */
-            if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') 
-            {
+            if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') {
                 $event['position'] = $ev_data[5];
                 $event['origposition'] = $ev_data[6];
                 $event['waittime'] = $ev_data[7];
@@ -454,8 +453,7 @@ class Tools extends CI_Controller {
                 /*----CURL SEND SMS---*/
                 if($send_sms_on_exit_event=='yes') 
                 {
-                    if ($ev_data[4] == 'ABANDON') 
-                    {
+                    if ($ev_data[4] == 'ABANDON') {
                         // $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
                         // $sms_number     = $number_for_sms['src'];
                         $sms_number        = '571394134';
@@ -500,7 +498,7 @@ class Tools extends CI_Controller {
                 if (!$this->Call_model->get_recording($event['uniqueid'])) {
                     log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
                 }
-            // }
+            }
 
             /**
              * EXITWITHKEY - caller left queue by pressing specific key.
