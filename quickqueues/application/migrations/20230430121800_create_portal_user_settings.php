@@ -34,18 +34,6 @@ class Migration_Create_portal_user_settings extends CI_Migration {
             'value'     => '',
             'default'   => 'sms content'
         );
-        
-        $data[] = array(
-            'name'      => 'sms_token',
-            'value'     => '',
-            'default'   => ''
-        );
-
-        $data[] = array(
-            'name'      => 'sms_type',
-            'value'     => '1',
-            'default'   => '1'
-        );
 
         $this->db->insert_batch('qq_portal_user_settings', $data);
 

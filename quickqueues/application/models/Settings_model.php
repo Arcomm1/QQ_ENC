@@ -9,7 +9,7 @@ class Settings_model extends MY_Model
 
     public function getSettings() 
     {
-        $settingsToRetrieve = array('call_overload', 'sms_content');
+        $settingsToRetrieve = array('call_overload', 'sms_content', 'sms_token', 'sms_type');
         $finalSettings = array();
 
         foreach ($settingsToRetrieve as $settingName) 
