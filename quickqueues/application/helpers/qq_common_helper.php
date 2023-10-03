@@ -40,7 +40,9 @@ function parser_lock($pid = false) {
         $pid = getmypid();
     }
     $ci =& get_instance();
-    if (file_put_contents(QQ_PARSER_LOCK_PATH, $pid) === false) {
+    
+    if (file_put_contents(QQ_PARSER_LOCK_PATH, $pid) === false)
+    {
         return false;
     } else {
         return true;

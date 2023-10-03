@@ -21,12 +21,10 @@ class Tools extends CI_Controller {
         //$this->parse_queue_log();
     }
 
-    /*
-    public function index()
-    {
-        load_views(array('agents/index'), $this->data, true);
-    }
-    */
+    // public function index()
+    // {
+    //     load_views(array('agents/index'), $this->data, true);
+    // }
 
 
     /** User management */
@@ -107,7 +105,7 @@ class Tools extends CI_Controller {
     /** Parse queue log file */
     public function parse_queue_log()
     {
-        log_to_file('NOTICE', 'Running parser');
+         log_to_file('NOTICE', 'Running parser');
 
 
         $lock = parser_read_lock();
@@ -138,7 +136,6 @@ class Tools extends CI_Controller {
 
         $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
-        echo $globalConfig['sms_content'];
         $queue_log = @fopen($queue_log_path, 'r');
         if (!$queue_log) {
             log_to_file("ERROR", "Can not open log file, Exitting");
@@ -215,7 +212,8 @@ class Tools extends CI_Controller {
             }
 
 
-            if ($ev_data[2] == 'NONE') {
+            if ($ev_data[2] == 'NONE')
+			{
                 $queue_id = false;
             } else {
                 if (!array_key_exists($ev_data[2], $queues)) {
@@ -396,7 +394,6 @@ class Tools extends CI_Controller {
                         );
                     }
                 }
-
                 /**
                  * If someone set some fields for this call from agent_crm,
                  * it should be stored in as Future Event.
@@ -450,6 +447,9 @@ class Tools extends CI_Controller {
                 $event['origposition'] = $ev_data[6];
                 $event['waittime'] = $ev_data[7];
                 $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
+				
+				$number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
+				$sms_number = $number_for_sms['src'];
 
                 /*----CURL SEND SMS---*/
                 //if($send_sms_on_exit_event=='yes') 
@@ -905,6 +905,7 @@ class Tools extends CI_Controller {
 
     public function send_sms($sms_number,$text,$token)
     {
+		echo "Sending SMS: " . $sms_number. " | " . $text . "  |  " . $token . "<br>";
         /*----CURL SEND SMS---*/
         $data = array(
             "number" => $sms_number,
