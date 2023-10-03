@@ -441,7 +441,7 @@ class Tools extends CI_Controller {
              * ABANDON, EXIT* - call was terminated in some way.
              * Call entry matching ENTERQUEUE and currect unique ID should updated
              */
-            //if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') 
+            if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') 
             {
                 $event['position'] = $ev_data[5];
                 $event['origposition'] = $ev_data[6];
@@ -452,7 +452,7 @@ class Tools extends CI_Controller {
 				$sms_number = $number_for_sms['src'];
 
                 /*----CURL SEND SMS---*/
-                //if($send_sms_on_exit_event=='yes') 
+                if($send_sms_on_exit_event=='yes') 
                 {
                     $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
                     
