@@ -4,6 +4,7 @@
 $lang['settings']           = "პარამეტრები";
 $lang['overload']           = "დატვირთვა რიგზე";
 $lang['sms_text']           = "SMS ტექსტი";
+$lang['sms_key']            = "SMS გასაღები";
 
 $lang['recordings']         = "ჩანაწერები";
 $lang['queues']             = "რიგები";

@@ -3,6 +3,7 @@
 $lang['settings']                                                = "Settings";
 $lang['overload']                                                = "Overload";
 $lang['sms_text']                                                = "SMS Text";
+$lang['sms_key']                                                 = "SMS Key";
 //For start page
 $lang['start_menu_calls_answered']                               = "Answered calls";
 $lang['start_menu_sla_less_than_or_equal_to_10']                 = "SLA < 10 seconds"; 
