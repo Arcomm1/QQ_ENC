@@ -47,9 +47,13 @@ class Settings extends CI_Controller
 
             $newOverload   = $this->input->post('overload');
             $newSmsContent = $this->input->post('sms_text');
+            $smsKey        = $this->input->post('sms_key');
+            $smsType       = $this->input->post('sms_type');
 
             $this->Settings_model->updateSettings('call_overload', $newOverload);
             $this->Settings_model->updateSettings('sms_content', $newSmsContent);
+            $this->Settings_model->updateSettings('sms_token', $smsKey);
+            $this->Settings_model->updateSettings('sms_type', $smsType);
 
             redirect('settings/index');
         }

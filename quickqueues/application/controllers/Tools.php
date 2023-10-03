@@ -453,32 +453,9 @@ class Tools extends CI_Controller {
                 /*----CURL SEND SMS---*/
                 if($send_sms_on_exit_event=='yes') 
                 {
-                    if ($ev_data[4] == 'ABANDON') {
-                        // $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
-                        // $sms_number     = $number_for_sms['src'];
-                        $sms_number        = '571394134';
-                        /*----CURL SEND SMS---*/
-                        $data = array(
-                            "number" => $sms_number,
-                            "text" => $globalConfig['sms_content'],
-                            "key" => "aPQKQjQ0VBi6a3ue"
-                        );
-
-                        //$url = "http://sms.ar.com.ge/api/integration/sms-latin";
-                        $url = "http://sms.ar.com.ge/api/integration/sms";
-
-                        $ch = curl_init($url);
-                        curl_setopt($ch, CURLOPT_POST, true);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                        $response = curl_exec($ch);
-                        if (!$response) {
-                            // die("Error: "" . curl_error($ch) . "" - Code: " . curl_errno($ch));
-                        }
-                        curl_close($ch);
-                        log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
-                    }
+                    $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                    
+                    log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
                 }
                 /* ------- End Of CURL*/
 
@@ -925,6 +902,34 @@ class Tools extends CI_Controller {
 
     }
 
+    public function send_sms($sms_number,$text,$token)
+    {
+        /*----CURL SEND SMS---*/
+        $data = array(
+            "number" => $sms_number,
+            "text"   => $text,
+            "key"    => $token
+        );
+    
+        $url = "https://sms.ar.com.ge/api/integration/sms";
+        #$url = "https://sms.ar.com.ge/api/integration/sms-latin";
+    
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+        $response = curl_exec($ch);
+    
+        if (!$response) {
+            die(curl_error($ch) . " - Code: " . curl_errno($ch));
+        }
+    
+        curl_close($ch);
+        //var_dump($response);
+    }
 
     // public function collect_custom_dids()
     // {
