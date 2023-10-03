@@ -36,7 +36,6 @@
                             <option value="1" <?php echo isset($this->data->settings['sms_type']) && $this->data->settings['sms_type'] == '1' ? "selected" : ""; ?>>After Call</option>
                         </select>
                     </div>
-                    <?php echo $this->data->settings['sms_type']; ?>
                 </div>
             </section>
         </div>
