@@ -454,9 +454,12 @@ class Tools extends CI_Controller {
                 /*----CURL SEND SMS---*/
                 if($send_sms_on_exit_event=='yes') 
                 {
-                    $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                    
-                    log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
+                    if($ev_data[4] == 'ABANDON')
+                    {
+                        $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                        
+                        log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
+                    }
                 }
                 /* ------- End Of CURL*/
 
