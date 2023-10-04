@@ -34,7 +34,7 @@
                     <div class="col-sm-10">
                         <select name="sms_type" class="form-control">
                             <option value="1" <?php echo isset($this->data->settings['sms_type']) && $this->data->settings['sms_type'] == '1' ? "selected" : ""; ?>>Complete Call</option>
-                            <option value="1" <?php echo isset($this->data->settings['sms_type']) && $this->data->settings['sms_type'] == '2' ? "selected" : ""; ?>>Unanswered Call</option>
+                            <option value="2" <?php echo isset($this->data->settings['sms_type']) && $this->data->settings['sms_type'] == '2' ? "selected" : ""; ?>>Unanswered Call</option>
                         </select>
                     </div>
                 </div>
