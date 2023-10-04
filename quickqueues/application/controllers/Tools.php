@@ -448,7 +448,13 @@ class Tools extends CI_Controller {
              */
 
             var_dump($ev_data);
-            if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') 
+            /*
+            $globalConfig['sms_type'] == 
+            1 abandon. exitempty. exittimeout - rodesac zari ar/ver shedga
+            2 completecaller, completeagent   - rodesac zari carmatebit shedga da dasrulda
+            */
+            if (($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT'))
+                ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
             {
                 $event['position'] = $ev_data[5];
                 $event['origposition'] = $ev_data[6];
