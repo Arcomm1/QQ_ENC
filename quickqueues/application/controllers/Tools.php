@@ -448,7 +448,7 @@ class Tools extends CI_Controller {
              */
 
             var_dump($ev_data);
-            echo "<br><br>"
+            echo "<br><br>";
             var_dump($globalConfig);
             /*
             $globalConfig['sms_type'] == 
