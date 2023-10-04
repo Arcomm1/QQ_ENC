@@ -102,13 +102,13 @@ class Tools extends CI_Controller {
     }
 
 
-    public function parse_queue_log()
+    public function parse_queue_log2()
     {
         // empty function for cron job, manual testing only
     }
 
     /** Parse queue log file */
-    public function parse_queue_log2()
+    public function parse_queue_log()
     {
          log_to_file('NOTICE', 'Running parser');
 
@@ -447,9 +447,9 @@ class Tools extends CI_Controller {
              * Call entry matching ENTERQUEUE and currect unique ID should updated
              */
 
-            var_dump($ev_data);
-            echo "<br><br>";
-            var_dump($globalConfig);
+            //var_dump($ev_data);
+            //echo "<br><br>";
+            //var_dump($globalConfig);
             /*
             $globalConfig['sms_type'] == 
             1 abandon. exitempty. exittimeout - rodesac zari ar/ver shedga
