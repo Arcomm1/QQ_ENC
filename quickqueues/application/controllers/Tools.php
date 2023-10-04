@@ -454,12 +454,12 @@ class Tools extends CI_Controller {
                 /*----CURL SEND SMS---*/
                 if($send_sms_on_exit_event=='yes') 
                 {
-                    if($ev_data[4] == 'ABANDON')
-                    {
+                    // if($ev_data[4] == 'ABANDON')
+                    // {
                         $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
                         
                         log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
-                    }
+                    // }
                 }
                 /* ------- End Of CURL*/
 
@@ -563,16 +563,16 @@ class Tools extends CI_Controller {
             /**
              * We use RINGNOANSWER to associate queues ans agents
              */
-            if ($ev_data[4] == 'RINGNOANSWER') {
-                $event['ringtime'] = $ev_data[5]/1000;
-                $this->Queue_model->add_agent($queue_id, $agent_id);
-                $this->Agent_model->add_primary_queue($agent_id, $queue_id);
+            // if ($ev_data[4] == 'RINGNOANSWER') {
+            //     $event['ringtime'] = $ev_data[5]/1000;
+            //     $this->Queue_model->add_agent($queue_id, $agent_id);
+            //     $this->Agent_model->add_primary_queue($agent_id, $queue_id);
 
-                // No need to insert empty ringnoanswer events
-                if ($ev_data[5] == 0) {
-                    continue;
-                }
-            }
+            //     // No need to insert empty ringnoanswer events
+            //     if ($ev_data[5] == 0) {
+            //         continue;
+            //     }
+            // }
 
             /**
              * ADDCOMMENT, pretty self explanatory
