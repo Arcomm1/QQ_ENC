@@ -102,8 +102,13 @@ class Tools extends CI_Controller {
     }
 
 
-    /** Parse queue log file */
     public function parse_queue_log()
+    {
+        // empty function for cron job, manual testing only
+    }
+
+    /** Parse queue log file */
+    public function parse_queue_log2()
     {
          log_to_file('NOTICE', 'Running parser');
 
