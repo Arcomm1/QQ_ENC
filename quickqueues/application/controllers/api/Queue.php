@@ -1759,26 +1759,24 @@ class Queue extends MY_Controller {
         for ($i=0; $i < 24; $i++) {
             $h = $i < 10 ? '0'.$i : $i;
             $hourly_stats[$h] = array(
-                'calls_answered' => 0,
-                'calls_unanswered' => 0,
-                'calls_outgoing' => 0,
-                'total_calltime' => 0,
-                'total_holdtime' => 0,
-                'avg_calltime' => 0,
-                'avg_holdtime' => 0,
-                'origposition_avg' => 0,
-                'hour' => $h
+                'calls_answered'           => 0,
+                'calls_missed'             => 0,
+                'incomig_total_calltime'   => 0,
+                'calls_outgoing_answered'  => 0,
+                'calls_outgoing_unanswered'=> 0,
+                'outgoing_total_calltime'  => 0,
+                'avg_holdtime'             => 0,
+                'hour'                     => $h
             );
         }
         foreach($hourly_call_stats as $s) {
-            $hourly_stats[$s->hour]['calls_answered'] = $s->calls_answered;
-            $hourly_stats[$s->hour]['calls_outgoing'] = $s->calls_outgoing;
-            $hourly_stats[$s->hour]['calls_unanswered'] = $s->calls_unanswered;
-            $hourly_stats[$s->hour]['total_calltime'] = $s->total_calltime;
-            $hourly_stats[$s->hour]['total_holdtime'] = $s->total_holdtime;
-            $hourly_stats[$s->hour]['avg_calltime'] = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
-            $hourly_stats[$s->hour]['avg_holdtime'] = ceil(($s->total_holdtime + $s->total_waittime) == 0 || $s->calls_unanswered == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / $s->calls_unanswered);
-            $hourly_stats[$s->hour]['origposition_avg'] = ceil($s->origposition_avg);
+            $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
+            $hourly_stats[$s->hour]['calls_missed']              = $s->calls_unanswered;
+            $hourly_stats[$s->hour]['incomig_total_calltime']    = $s->incomig_total_calltime;
+            $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
+            $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+            $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
+            $hourly_stats[$s->hour]['avg_holdtime']              = ceil(($s->total_holdtime + $s->total_waittime) == 0 || $s->calls_unanswered == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / $s->calls_unanswered);
         }
 
         $this->r->data = $hourly_stats;
@@ -1867,16 +1865,14 @@ class Queue extends MY_Controller {
             }
 
             $daily_stats[] = array(
-                'day' => $i->date,
-                'calls_total' => $i->calls_answered + $i->calls_outgoing + $i->calls_unanswered,
-                'calls_answered' => $i->calls_answered,
-                'calls_unanswered' => $i->calls_unanswered,
-                'calls_outgoing' => $i->calls_outgoing,
-                'total_calltime' => sec_to_time($i->total_calltime),
-                'avg_calltime' => $avg_calltime,
-                'total_holdtime' => sec_to_time($i->total_holdtime),
-                'avg_holdtime' =>$avg_holdtime,
-                'origposition_avg' => ceil($i->origposition_avg)
+                'day'                       => $i->date,
+                'calls_answered'            => $i->calls_answered,
+                'incomig_total_calltime'    => $i->incomig_total_calltime,
+                'calls_missed'              => $i->calls_unanswered,
+                'calls_outgoing_answered'   => $i->calls_outgoing_answered,
+                'outgoing_total_calltime'   => $i->outgoing_total_calltime,
+                'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
+                'avg_holdtime'              =>$avg_holdtime,
             );
         }
 
