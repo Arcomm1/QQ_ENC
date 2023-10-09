@@ -306,22 +306,24 @@
                                 <table class="table">
                                     <thead>
                                         <tr>
-                                            <th scope="col" style="width:60%">{{ lang['agent'] }}</th>
+                                        <th scope="col" style="width:60%">{{ lang['agent'] }}</th>
                                             <th scope="col">{{ lang['calls_answered'] }}</th>
-                                            <th scope="col">{{ lang['calls_outgoing'] }}</th>
+                                            <th scope="col">{{ lang['incoming_talk_time_sum'] }}</th>
                                             <th scope="col">{{ lang['calls_missed'] }}</th>
-                                            <th scope="col">{{ lang['call_time'] }}</th>
-                                            <th scope="col">{{ lang['pause_time'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_answered'] }}</th>
+                                            <th scope="col">{{ lang['outgoing_talk_time_sum'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_failed'] }}</th>
                                         </tr>
                                     </thead>
                                     <tbody id="overview_agents">
                                         <tr v-for="a in agent_stats">
-                                            <td v-if="a.display_name">{{ a.display_name }}</td>
+                                        <td v-if="a.display_name">{{ a.display_name }}</td>
                                             <td v-if="a.display_name">{{ a.calls_answered }}</td>
-                                            <td v-if="a.display_name">{{ a.calls_outgoing }}</td>
+                                            <td v-if="a.display_name">{{ sec_to_time(a.incomig_total_calltime) }}</td>
                                             <td v-if="a.display_name">{{ a.calls_missed }}</td>
-                                            <td v-if="a.display_name">{{ sec_to_time(a.total_calltime) }}</td>
-                                            <td v-if="a.display_name">{{ sec_to_time(a.total_pausetime) }}</td>
+                                            <td v-if="a.display_name">{{ a.calls_outgoing_answered }}</td>
+                                            <td v-if="a.display_name">{{ sec_to_time(a.outgoing_total_calltime) }}</td>
+                                            <td v-if="a.display_name">{{ a.calls_outgoing_unanswered }}</td>
 
                                         </tr>
                                     </tbody>
@@ -337,22 +339,26 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th scope="col" style="width:40%">{{ lang['queue'] }}</th>
+                                        <th scope="col" style="width:40%">{{ lang['queue'] }}</th>
                                             <th scope="col">{{ lang['calls_answered'] }}</th>
-                                            <th scope="col">{{ lang['calls_outgoing'] }}</th>
-                                            <th scope="col">{{ lang['calls_unanswered'] }}</th>
-                                            <th scope="col">{{ lang['call_time'] }}</th>
+                                            <th scope="col">{{ lang['incoming_talk_time_sum'] }}</th>
+                                            <th scope="col">{{ lang['calls_missed'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_answered'] }}</th>
+                                            <th scope="col">{{ lang['outgoing_talk_time_sum'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_failed'] }}</th>
                                             <th scope="col">{{ lang['hold_time'] }}</th>
                                         </tr>
                                     </thead>
                                     <tbody id="overview_queues">
                                         <tr v-for="q in queue_stats">
-                                            <td v-if="q.display_name">{{ q.display_name }}</td>
+                                        <td v-if="q.display_name">{{ q.display_name }}</td>
                                             <td v-if="q.display_name">{{ q.calls_answered }}</td>
-                                            <td v-if="q.display_name">{{ q.calls_outgoing }}</td>
-                                            <td v-if="q.display_name">{{ q.calls_unanswered }}</td>
-                                            <td v-if="q.display_name">{{ sec_to_time(q.total_calltime) }}</td>
-                                            <td v-if="q.display_name">{{ sec_to_time(q.total_holdtime) }}</td>
+                                            <td v-if="q.display_name">{{ sec_to_time(q.incoming_total_calltime) }}</td>
+                                            <td v-if="q.display_name">{{ q.calls_missed }}</td>
+                                            <td v-if="q.display_name">{{ q.calls_outgoing_answered }}</td>
+                                            <td v-if="q.display_name">{{ sec_to_time(q.outgoing_total_calltime) }}</td>
+                                            <td v-if="q.display_name">{{ q.calls_outgoing_unanswered }}</td>
+                                            <td v-if="q.display_name">{{ sec_to_time(q.avg_holdtime) }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -367,22 +373,26 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th scope="col" style="width:40%">{{ lang['hour'] }}</th>
+                                        <th scope="col" style="width:40%">{{ lang['hour'] }}</th>
                                             <th scope="col">{{ lang['calls_answered'] }}</th>
-                                            <th scope="col">{{ lang['calls_outgoing'] }}</th>
-                                            <th scope="col">{{ lang['calls_unanswered'] }}</th>
-                                            <th scope="col">{{ lang['call_time'] }}</th>
+                                            <th scope="col">{{ lang['incoming_talk_time_sum'] }}</th>
+                                            <th scope="col">{{ lang['calls_missed'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_answered'] }}</th>
+                                            <th scope="col">{{ lang['outgoing_talk_time_sum'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_failed'] }}</th>
                                             <th scope="col">{{ lang['hold_time'] }}</th>
                                         </tr>
                                     </thead>
                                     <tbody id="overview_hours">
                                         <tr v-for="h in hourly_stats">
-                                            <td>{{ h.hour }}</td>
+                                        <td>{{ h.hour }}</td>
                                             <td>{{ h.calls_answered }}</td>
-                                            <td>{{ h.calls_outgoing }}</td>
-                                            <td>{{ h.calls_unanswered }}</td>
-                                            <td>{{ sec_to_time(h.total_calltime) }}</td>
-                                            <td>{{ sec_to_time(h.total_holdtime) }}</td>
+                                            <td>{{ sec_to_time(h.incoming_total_calltime) }}</td>
+                                            <td>{{ h.calls_missed }}</td>
+                                            <td>{{ h.calls_outgoing_answered }}</td>
+                                            <td>{{ sec_to_time(h.outgoing_total_calltime) }}</td>
+                                            <td>{{ h.calls_outgoing_unanswered }}</td>
+                                            <td>{{ sec_to_time(h.avg_holdtime) }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -397,22 +407,26 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th scope="col" style="width:40%">{{ lang['day'] }}</th>
+                                        <th scope="col" style="width:40%">{{ lang['day'] }}</th>
                                             <th scope="col">{{ lang['calls_answered'] }}</th>
-                                            <th scope="col">{{ lang['calls_outgoing'] }}</th>
-                                            <th scope="col">{{ lang['calls_unanswered'] }}</th>
-                                            <th scope="col">{{ lang['call_time'] }}</th>
+                                            <th scope="col">{{ lang['incoming_talk_time_sum'] }}</th>
+                                            <th scope="col">{{ lang['calls_missed'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_answered'] }}</th>
+                                            <th scope="col">{{ lang['outgoing_talk_time_sum'] }}</th>
+                                            <th scope="col">{{ lang['calls_outgoing_failed'] }}</th>
                                             <th scope="col">{{ lang['hold_time'] }}</th>
                                         </tr>
                                     </thead>
                                     <tbody id="overview_days">
                                         <tr v-for="d in daily_stats">
-                                            <td>{{ d.day }}</td>
+                                        <td>{{ d.day }}</td>
                                             <td>{{ d.calls_answered }}</td>
-                                            <td>{{ d.calls_outgoing }}</td>
-                                            <td>{{ d.calls_unanswered }}</td>
-                                            <td>{{ d.total_calltime }}</td>
-                                            <td>{{ d.total_holdtime }}</td>
+                                            <td>{{ sec_to_time(d.incoming_total_calltime) }}</td>
+                                            <td>{{ d.calls_missed }}</td>
+                                            <td>{{ d.calls_outgoing_answered }}</td>
+                                            <td>{{ sec_to_time(d.outgoing_total_calltime) }}</td>
+                                            <td>{{ d.calls_outgoing_unanswered }}</td>
+                                            <td>{{ d.avg_holdtime }}</td>
                                         </tr>
                                     </tbody>
                                 </table>

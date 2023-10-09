@@ -1221,24 +1221,21 @@ class Agent extends MY_Controller {
 
         foreach ($this->Queue_model->get_agents($queue_id) as $a) {
             $agent_stats[$a->id] = array(
-                'display_name' => $a->display_name,
-                'calls_answered' => 0,
-                'calls_outgoing' => 0,
-                'calls_missed' => 0,
-                'total_calltime' => 0,
-                'total_ringtime' => 0,
-                'avg_calltime' => 0,
-                'avg_ringtime' => 0,
-                'agent_id' => 0,
+                'display_name'              => $a->display_name,
+                'calls_answered'            => 0,
+                'incomig_total_calltime'    => 0,
+                'calls_missed'              => 0,
+                'calls_outgoing_answered'   => 0,
+                'outgoing_total_calltime'   => 0,
+                'calls_outgoing_unanswered' => 0,
             );
         }
         foreach($agent_call_stats as $s) {
-            $agent_stats[$s->agent_id]['calls_answered'] = $s->calls_answered;
-            $agent_stats[$s->agent_id]['calls_outgoing'] = $s->calls_outgoing;
-            $agent_stats[$s->agent_id]['total_calltime'] = $s->total_calltime;
-            $agent_stats[$s->agent_id]['total_ringtime'] = $s->total_ringtime;
-            $agent_stats[$s->agent_id]['avg_calltime'] = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
-            $agent_stats[$s->agent_id]['avg_ringtime'] = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
+            $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
+            $agent_stats[$s->agent_id]['incomig_total_calltime']    = $s->incomig_total_calltime;
+            $agent_stats[$s->agent_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
+            $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
+            $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
 
         }
         foreach ($agent_event_stats as $s) {

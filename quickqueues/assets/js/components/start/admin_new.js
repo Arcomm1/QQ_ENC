@@ -36,6 +36,10 @@ var start = new Vue({
                     this.total_stats_loading = false;
                     this.total_stats = response.data.data;
                     console.log(this.total_stats, 'Total stats for start');
+                    if (this.total_stats.origposition_max === null) 
+                    {
+                        this.total_stats.origposition_max = 0;
+                    }
                     ctx_event_distrib = document.getElementById("canvas_event_distrib").getContext('2d');
                     this.chart_event_distrib = new Chart(ctx_event_distrib, {
                         type: 'bar',
@@ -69,8 +73,9 @@ var start = new Vue({
         },
 
 
-        get_agent_stats: function() {
-            axios.post(api_url+'agent/get_stats_for_start/',this.form_data)
+        get_agent_stats: function() 
+        {
+            axios.post(api_url+'agent/get_stats_for_all_queues/',this.form_data)
                 .then(response => {
                     this.agent_stats_loading = false;
                     this.agent_stats = response.data.data;
