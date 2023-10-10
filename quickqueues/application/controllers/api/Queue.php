@@ -1684,7 +1684,7 @@ class Queue extends MY_Controller {
             $queue_stats[$s->queue_id]['origposition_avg']         = ceil($s->origposition_avg);
             $queue_stats[$s->queue_id]['calls_outgoing_answered']  = $s->calls_outgoing_answered;
             $queue_stats[$s->queue_id]['calls_outgoing_unanswered']= $s->calls_outgoing_unanswered;
-            $queue_stats[$s->queue_id]['incomig_total_calltime']   = $s->incomig_total_calltime;
+            $queue_stats[$s->queue_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
             $queue_stats[$s->queue_id]['outgoing_total_calltime']  = $s->outgoing_total_calltime;
         }
 
@@ -1718,7 +1718,7 @@ class Queue extends MY_Controller {
                 'avg_holdtime'             => 0,
                 'origposition_avg'         => 0,
                 'hour'                     => $h,
-                'incomig_total_calltime'   => 0,
+                'incoming_total_calltime'   => 0,
                 'calls_outgoing_answered'  => 0,
                 'calls_outgoing_unanswered'=> 0,
                 'outgoing_total_calltime'  => 0,
@@ -1733,7 +1733,7 @@ class Queue extends MY_Controller {
             $hourly_stats[$s->hour]['avg_calltime']              = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
             $hourly_stats[$s->hour]['avg_holdtime']              = ceil(($s->total_holdtime + $s->total_waittime) == 0 || $s->calls_unanswered == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / $s->calls_unanswered);
             $hourly_stats[$s->hour]['origposition_avg']          = ceil($s->origposition_avg);
-            $hourly_stats[$s->hour]['incomig_total_calltime']    = $s->incomig_total_calltime;
+            $hourly_stats[$s->hour]['incoming_total_calltime']    = $s->incoming_total_calltime;
             $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
             $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
             $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
@@ -1761,7 +1761,7 @@ class Queue extends MY_Controller {
             $hourly_stats[$h] = array(
                 'calls_answered'           => 0,
                 'calls_missed'             => 0,
-                'incomig_total_calltime'   => 0,
+                'incoming_total_calltime'   => 0,
                 'calls_outgoing_answered'  => 0,
                 'calls_outgoing_unanswered'=> 0,
                 'outgoing_total_calltime'  => 0,
@@ -1772,7 +1772,7 @@ class Queue extends MY_Controller {
         foreach($hourly_call_stats as $s) {
             $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
             $hourly_stats[$s->hour]['calls_missed']              = $s->calls_unanswered;
-            $hourly_stats[$s->hour]['incomig_total_calltime']    = $s->incomig_total_calltime;
+            $hourly_stats[$s->hour]['incoming_total_calltime']    = $s->incoming_total_calltime;
             $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
             $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
             $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
@@ -1826,7 +1826,7 @@ class Queue extends MY_Controller {
                 'origposition_avg'          => ceil($i->origposition_avg),
                 'calls_outgoing_answered'   => $i->calls_outgoing_answered,
                 'calls_outgoing_unanswered' => $i->calls_outgoing_answered,
-                'incomig_total_calltime'    => $i->incomig_total_calltime,
+                'incoming_total_calltime'    => $i->incoming_total_calltime,
                 'outgoing_total_calltime'   => $i->outgoing_total_calltime,
             );
         }
@@ -1867,7 +1867,7 @@ class Queue extends MY_Controller {
             $daily_stats[] = array(
                 'day'                       => $i->date,
                 'calls_answered'            => $i->calls_answered,
-                'incomig_total_calltime'    => $i->incomig_total_calltime,
+                'incoming_total_calltime'    => $i->incoming_total_calltime,
                 'calls_missed'              => $i->calls_unanswered,
                 'calls_outgoing_answered'   => $i->calls_outgoing_answered,
                 'outgoing_total_calltime'   => $i->outgoing_total_calltime,

@@ -319,7 +319,7 @@
                                         <tr v-for="a in agent_stats">
                                         <td v-if="a.display_name">{{ a.display_name }}</td>
                                             <td v-if="a.display_name">{{ a.calls_answered }}</td>
-                                            <td v-if="a.display_name">{{ sec_to_time(a.incomig_total_calltime) }}</td>
+                                            <td v-if="a.display_name">{{ sec_to_time(a.incoming_total_calltime) }}</td>
                                             <td v-if="a.display_name">{{ a.calls_missed }}</td>
                                             <td v-if="a.display_name">{{ a.calls_outgoing_answered }}</td>
                                             <td v-if="a.display_name">{{ sec_to_time(a.outgoing_total_calltime) }}</td>

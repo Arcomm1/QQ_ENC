@@ -804,7 +804,7 @@ class Agent extends MY_Controller {
                 'origposition_avg'          => ceil($i->origposition_avg),
                 'calls_outgoing_answered'   => $i->calls_outgoing_answered,
                 'calls_outgoing_unanswered' => $i->calls_outgoing_answered,
-                'incomig_total_calltime'    => $i->incomig_total_calltime,
+                'incoming_total_calltime'    => $i->incoming_total_calltime,
                 'outgoing_total_calltime'   => $i->outgoing_total_calltime,
             );
         }
@@ -1272,7 +1272,7 @@ class Agent extends MY_Controller {
                 'total_pausetime'           => 0,
                 'avg_calltime'              => 0,
                 'avg_ringtime'              => 0,
-                'incomig_total_calltime'    => 0,
+                'incoming_total_calltime'    => 0,
                 'calls_outgoing_answered'   => 0,
                 'outgoing_total_calltime'   => 0,
                 'calls_outgoing_unanswered' => 0,
@@ -1285,7 +1285,7 @@ class Agent extends MY_Controller {
             $agent_stats[$s->agent_id]['total_ringtime']           = $s->total_ringtime;
             $agent_stats[$s->agent_id]['avg_calltime']             = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
             $agent_stats[$s->agent_id]['avg_ringtime']             = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
-            $agent_stats[$s->agent_id]['incomig_total_calltime']   = $s->incomig_total_calltime;
+            $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
             $agent_stats[$s->agent_id]['calls_outgoing_answered']  = $s->calls_outgoing_answered;
             $agent_stats[$s->agent_id]['outgoing_total_calltime']  = $s->outgoing_total_calltime;
             $agent_stats[$s->agent_id]['calls_outgoing_unanswered']= $s->calls_outgoing_unanswered;
@@ -1343,7 +1343,7 @@ class Agent extends MY_Controller {
             $agent_stats[$a->id] = array(
                 'display_name'              => $a->display_name,
                 'calls_answered'            => 0,
-                'incomig_total_calltime'    => 0,
+                'incoming_total_calltime'    => 0,
                 'calls_missed'              => 0,
                 'calls_outgoing_answered'   => 0,
                 'outgoing_total_calltime'   => 0,
@@ -1352,7 +1352,7 @@ class Agent extends MY_Controller {
         }
         foreach($agent_call_stats as $s) {
             $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
-            $agent_stats[$s->agent_id]['incomig_total_calltime']    = $s->incomig_total_calltime;
+            $agent_stats[$s->agent_id]['incoming_total_calltime']    = $s->incoming_total_calltime;
             $agent_stats[$s->agent_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
             $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
             $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
@@ -1398,7 +1398,7 @@ class Agent extends MY_Controller {
                 'total_data'=> 0,
                 'calls_outgoing_answered' => 0,
                 'calls_outgoing_unanswered' => 0,
-                'incomig_total_calltime' => 0,
+                'incoming_total_calltime' => 0,
                 'outgoing_total_calltime' => 0
             );
         }
@@ -1412,7 +1412,7 @@ class Agent extends MY_Controller {
             $agent_stats[$s->agent_id]['total_data'] = $s;
             $agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
             $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $agent_stats[$s->agent_id]['incomig_total_calltime'] = $s->incomig_total_calltime;
+            $agent_stats[$s->agent_id]['incoming_total_calltime'] = $s->incoming_total_calltime;
             $agent_stats[$s->agent_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
 
         }

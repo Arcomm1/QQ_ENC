@@ -114,7 +114,7 @@
                                 <th scope="col"><?php echo lang('outgoing_talk_time_sum'); ?></th>
                                 <th scope="col"><?php echo lang('calls_outgoing_failed'); ?></th>
                                 <th scope="col"><?php echo lang('dnd'); ?></th>
-                                <th scope="col"></th>
+                                <!-- <th scope="col"></th> -->
                                 <th scope="col"><?php echo lang('actions'); ?></th>
                             </tr>
                         </thead>
@@ -207,7 +207,7 @@
                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                         {{ agent_current_calls[agent.extension].second_party }}
                                         </span>
-                                            <span v-else ></span>
+                                            <!-- <span v-else ></span> -->
                                     </div>
                                     <div class="small text-medium-emphasis">
                                         <span>
@@ -222,7 +222,7 @@
                                 <td v-if="agent_current_calls[agent.extension]">{{ sec_to_time(agent.outgoing_total_calltime) }}</td>
                                 <td v-if="agent_current_calls[agent.extension]">{{ agent.calls_outgoing_unanswered }}</td>
                                 <td v-if="agent_current_calls[agent.extension]">{{ sec_to_time(agent.total_pausetime) }}</td>
-                                <td>
+                                <!-- <td>
                                     <span v-if="agent.dnd_status_pushed == 'on'" style="color:red">
                                         {{ agent.dnd_status_pushed }} - {{ agent.dnd_subject_title_pushed }}
                                         <div>
@@ -232,7 +232,7 @@
                                     <span v-else>
                                         {{ agent.dnd_status_pushed}}
                                     </span>
-                                </td>
+                                </td> -->
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a class="btn btn-ghost-success" v-bind:href="'agents/dndperagent/'+agent.agent_id"><i class="cil-clock"></i></a>

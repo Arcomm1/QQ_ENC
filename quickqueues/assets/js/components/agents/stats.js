@@ -248,24 +248,24 @@ var agent_stats = new Vue({
 
         /* --- Incoming Total And AVG Calltime --- */
         incoming_total_calltime_count: function() {
-            if (this.total_stats.incomig_total_calltime_count > 0) {
-                return sec_to_time(this.total_stats.incomig_total_calltime);
+            if (this.total_stats.incoming_total_calltime_count > 0) {
+                return sec_to_time(this.total_stats.incoming_total_calltime);
             } else {
                 return '0';
             }
         },
 
         incoming_total_calltime_avg: function() {
-            if (this.total_stats.incomig_total_calltime_count > 0) {
-                return sec_to_time(Math.floor(this.total_stats.incomig_total_calltime / this.total_stats.incomig_total_calltime_count));
+            if (this.total_stats.incoming_total_calltime_count > 0) {
+                return sec_to_time(Math.floor(this.total_stats.incoming_total_calltime / this.total_stats.incoming_total_calltime_count));
             } else {
                 return '0';
             }
         },
 		incoming_total_calltime_max:function(){
 		
-			if (this.total_stats.incomig_max_calltime > 0) {
-                return sec_to_time(this.total_stats.incomig_max_calltime);
+			if (this.total_stats.incoming_max_calltime > 0) {
+                return sec_to_time(this.total_stats.incoming_max_calltime);
             } else {
                 return '0';
             }

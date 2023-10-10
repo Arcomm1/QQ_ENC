@@ -492,9 +492,9 @@ class Call_model extends MY_Model {
         /* ------ End Of  FOR ATA: Hold Time ------ */
 
         /* ------ FOR Incoming: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_max_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
+        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomingg_max_calltime');
         /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
 
         /* ------ FOR Outgoing: Total & AVG Time ------ */
@@ -546,9 +546,9 @@ class Call_model extends MY_Model {
         $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS max_ringtime_answered');
 
         /* ------ FOR Incoming: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_max_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
+        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_max_calltime');
         /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
 
         /* ------ FOR Outgoing: Total & AVG Time ------ */
@@ -607,8 +607,8 @@ class Call_model extends MY_Model {
          /* ------ End Of  FOR SLA: Hold Time ------ */
 
         /* ------ FOR Incoming: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
         /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
 
         /* ------ FOR Outgoing: Total & AVG Time ------ */
@@ -644,8 +644,8 @@ class Call_model extends MY_Model {
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
@@ -677,8 +677,8 @@ class Call_model extends MY_Model {
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
@@ -706,8 +706,8 @@ class Call_model extends MY_Model {
         $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
         $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
         $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
@@ -732,8 +732,8 @@ class Call_model extends MY_Model {
         $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
         $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
         $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
         
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
@@ -760,8 +760,8 @@ class Call_model extends MY_Model {
         $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
         $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
         $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomig_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incomig_total_calltime_count');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
         
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
