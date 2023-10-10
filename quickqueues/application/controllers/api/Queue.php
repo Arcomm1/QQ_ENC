@@ -1797,46 +1797,85 @@ class Queue extends MY_Controller {
             array_push($queue_ids, $q->id);
         }
 
+        // Generate the list of dates within the specified date range
+        $start_date = new DateTime($date_range['date_gt']);
+        $end_date = new DateTime($date_range['date_lt']);
+        $interval = new DateInterval('P1D'); // 1 day interval
+        $date_range_list = new DatePeriod($start_date, $interval, $end_date);
+        $dates = [];
+        foreach ($date_range_list as $date) {
+            $dates[] = $date->format('Y-m-d');
+        }
+
         $daily_call_stats = $this->Call_model->get_daily_stats_for_start_page($queue_ids, $date_range);
 
-        foreach ($daily_call_stats as $i) {
+        $daily_stats = array(); // Initialize the array here
 
-            if (($i->calls_answered + $i->calls_outgoing) == 0) {
-                $avg_calltime = '00:00:00';
-            } else {
-                $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
+        // Fill in missing dates with default values
+        foreach ($dates as $date) {
+            $found = false;
+            foreach ($daily_call_stats as $i) {
+                if ($i->date == $date) {
+                    $found = true;
+                    // Calculate values as before
+                    if (($i->calls_answered + $i->calls_outgoing) == 0) {
+                        $avg_calltime = '00:00:00';
+                    } else {
+                        $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
+                    }
+
+                    if ($i->calls_unanswered == 0) {
+                        $avg_holdtime = '00:00:00';
+                    } else {
+                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+                    }
+
+                    $daily_stats[] = array(
+                        'day'                       => $i->date,
+                        'calls_total'               => $i->calls_answered + $i->calls_outgoing + $i->calls_unanswered,
+                        'calls_answered'            => $i->calls_answered,
+                        'calls_missed'              => $i->calls_unanswered,
+                        'calls_outgoing'            => $i->calls_outgoing,
+                        'total_calltime'            => sec_to_time($i->total_calltime),
+                        'avg_calltime'              => $avg_calltime,
+                        'total_holdtime'            => sec_to_time($i->total_holdtime),
+                        'avg_holdtime'              => $avg_holdtime,
+                        'origposition_avg'          => ceil($i->origposition_avg),
+                        'calls_outgoing_answered'   => $i->calls_outgoing_answered,
+                        'calls_outgoing_unanswered' => $i->calls_outgoing_answered,
+                        'incoming_total_calltime'    => $i->incoming_total_calltime,
+                        'outgoing_total_calltime'   => $i->outgoing_total_calltime,
+                    );
+                    break;
+                }
             }
-
-            if ($i->calls_unanswered == 0) {
-                $avg_holdtime = '00:00:00';
-            } else {
-                $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+            if (!$found) {
+                // If the date is not found in $daily_call_stats, set all parameters to 0
+                $daily_stats[] = array(
+                    'day'                       => $date,
+                    'calls_total'               => 0,
+                    'calls_answered'            => 0,
+                    'calls_missed'              => 0,
+                    'calls_outgoing'            => 0,
+                    'total_calltime'            => '00:00:00',
+                    'avg_calltime'              => '00:00:00',
+                    'total_holdtime'            => '00:00:00',
+                    'avg_holdtime'              => '00:00:00',
+                    'origposition_avg'          => 0,
+                    'calls_outgoing_answered'   => 0,
+                    'calls_outgoing_unanswered' => 0,
+                    'incoming_total_calltime'    => 0,
+                    'outgoing_total_calltime'   => 0,
+                );
             }
-
-            $daily_stats[] = array(
-                'day'                       => $i->date,
-                'calls_total'               => $i->calls_answered + $i->calls_outgoing + $i->calls_unanswered,
-                'calls_answered'            => $i->calls_answered,
-                'calls_missed'              => $i->calls_unanswered,
-                'calls_outgoing'            => $i->calls_outgoing,
-                'total_calltime'            => sec_to_time($i->total_calltime),
-                'avg_calltime'              => $avg_calltime,
-                'total_holdtime'            => sec_to_time($i->total_holdtime),
-                'avg_holdtime'              => $avg_holdtime,
-                'origposition_avg'          => ceil($i->origposition_avg),
-                'calls_outgoing_answered'   => $i->calls_outgoing_answered,
-                'calls_outgoing_unanswered' => $i->calls_outgoing_answered,
-                'incoming_total_calltime'    => $i->incoming_total_calltime,
-                'outgoing_total_calltime'   => $i->outgoing_total_calltime,
-            );
         }
 
         $this->r->data = $daily_stats;
-
         $this->r->status = 'OK';
         $this->r->message = 'Daily queue stats will follow';
         $this->_respond();
     }
+
 
 
     public function get_daily_stats_for_queue_stats($queue_id = false)
@@ -1845,43 +1884,77 @@ class Queue extends MY_Controller {
             $this->_respond();
             exit();
         }
+
         $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
 
+        // Generate the list of dates within the specified date range
+        $start_date = new DateTime($date_range['date_gt']);
+        $end_date = new DateTime($date_range['date_lt']);
+        $interval = new DateInterval('P1D'); // 1 day interval
+        $date_range_list = new DatePeriod($start_date, $interval, $end_date);
+        $dates = [];
+        foreach ($date_range_list as $date) {
+            $dates[] = $date->format('Y-m-d');
+        }
+
         $daily_call_stats = $this->Call_model->get_daily_stats_for_start_page(array($queue_id), $date_range);
 
-        foreach ($daily_call_stats as $i) {
+        $daily_stats = array(); // Initialize the array here
 
-            if (($i->calls_answered + $i->calls_outgoing) == 0) {
-                $avg_calltime = '00:00:00';
-            } else {
-                $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
+        // Fill in missing dates with default values
+        foreach ($dates as $date) {
+            $found = false;
+            foreach ($daily_call_stats as $i) {
+                if ($i->date == $date) {
+                    $found = true;
+                    // Calculate values as before
+                    if (($i->calls_answered + $i->calls_outgoing) == 0) {
+                        $avg_calltime = '00:00:00';
+                    } else {
+                        $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
+                    }
+
+                    if ($i->calls_unanswered == 0) {
+                        $avg_holdtime = '00:00:00';
+                    } else {
+                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+                    }
+
+                    $daily_stats[] = array(
+                        'day'                       => $i->date,
+                        'calls_answered'            => $i->calls_answered,
+                        'incoming_total_calltime'    => $i->incoming_total_calltime,
+                        'calls_missed'              => $i->calls_unanswered,
+                        'calls_outgoing_answered'   => $i->calls_outgoing_answered,
+                        'outgoing_total_calltime'   => $i->outgoing_total_calltime,
+                        'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
+                        'avg_holdtime'              => $avg_holdtime,
+                    );
+                    break;
+                }
             }
-
-            if ($i->calls_unanswered == 0) {
-                $avg_holdtime = '00:00:00';
-            } else {
-                $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+            if (!$found) {
+                // If the date is not found in $daily_call_stats, set all parameters to 0
+                $daily_stats[] = array(
+                    'day'                       => $date,
+                    'calls_answered'            => 0,
+                    'incoming_total_calltime'    => 0,
+                    'calls_missed'              => 0,
+                    'calls_outgoing_answered'   => 0,
+                    'outgoing_total_calltime'   => 0,
+                    'calls_outgoing_unanswered' => 0,
+                    'avg_holdtime'              => '00:00:00',
+                );
             }
-
-            $daily_stats[] = array(
-                'day'                       => $i->date,
-                'calls_answered'            => $i->calls_answered,
-                'incoming_total_calltime'    => $i->incoming_total_calltime,
-                'calls_missed'              => $i->calls_unanswered,
-                'calls_outgoing_answered'   => $i->calls_outgoing_answered,
-                'outgoing_total_calltime'   => $i->outgoing_total_calltime,
-                'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
-                'avg_holdtime'              =>$avg_holdtime,
-            );
         }
 
         $this->r->data = $daily_stats;
-
         $this->r->status = 'OK';
         $this->r->message = 'Daily queue stats will follow';
         $this->_respond();
     }
+
 
     public function get_basic_stats_for_today($id = false)
     {

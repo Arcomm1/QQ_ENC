@@ -235,7 +235,7 @@
                                 </td> -->
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a class="btn btn-ghost-success" v-bind:href="'agents/dndperagent/'+agent.agent_id"><i class="cil-clock"></i></a>
+                                        <a class="btn btn-ghost-success" v-bind:href="'agents/dndperagent/'+agent.agent_id"><i class="cil-media-pause"></i></a>
                                         <a class="btn btn-ghost-info" v-bind:href="'agents/stats/'+agent.agent_id"><i class="cil-bar-chart"></i></a>
                                     </div>
                                 </td>

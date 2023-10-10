@@ -102,7 +102,7 @@ $lang['last_30_days']       = "ბოლო 30 დღე";
 $lang['refresh']            = "განახლება";
 
 $lang['status']             = "სტატუსი";
-$lang['calls_missed']       = "გამოტოვებული (შემომავალი)";
+$lang['calls_missed']       = "შემომავალი (გამოტოვებული)";
 $lang['call_distrib_by_hour']   = "ზარების განაწილება საათის მიხედვით";
 $lang['call_distrib_by_day']    = "ზარების განაწილება დღის მიხედვით";
 $lang['not_implemented']    = "მზადების პროცესში";
