@@ -1316,7 +1316,8 @@ class Queue extends MY_Controller {
     
         if (!$id) {
             $queues = array();
-            foreach ($this->data->user_queues as $q) {
+            foreach ($this->data->user_queues as $q) 
+            {
                 $queueStatus = $this->asterisk_manager->queue_status($q->name);
     
                 // Check if $queueStatus has the 'data' key before accessing it
@@ -1330,7 +1331,8 @@ class Queue extends MY_Controller {
             $queueStatus = $this->asterisk_manager->queue_status($queue->name);
     
             // Check if $queueStatus has the 'data' key before accessing it
-            if (isset($queueStatus['data'])) {
+            if (isset($queueStatus['data'])) 
+            {
                 $this->r->data = $queueStatus;
             }
         }
@@ -1340,7 +1342,8 @@ class Queue extends MY_Controller {
         foreach ($this->r->data as &$queueStatus) {
             if (isset($queueStatus['data']['Queue'])) {
                 foreach ($queueData as $queueEntry) {
-                    if ($queueStatus['data']['Queue'] == $queueEntry['name']) {
+                    if ($queueStatus['data']['Queue'] == $queueEntry['name']) 
+                    {
                         // Check if 'data' array exists before adding 'displayName'
                         if (!isset($queueStatus['data'])) {
                             $queueStatus['data'] = array();
