@@ -1376,7 +1376,7 @@ class Agent extends MY_Controller {
             $agent_stats[$a->id] = array(
                 'display_name'              => $a->display_name,
                 'calls_answered'            => 0,
-                'incoming_total_calltime'    => 0,
+                'incoming_total_calltime'   => 0,
                 'calls_missed'              => 0,
                 'calls_outgoing_answered'   => 0,
                 'outgoing_total_calltime'   => 0,
@@ -1385,7 +1385,7 @@ class Agent extends MY_Controller {
         }
         foreach($agent_call_stats as $s) {
             $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
-            $agent_stats[$s->agent_id]['incoming_total_calltime']    = $s->incoming_total_calltime;
+            $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
             $agent_stats[$s->agent_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
             $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
             $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
@@ -1398,7 +1398,6 @@ class Agent extends MY_Controller {
         }
 
         $this->r->data = $agent_stats;
-
         $this->r->status = 'OK';
         $this->r->message = 'Total agent stats will follow';
         // echo "<pre>"; print_r($agent_call_stats); print_r($agent_event_stats); die(print_r($agent_stats));

@@ -110,10 +110,10 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-8 col-md-12 col-xs-12 col-sm-12 mb-3">
+        <div class="col-lg-8 col-md-12 col-xs-12 col-sm-12 mb-3  monitoring_dashboard_table">
             <div class="card border-top-primary border-primary border-top-3">
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row agent-stat-numbers">
                         <div class="col">
                             <div class="border-start border-start-4 border-start-success px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('available'); ?></small>
                                 <div class="fs-5 fw-semibold">{{ agents_free }}</div>
@@ -140,21 +140,24 @@
                             <div class="table-responsive">
                                 <table class="table table-border mb-0">
                                     <thead class="table-light fw-semibold">
-                                        <tr class="align-middle">
+                                        <tr class="align-middle monitoring-table-head">
                                             <th scope="col"><?php echo lang('agent'); ?></th>
+                                            <th scope="col"><?php echo lang('status'); ?></th>
                                             <th scope="col"><?php echo lang('calls_answered'); ?></th>
+                                            <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
                                             <th scope="col"><?php echo lang('calls_missed'); ?></th>
-                                            <th scope="col"><?php echo lang('calls_outgoing'); ?></th>
-                                            <th scope="col"><?php echo lang('time'); ?></th>
+                                            <th scope="col"><?php echo lang('calls_outgoing_answered'); ?></th>
+                                            <th scope="col"><?php echo lang('outgoing_talk_time_sum'); ?></th>
+                                            <th scope="col"><?php echo lang('calls_outgoing_failed'); ?></th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody class="monitoring-dashboard-table-body">
                                         <tr v-cloak v-for="agent in freepbx_agents" class="align-middle">
                                             <td v-bind:id="'agent_status_'+agent.agent_id" scope="row">
                                                 <div>
                                                     <span>
-                                                        <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-headphones mr-3 text-'+agent_statuses[agent.extension].status_color"></i>
-                                                        <i v-else class="cil-headphones mr-3 text-dark"></i>
+                                                        <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-'+agent_statuses[agent.extension].status_color"></i>
+                                                        <i v-else class="cil-phone mr-3 text-dark"></i>
                                                     </span>
                                                     <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
                                                     <span v-if="agent_current_calls[agent.extension]">
@@ -170,10 +173,13 @@
                                                     {{ " | "+agent.last_call }}
                                                 </div>
                                             </td>
+                                            <td>--</td>
                                             <td>{{ agent_stats[agent.id].calls_answered }}</td>
+                                            <td>{{ sec_to_time(agent_stats[agent.id].incomimg_total_calltime) }}</td>
                                             <td>{{ agent_stats[agent.id].calls_missed }}</td>
-                                            <td>{{ agent_stats[agent.id].calls_outgoing }}</td>
-                                            <td>{{ sec_to_time(agent_stats[agent.id].total_calltime) }}</td>
+                                            <td>{{ agent_stats[agent.id].calls_outgoing_answered }} </td>
+                                            <td>{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
+                                            <td>{{ agent_stats[agent.id].calls_outgoing_unanswered }}</td>
                                         </tr>
                                     </tbody>
                                 </table>

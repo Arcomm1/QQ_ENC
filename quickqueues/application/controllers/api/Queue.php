@@ -1313,34 +1313,49 @@ class Queue extends MY_Controller {
     public function get_realtime_data($id = false)
     {
         $this->load->library('asterisk_manager');
+    
         if (!$id) {
             $queues = array();
             foreach ($this->data->user_queues as $q) {
-                $queues[] = $this->asterisk_manager->queue_status($q->name);
+                $queueStatus = $this->asterisk_manager->queue_status($q->name);
+    
+                // Check if $queueStatus has the 'data' key before accessing it
+                if (isset($queueStatus['data'])) {
+                    $queues[] = $queueStatus;
+                }
             }
             $this->r->data = $queues;
         } else {
             $queue = $this->Queue_model->get($id);
-            $this->r->data = $this->asterisk_manager->queue_status($queue->name);
+            $queueStatus = $this->asterisk_manager->queue_status($queue->name);
+    
+            // Check if $queueStatus has the 'data' key before accessing it
+            if (isset($queueStatus['data'])) {
+                $this->r->data = $queueStatus;
+            }
         }
-
+    
         $queueData = $this->Queue_model->get_queue_entries();
-
-        for ($num1 = 0; $num1 < count($this->r->data); $num1++)
-        {
-            for ($num2 = 0; $num2 < count($queueData); $num2++)
-            {
-                if($this->r->data[$num1]['data']['Queue'] == $queueData[$num2]['name'])
-                {
-                    $this->r->data[$num1]['data']['displayName'] = $queueData[$num2]['display_name'];
+    
+        foreach ($this->r->data as &$queueStatus) {
+            if (isset($queueStatus['data']['Queue'])) {
+                foreach ($queueData as $queueEntry) {
+                    if ($queueStatus['data']['Queue'] == $queueEntry['name']) {
+                        // Check if 'data' array exists before adding 'displayName'
+                        if (!isset($queueStatus['data'])) {
+                            $queueStatus['data'] = array();
+                        }
+                        $queueStatus['data']['displayName'] = $queueEntry['display_name'];
+                    }
                 }
             }
         }
-        
+    
         $this->r->status = 'OK';
         $this->r->message = 'Queue realtime data will follow';
         $this->_respond();
     }
+    
 
 
     public function get_agents($id = false)
