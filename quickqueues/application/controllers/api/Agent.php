@@ -707,6 +707,117 @@ class Agent extends MY_Controller {
     }
 
 
+    public function get_hourly_stats_for_agents($id)
+    {
+        $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
+        $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
+        $stats = $this->Call_model->get_hourly_stats_for_agent_page($id, $date_range);
+        //$stats = $stats[0];
+       // $stats->avg_holdtime = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
+       for ($i=0; $i < 24; $i++) 
+       {
+        $has = false;
+        foreach($stats as $s) 
+        {
+            $s->avg_holdtime = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
+
+            if(intval($s->hour) == $i)
+            {
+                $has = true;
+            }
+        }
+        if(!$has)
+        {
+            $newTime = new stdClass();
+            $newTime->hour                      = str_pad($i,2,"0", STR_PAD_LEFT);
+            $newTime->calls_answered            = 0;
+            $newTime->calls_unanswered          = 0;
+            $newTime->incoming_total_calltime   = 0;
+            $newTime->calls_outgoing_answered   = 0;
+            $newTime->calls_outgoing_unanswered = 0;
+            $newTime->outgoing_total_calltime   = 0;
+            $newTime->total_holdtime            = 0;
+            $newTime->total_waittime            = 0;
+            $newTime->avg_holdtime              = 0;
+
+            array_push($stats,$newTime);
+        }
+       }
+       
+       usort($stats, function($a, $b) {
+        // Define the sorting order
+        $sortingOrder = ["10", "11", "12"];
+        for ($i = 13; $i <= 23; $i++) {
+            $sortingOrder[] = str_pad($i, 2, "0", STR_PAD_LEFT);
+        }
+        for ($i = 0; $i <= 9; $i++) {
+            $sortingOrder[] = "0" . $i;
+        }
+    
+        // Get the position of the hour in the sorting order
+        $pos_a = array_search($a->hour, $sortingOrder);
+        $pos_b = array_search($b->hour, $sortingOrder);
+    
+        return $pos_a - $pos_b;
+    });
+        $this->r->status = 'OK';
+        $this->r->message = 'Call distribution data will follow';
+        $this->r->data = $stats;
+
+        $this->_respond();
+    }
+    public function get_daily_stats_for_agents($id)
+    {
+        $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
+        $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
+        $stats = $this->Call_model->get_daily_stats_for_agent_page($id, $date_range);
+        
+        foreach ($stats as $i) 
+        {
+
+            if (($i->calls_answered + $i->calls_outgoing) == 0) 
+            {
+                $avg_calltime = '00:00:00';
+            } 
+            else 
+            {
+                $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
+            }
+
+            if ($i->calls_unanswered == 0) 
+            {
+                $avg_holdtime = '00:00:00';
+            } else 
+            {
+                $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+            }
+
+            $daily_stats[] = array(
+                'day'                       => $i->date,
+                'calls_total'               => $i->calls_answered + $i->calls_outgoing + $i->calls_unanswered,
+                'calls_answered'            => $i->calls_answered,
+                'calls_missed'              => $i->calls_unanswered,
+                'calls_outgoing'            => $i->calls_outgoing,
+                'total_calltime'            => sec_to_time($i->total_calltime),
+                'total_holdtime'            => sec_to_time($i->total_holdtime),
+                'avg_holdtime'              => $avg_holdtime,
+                'origposition_avg'          => ceil($i->origposition_avg),
+                'calls_outgoing_answered'   => $i->calls_outgoing_answered,
+                'calls_outgoing_unanswered' => $i->calls_outgoing_answered,
+                'incomig_total_calltime'    => $i->incomig_total_calltime,
+                'outgoing_total_calltime'   => $i->outgoing_total_calltime,
+            );
+        }
+
+        $this->r->data = $daily_stats;
+        $this->r->status = 'OK';
+        $this->r->message = 'Daily queue stats will follow';
+        $this->_respond();
+        
+      
+    }
+       
+
     public function get_stats_by_hour($id = false)
     {
         if (!$id) {
@@ -716,6 +827,7 @@ class Agent extends MY_Controller {
             exit();
         }
         $agent = $this->Agent_model->get($id);
+        var_dump($agent);
         if (!$agent) {
             $this->r->status = 'FAIL';
             $this->r->message = "Agent does not exist";
@@ -742,6 +854,7 @@ class Agent extends MY_Controller {
             'ring_time'         => 0,
         );
 
+        
         if ($this->data->track_pauses == 'yes') {
             $a['pause_time'] = 0;
         }
@@ -762,7 +875,6 @@ class Agent extends MY_Controller {
 
         foreach ($calls as $c) {
             $h = date('H', $c->timestamp);
-
             if ($c->event_type == 'COMPLETECALLER' || $c->event_type == 'COMPLETEAGENT') {
                 $call_distribution[$h]['calls_answered']++;
                 $call_distribution[$h]['call_time'] += $c->calltime;
@@ -1148,27 +1260,35 @@ class Agent extends MY_Controller {
 
         foreach ($this->data->user_agents as $a) {
             $agent_stats[$a->id] = array(
-                'display_name' => $a->display_name,
-                'last_call' => $a->last_call,
-                'extension' => $a->extension,
-                'agent_id' => $a->id,
-                'calls_answered' => 0,
-                'calls_outgoing' => 0,
-                'calls_missed' => 0,
-                'total_calltime' => 0,
-                'total_ringtime' => 0,
-                'total_pausetime' => 0,
-                'avg_calltime' => 0,
-                'avg_ringtime' => 0,
+                'display_name'              => $a->display_name,
+                'last_call'                 => $a->last_call,
+                'extension'                 => $a->extension,
+                'agent_id'                  => $a->id,
+                'calls_answered'            => 0,
+                'calls_outgoing'            => 0,
+                'calls_missed'              => 0,
+                'total_calltime'            => 0,
+                'total_ringtime'            => 0,
+                'total_pausetime'           => 0,
+                'avg_calltime'              => 0,
+                'avg_ringtime'              => 0,
+                'incomig_total_calltime'    => 0,
+                'calls_outgoing_answered'   => 0,
+                'outgoing_total_calltime'   => 0,
+                'calls_outgoing_unanswered' => 0,
             );
         }
         foreach($agent_call_stats as $s) {
-            $agent_stats[$s->agent_id]['calls_answered'] = $s->calls_answered;
-            $agent_stats[$s->agent_id]['calls_outgoing'] = $s->calls_outgoing;
-            $agent_stats[$s->agent_id]['total_calltime'] = $s->total_calltime;
-            $agent_stats[$s->agent_id]['total_ringtime'] = $s->total_ringtime;
-            $agent_stats[$s->agent_id]['avg_calltime'] = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
-            $agent_stats[$s->agent_id]['avg_ringtime'] = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
+            $agent_stats[$s->agent_id]['calls_answered']           = $s->calls_answered;
+            $agent_stats[$s->agent_id]['calls_outgoing']           = $s->calls_outgoing;
+            $agent_stats[$s->agent_id]['total_calltime']           = $s->total_calltime;
+            $agent_stats[$s->agent_id]['total_ringtime']           = $s->total_ringtime;
+            $agent_stats[$s->agent_id]['avg_calltime']             = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
+            $agent_stats[$s->agent_id]['avg_ringtime']             = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
+            $agent_stats[$s->agent_id]['incomig_total_calltime']   = $s->incomig_total_calltime;
+            $agent_stats[$s->agent_id]['calls_outgoing_answered']  = $s->calls_outgoing_answered;
+            $agent_stats[$s->agent_id]['outgoing_total_calltime']  = $s->outgoing_total_calltime;
+            $agent_stats[$s->agent_id]['calls_outgoing_unanswered']= $s->calls_outgoing_unanswered;
         }
 
         foreach ($agent_event_stats as $s) {

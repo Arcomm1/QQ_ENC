@@ -86,7 +86,7 @@ var agent_stats = new Vue({
         },
 
         get_hourly_stats: function() {
-            axios.post(api_url+'agent/get_hourly_stats_for_queue_stats/'+agent_id,this.form_data)
+            axios.post(api_url+'agent/get_hourly_stats_for_agents/'+agent_id,this.form_data)
                 .then(response => {
                     this.hourly_stats_loading = false;
                     this.hourly_stats = response.data.data;
@@ -94,7 +94,7 @@ var agent_stats = new Vue({
         },
 
         get_daily_stats: function() {
-            axios.post(api_url+'agent/get_daily_stats_for_queue_stats/'+agent_id,this.form_data)
+            axios.post(api_url+'agent/get_daily_stats_for_agents/'+agent_id,this.form_data)
                 .then(response => {
                     this.daily_stats_loading = false;
                     this.daily_stats = response.data.data;
@@ -122,7 +122,7 @@ var agent_stats = new Vue({
 
         load_data: function() {
             this.get_total_stats();
-            this.get_agent_stats();
+            this.get_agent_data();
             this.get_hourly_stats();
             this.get_daily_stats();
             // this.get_category_stats();
@@ -142,8 +142,8 @@ var agent_stats = new Vue({
         this.get_total_stats();
         this.get_agent_data();
 
-        // this.get_hourly_stats();
-        // this.get_daily_stats();
+        this.get_hourly_stats();
+        this.get_daily_stats();
         // this.get_category_stats();
 		console.log("THIS",this);
     },

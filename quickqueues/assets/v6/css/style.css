@@ -15170,3 +15170,8 @@ select option {
 {
   transform: rotate(180deg);
 }
+
+.agents_table td:empty
+{
+ display: none;
+}

@@ -148,6 +148,62 @@ class Agent_model extends MY_Model {
         return $queues;
     }
 
+    public function get_hourly_stats_for_agents($id)
+{
+    $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
+    $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
+    $stats = $this->Call_model->get_queue_stats_for_agent_page($id, $date_range);
+
+    // Calculate avg_holdtime for each item in $stats
+    foreach ($stats as $s) {
+        $s->avg_holdtime = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
+    }
+
+    // Create an array to hold sorted stats
+    $sortedStats = [];
+
+    // Iterate through hours (0 to 23) and add items to $sortedStats
+    for ($i = 0; $i < 24; $i++) {
+        $has = false;
+        foreach ($stats as $s) {
+            if (intval($s->hour) == $i) {
+                $has = true;
+                // Add item to $sortedStats with leading zeros for hour
+                $s->hour = str_pad($i, 2, "0", STR_PAD_LEFT);
+                $sortedStats[] = $s;
+                break; // No need to continue searching for this hour
+            }
+        }
+        if (!$has) {
+            // Create a new item for missing hours
+            $newTime = new stdClass();
+            $newTime->hour = str_pad($i, 2, "0", STR_PAD_LEFT);
+            $newTime->calls_answered = 0;
+            $newTime->calls_unanswered = 0;
+            $newTime->incoming_total_calltime = 0;
+            $newTime->calls_outgoing_answered = 0;
+            $newTime->calls_outgoing_unanswered = 0;
+            $newTime->outgoing_total_calltime = 0;
+            $newTime->total_holdtime = 0;
+            $newTime->total_waittime = 0;
+            $newTime->avg_holdtime = 0;
+
+            $sortedStats[] = $newTime;
+        }
+    }
+
+    // Sort $sortedStats by hour with leading zeros
+    usort($sortedStats, function ($a, $b) {
+        return strcmp($a->hour, $b->hour);
+    });
+
+    $this->r->status = 'OK';
+    $this->r->message = 'Call distribution data will follow';
+    $this->r->data = $sortedStats;
+
+    $this->_respond();
+}
+
 
     /**
      * Update agent settings
