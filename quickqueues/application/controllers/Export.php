@@ -973,7 +973,7 @@ class Export extends MY_Controller {
                     break;
                 }
             }
-            $rows_hours[] = array(
+            $rows_days[] = array(
                 lang('day'),
                 lang('calls_answered'),
                 lang('incoming_talk_time_sum'),
