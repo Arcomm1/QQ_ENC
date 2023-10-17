@@ -167,7 +167,7 @@ var queue_stats = new Vue({
         },
 
         export_stats: function() {
-            location.href = app_url+'/export/overview_new?date_gt='+$('#date_gt').val()+'&date_lt='+$('#date_lt').val();
+            location.href = app_url+'/export/queue_stats?date_gt='+$('#date_gt').val()+'&date_lt='+$('#date_lt').val();
         },
     },
 

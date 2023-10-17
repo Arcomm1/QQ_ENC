@@ -1071,10 +1071,10 @@ class Export extends MY_Controller {
 
         $writer = new XLSXWriter();
         $writer->setAuthor('Quickqueues');
-        
+      
         // Set up formatting styles
         $style1     = array('font-style'=>'bold');
-        $style2     = array('halign'=>'center', 'valign'=>'center');
+        $style2     = array('halign'=>'left', 'valign'=>'left', 'text_wrap' => true);
 
        
 
