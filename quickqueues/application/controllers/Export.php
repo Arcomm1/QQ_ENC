@@ -994,7 +994,7 @@ class Export extends MY_Controller {
                     'calls_outgoing_answered'   => 0,
                     'outgoing_total_calltime'   => sec_to_time(0),
                     'calls_outgoing_unanswered' => 0,
-                    'avg_holdtime'              => sec(0)
+
                 );
             }
         }
@@ -1018,12 +1018,12 @@ class Export extends MY_Controller {
         foreach($hourly_call_stats as $s) 
         {
             $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
-            $hourly_stats[$s->hour]['incoming_total_calltime']   = $s->incoming_total_calltime;
+            $hourly_stats[$s->hour]['incoming_total_calltime']   = sec_to_time($s->incoming_total_calltime);
             $hourly_stats[$s->hour]['calls_unanswered']          = $s->calls_unanswered;
             $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
-            $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
+            $hourly_stats[$s->hour]['outgoing_total_calltime']   = sec_to_time($s->outgoing_total_calltime);
             $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $hourly_stats[$s->hour]['hold_time_avg']             = floor($s->total_waittime + $s->total_holdtime > 0 ? ($s->total_waittime + $s->total_holdtime) / ($s->calls_answered + $s->calls_unanswered) : 0); // HOLD TIME AVG 
+            $hourly_stats[$s->hour]['hold_time_avg']             = sec_to_time($s->total_waittime + $s->total_holdtime > 0 ? ($s->total_waittime + $s->total_holdtime) / ($s->calls_answered + $s->calls_unanswered) : 0); // HOLD TIME AVG 
         }
         $rows_hours[] = array(
             lang('hour'),
@@ -1040,9 +1040,11 @@ class Export extends MY_Controller {
             $rows_hours[] = array(
                 $h.":00",
                 $i['calls_answered'],
-                $i['calls_outgoing_answered'] + $i['calls_outgoing_unanswered'] > 0 ? $i['calls_outgoing_answered'] + $i['calls_outgoing_unanswered'] : 0,
-                $i['calls_unanswered'],
-                sec_to_time($i['incoming_total_calltime'] + $i['outgoing_total_calltime']),
+                sec_to_time($i['incoming_total_calltime']);
+                $i['calls_unanswered'];
+                $i['calls_outgoing_answered'];
+                sec_to_time($i['outgoing_total_calltime']);
+                $i['calls_outgoing_unanswered'];
                 sec_to_time($i['hold_time_avg']),   
             );
         }
