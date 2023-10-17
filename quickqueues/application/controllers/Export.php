@@ -1040,11 +1040,11 @@ class Export extends MY_Controller {
             $rows_hours[] = array(
                 $h.":00",
                 $i['calls_answered'],
-                sec_to_time($i['incoming_total_calltime']);
-                $i['calls_unanswered'];
-                $i['calls_outgoing_answered'];
-                sec_to_time($i['outgoing_total_calltime']);
-                $i['calls_outgoing_unanswered'];
+                sec_to_time($i['incoming_total_calltime']),
+                $i['calls_unanswered'],
+                $i['calls_outgoing_answered'],
+                sec_to_time($i['outgoing_total_calltime']),
+                $i['calls_outgoing_unanswered'],
                 sec_to_time($i['hold_time_avg']),   
             );
         }
