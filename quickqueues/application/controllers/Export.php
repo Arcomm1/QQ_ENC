@@ -671,18 +671,18 @@ class Export extends MY_Controller {
         // SLA Less Then Or Equal To 10 Sec
         if($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0){
             $rows_overview[] = array(lang('start_menu_sla_less_than_or_equal_to_10'), $total_stats->sla_count_less_than_or_equal_to_10,
-            number_format(($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) * 100)."%", 1);
+            number_format(($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) * 100)."%");
         }
         // SLA Between 10 And 20 Sec
         if($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0){
             $rows_overview[] = array(lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),$total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20, 
-            number_format(($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) *100)."%",1);
+            number_format(($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) * 100)."%");
         }
 
         //  SLA Greater Then 20 Sec
         if($total_stats->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0){
             $rows_overview[] = array(lang('start_menu_sla_greater_than_20'),$total_stats->sla_count_greater_than_20, 
-            number_format(($total_stats->sla_count_greater_than_20 /  $total_stats->sla_count_total) *100)."%" , 1);
+            number_format(($total_stats->sla_count_greater_than_20 /  $total_stats->sla_count_total) * 100)."%" , 1);
         }
 
         // Hold Time Max
