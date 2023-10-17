@@ -973,11 +973,11 @@ class Export extends MY_Controller {
                     $rows_days[] = array(
                         'day'                       => $i->date,
                         'calls_answered'            => $i->calls_answered,
-                        'incoming_total_calltime'   => $i->incoming_total_calltime,
+                        'incoming_total_calltime'   =>sec_to_time($i->incoming_total_calltime),
                         'calls_missed'              => $i->calls_unanswered,
                         'calls_outgoing_answered'   => $i->calls_outgoing_answered,
-                        'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
-                        'avg_holdtime'              => $avg_holdtime,
+                        'calls_outgoing_unanswered' => sec_to_time($i->calls_outgoing_unanswered),
+                        'avg_holdtime'              => sec_to_time($avg_holdtime),
                     );
                     break;
                 }
@@ -988,11 +988,11 @@ class Export extends MY_Controller {
                 $rows_days[] = array(
                     'day'                       => $date,
                     'calls_answered'            => 0,
+                    'incoming_total_calltime'   => sec_to_time(0),
                     'calls_missed'              => 0,
                     'calls_outgoing_answered'   => 0,
+                    'outgoing_total_calltime'   => sec_to_time(0),
                     'calls_outgoing_unanswered' => 0,
-                    'incoming_total_calltime'   => 0,
-                    'outgoing_total_calltime'   => 0,
                 );
             }
         }
@@ -1029,8 +1029,8 @@ class Export extends MY_Controller {
             lang('incoming_talk_time_sum'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_total_calltime'),
-            lang('calls_outgoing_unanswered'),
+            lang('outgoing_talk_time_sum'),
+            lang('calls_outgoing_failed'),
             lang('hold_time')
         );
 
