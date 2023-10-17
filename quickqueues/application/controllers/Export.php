@@ -961,14 +961,8 @@ class Export extends MY_Controller {
                         $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
                     }
 
-                    if ($i->calls_unanswered == 0) 
-                    {
-                        $avg_holdtime = '00:00:00';
-                    } 
-                    else 
-                    {
-                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
-                    }
+                    $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+            
 
                     $rows_days[] = array(
                         'day'                       => $i->date,
@@ -994,7 +988,8 @@ class Export extends MY_Controller {
                     'calls_outgoing_answered'   => 0,
                     'outgoing_total_calltime'   => sec_to_time(0),
                     'calls_outgoing_unanswered' => 0,
-
+                    'avg_holdtime'              => sec_to_time(0),
+                    
                 );
             }
         }
