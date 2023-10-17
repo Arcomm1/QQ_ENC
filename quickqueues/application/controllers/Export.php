@@ -844,7 +844,7 @@ class Export extends MY_Controller {
             lang('incoming_talk_time_sum'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum')
+            lang('outgoing_talk_time_sum'),
             lang('calls_outgoing_failed')
         );
        
