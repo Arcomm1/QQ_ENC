@@ -929,7 +929,16 @@ class Export extends MY_Controller {
         }
 
         $daily_call_stats = $this->Call_model->get_daily_stats_for_start_page($queue_ids, $date_range);
-
+        $rows_days[] = array(
+            lang('day'),
+            lang('calls_answered'),
+            lang('incoming_talk_time_sum'),
+            lang('calls_missed'),
+            lang('calls_outgoing_answered'),
+            lang('outgoing_talk_time_sum'),
+            lang('calls_outgoing_failed'),
+            lang('hold_time')
+        );
         
 
         // Fill in missing dates with default values
@@ -973,29 +982,13 @@ class Export extends MY_Controller {
                     break;
                 }
             }
-            $rows_days[] = array(
-                lang('day'),
-                lang('calls_answered'),
-                lang('incoming_talk_time_sum'),
-                lang('calls_missed'),
-                lang('calls_outgoing_answered'),
-                lang('outgoing_total_calltime'),
-                lang('calls_outgoing_unanswered'),
-                lang('hold_time')
-            );
+            
             if (!$found) {
                 // If the date is not found in $daily_call_stats, set all parameters to 0
                 $rows_days[] = array(
                     'day'                       => $date,
-                    'calls_total'               => 0,
                     'calls_answered'            => 0,
                     'calls_missed'              => 0,
-                    'calls_outgoing'            => 0,
-                    'total_calltime'            => '00:00:00',
-                    'avg_calltime'              => '00:00:00',
-                    'total_holdtime'            => '00:00:00',
-                    'avg_holdtime'              => '00:00:00',
-                    'origposition_avg'          => 0,
                     'calls_outgoing_answered'   => 0,
                     'calls_outgoing_unanswered' => 0,
                     'incoming_total_calltime'   => 0,
