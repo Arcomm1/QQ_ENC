@@ -653,13 +653,11 @@ class Export extends MY_Controller {
 
         ////////////////// -------- OVERVIEW SHEET ------/////////////////////////
 
-        $total_stats = $this->Call_model->get_stats_for_start();
-
+        $total_stats = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
         $sla_total_count_sum = $total_stats->sla_count_total;
 
         // Total Calls
-        $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + 
-        $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
+        $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
         
         // Unique Incoming Calls
         $rows_overview[] = array(lang('calls_unique_in'), ($total_stats->unique_incoming_calls_answered + $total_stats->unique_incoming_calls_unanswered));
@@ -671,23 +669,25 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('start_menu_calls_answered'), $total_stats->calls_answered);
 
         // SLA Less Then Or Equal To 10 Sec
-        if($total_stats->sla_count_less_than_10 > 0 && $sla_total_count_sum > 0){
+        if($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0){
             $rows_overview[] = array(lang('start_menu_sla_less_than_or_equal_to_10'), $total_stats->sla_count_less_than_or_equal_to_10,
-                ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) *100 ."%");
+            number_format(($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) * 100)."%", 1);
         }
         // SLA Between 10 And 20 Sec
-        if($total_stats->sla_count_between_10_20 > 0 && $sla_total_count_sum > 0){
+        if($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0){
             $rows_overview[] = array(lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),$total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20, 
-                ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) *100 ."%"); 
+            number_format(($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) *100)."%",1);
         }
 
         //  SLA Greater Then 20 Sec
-        if($total_stats->sla_count_grate_than_20 > 0 && $sla_total_count_sum > 0){
+        if($total_stats->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0){
             $rows_overview[] = array(lang('start_menu_sla_greater_than_20'),$total_stats->sla_count_greater_than_20, 
-                ($total_stats->sla_count_greater_than_20 /  $total_stats->sla_count_total) *100 ."%");
+            number_format(($total_stats->sla_count_greater_than_20 /  $total_stats->sla_count_total) *100)."%" , 1);
         }
 
         // Hold Time Max
+        $total_hold_wait_time      = $total_stats->total_holdtime + $total_stats->total_waittime;
+        $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
             $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_min(
@@ -698,8 +698,6 @@ class Export extends MY_Controller {
         }
 
         // Hold Time AVG
-        $total_hold_wait_time      = $total_stats->total_holdtime + $total_stats->total_waittime;
-        $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
             $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_min(
@@ -891,7 +889,7 @@ class Export extends MY_Controller {
             $total_answered_unanswered = $s->calls_answered + $s->calls_unanswered;
 
             if($total_hold_wait_time > 0 && $total_answered_unanswered > 0) {
-                $queue_stats[$s->queue_id]['hold_time_avg'] = $total_hold_wait_time / $total_answered_unanswered;
+                $queue_stats[$s->queue_id]['avg_holdtime'] = $total_hold_wait_time / $total_answered_unanswered;
             }
         }
 
@@ -914,7 +912,7 @@ class Export extends MY_Controller {
                 $i['calls_outgoing_answered'],
                 sec_to_time($i['outgoing_total_calltime']),
                 $i['calls_outgoing_unanswered'],
-               sec_to_time($i['hold_time_avg']),
+               sec_to_time($i['avg_holdtime']),
             );
         }
         ////////////////// ---------- END OF QUEUE SHEET ----------////////////////////
@@ -998,6 +996,7 @@ class Export extends MY_Controller {
         /////////////////// ----------TIME SHEET ----------------//////////////////////////
         
         $hourly_call_stats = $this->Call_model->get_hourly_stats_for_start_page($queue_ids, $date_range);
+        var_dump($hourly_call_stats);
         for ($i=0; $i < 24; $i++) {
             $h = $i < 10 ? '0'.$i : $i;
             $hourly_stats[$h] = array(
@@ -1035,12 +1034,10 @@ class Export extends MY_Controller {
             $rows_hours[] = array(
                 $h.":00",
                 $i['calls_answered'],
-                $i['calls_outgoing_answered_and_calls_outgoing_unanswered_sum'] > 0 ? $i['calls_outgoing_answered_and_calls_outgoing_unanswered_sum'] : 0,
+                $i['calls_outgoing_answered'] + $i['calls_outgoing_unanswered'] > 0 ? $i['calls_outgoing_answered'] + $i['calls_outgoing_unanswered'] : 0,
                 $i['calls_unanswered'],
-                sec_to_time($i['incoming_total_calltime_and_outgoing_total_calltime_sum']),
-                sec_to_time($i['total_holdtime']),
-                
-                
+                sec_to_time($i['incoming_total_calltime'] + $i['outgoing_total_calltime']),
+                sec_to_time($i['hold_time_avg']),   
             );
         }
         /////////////////// ---------- END OFTIME SHEET ----------------//////////////////////////
@@ -1072,6 +1069,7 @@ class Export extends MY_Controller {
         ////////////////// End category sheet /////////////////////////////////////////////////////
 
         $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
+        
 
         $writer = new XLSXWriter();
         $writer->setAuthor('Quickqueues');
