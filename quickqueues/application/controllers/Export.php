@@ -918,28 +918,13 @@ class Export extends MY_Controller {
         ////////////////// ---------- END OF QUEUE SHEET ----------////////////////////
 
         ////////////////// ----------  DAY SHEET --------------////////////////////
-        $start_date      = new DateTime($date_range['date_gt']);
-        $end_date        = new DateTime($date_range['date_lt']);
-        $interval        = new DateInterval('P1D'); // 1 day interval
-        $date_range_list = new DatePeriod($start_date, $interval, $end_date);
-        $dates           = [];
-        foreach ($date_range_list as $date) 
-        {
-            $dates[] = $date->format('Y-m-d');
-        }
+   
 
         $daily_call_stats = $this->Call_model->get_daily_stats_for_start_page($queue_ids, $date_range);
-
-        
-
-        // Fill in missing dates with default values
-        foreach ($dates as $date) {
-            $found = false;
             foreach ($daily_call_stats as $i) 
             {
-                if ($i->date == $date) 
-                {
-                    $found = true;
+               
+                    
                     // Calculate values as before
                     if (($i->calls_answered + $i->calls_outgoing) == 0) 
                     {
@@ -969,26 +954,7 @@ class Export extends MY_Controller {
                         'avg_holdtime'              => $avg_holdtime,
                     );
                     break;
-                }
-            }
-            if (!$found) {
-                // If the date is not found in $daily_call_stats, set all parameters to 0
-                $row_days[] = array(
-                    'day'                       => $date,
-                    'calls_total'               => 0,
-                    'calls_answered'            => 0,
-                    'calls_missed'              => 0,
-                    'calls_outgoing'            => 0,
-                    'total_calltime'            => '00:00:00',
-                    'avg_calltime'              => '00:00:00',
-                    'total_holdtime'            => '00:00:00',
-                    'avg_holdtime'              => '00:00:00',
-                    'origposition_avg'          => 0,
-                    'calls_outgoing_answered'   => 0,
-                    'calls_outgoing_unanswered' => 0,
-                    'incoming_total_calltime'   => 0,
-                    'outgoing_total_calltime'   => 0,
-                );
+                
             }
         }
          ////////////////// ----------  END OF DAY SHEET --------------////////////////////
