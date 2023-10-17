@@ -968,7 +968,6 @@ class Export extends MY_Controller {
                         'calls_outgoing_answered'   => $i->calls_outgoing_answered,
                         'outgoing_total_calltime'   => sec_to_time($i->outgoing_total_calltime),
                         'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
-                        'avg_holdtime'              => sec_to_time($avg_holdtime),
                     );
                     break;
                 }
@@ -984,7 +983,7 @@ class Export extends MY_Controller {
                     'calls_outgoing_answered'   => 0,
                     'outgoing_total_calltime'   => sec_to_time(0),
                     'calls_outgoing_unanswered' => 0,
-                    'avg_holdtime'              => $avg_holdtime,
+                    'avg_holdtime'              => '00:00:00',
                     
                 );
             }
@@ -1009,12 +1008,12 @@ class Export extends MY_Controller {
         foreach($hourly_call_stats as $s) 
         {
             $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
-            $hourly_stats[$s->hour]['incoming_total_calltime']   = sec_to_time($s->incoming_total_calltime);
+            $hourly_stats[$s->hour]['incoming_total_calltime']   = $s->incoming_total_calltime;
             $hourly_stats[$s->hour]['calls_unanswered']          = $s->calls_unanswered;
             $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
-            $hourly_stats[$s->hour]['outgoing_total_calltime']   = sec_to_time($s->outgoing_total_calltime);
+            $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
             $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $hourly_stats[$s->hour]['hold_time_avg']             = sec_to_time($s->total_waittime + $s->total_holdtime > 0 ? ($s->total_waittime + $s->total_holdtime) / ($s->calls_answered + $s->calls_unanswered) : 0); // HOLD TIME AVG 
+            $hourly_stats[$s->hour]['hold_time_avg']             = $s->total_waittime + $s->total_holdtime > 0 ? ($s->total_waittime + $s->total_holdtime) / ($s->calls_answered + $s->calls_unanswered) : 0; // HOLD TIME AVG 
         }
         $rows_hours[] = array(
             lang('hour'),
@@ -1072,36 +1071,42 @@ class Export extends MY_Controller {
 
         $writer = new XLSXWriter();
         $writer->setAuthor('Quickqueues');
+        
+        // Set up formatting styles
+        $style1     = array('font-style'=>'bold');
+        $style2     = array('halign'=>'center', 'valign'=>'center');
 
-        $writer->writeSheetRow(lang('overview'), $row_header);
+       
+
+        $writer->writeSheetRow(lang('overview'), $row_header, $style1, $style2);
         foreach($rows_overview as $row) {
-            $writer->writeSheetRow(lang('overview'), $row);
+            $writer->writeSheetRow(lang('overview'), $row, $style2);
         }
 
-        $writer->writeSheetRow(lang('agents'), $row_header);
+        $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2);
         foreach($rows_agents as $row) {
-            $writer->writeSheetRow(lang('agents'), $row);
+            $writer->writeSheetRow(lang('agents'), $row, $style2 );
         }
 
-        $writer->writeSheetRow(lang('queues'), $row_header);
+        $writer->writeSheetRow(lang('queues'), $row_header, $style1, $style2);
         foreach($rows_queues as $row) {
-            $writer->writeSheetRow(lang('queues'), $row);
+            $writer->writeSheetRow(lang('queues'), $row, $style2);
         }
 
-        $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header);
+        $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header, $style1, $style2);
         foreach($rows_days as $row) {
-            $writer->writeSheetRow(lang('call_distrib_by_day'), $row);
+            $writer->writeSheetRow(lang('call_distrib_by_day'), $row, $style2 );
         }
 
-        $writer->writeSheetRow(lang('call_distrib_by_hour'), $row_header);
+        $writer->writeSheetRow(lang('call_distrib_by_hour'), $row_header, $style1, $style2);
         foreach($rows_hours as $row) {
-            $writer->writeSheetRow(lang('call_distrib_by_hour'), $row);
+            $writer->writeSheetRow(lang('call_distrib_by_hour'), $row, $style2);
         }
 
         if ($this->data->config->app_call_categories == 'yes') {
-            $writer->writeSheetRow(lang('call_distrib_by_category'), $row_header);
+            $writer->writeSheetRow(lang('call_distrib_by_category'), $row_header, $style1, $style2);
             foreach($rows_categories as $row) {
-                $writer->writeSheetRow(lang('call_distrib_by_category'), $row);
+                $writer->writeSheetRow(lang('call_distrib_by_category'), $row, $style2 );
             }
         }
 

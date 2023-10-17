@@ -210,7 +210,7 @@ $lang['calltime_gt']        = "საუბრის დრო >";
 $lang['calltime_lt']        = "საუბრის დრო <";
 $lang['outgoing']           = "გამავალი";
 
-$lang['overview']           = "მონიტორინგი";
+$lang['overview']           = "ზოგადი მიმოხილვა";
 $lang['no_current_call']    = "მიმდინარე ზარი არ მოიძებნა";
 $lang['number']             = "ნომერი";
 $lang['download']           = "ჩამოწერა";
