@@ -595,6 +595,7 @@ class Call_model extends MY_Model {
         $this->db->select('COUNT(CASE WHEN event_type LIKE "OUT_%" AND agent_id > 0 THEN 1 END) AS calls_outgoing');
         $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" AND agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
         $this->db->select('COUNT(CASE WHEN event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND agent_id > 0 THEN 1 END) AS calls_answered');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS calls_unanswered');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS total_ringtime');
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');

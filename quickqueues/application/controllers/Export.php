@@ -644,43 +644,61 @@ class Export extends MY_Controller {
             array_push($queue_ids, $q->id);
         }
 
-        $rows_overview = array();
-        $rows_agents = array();
-        $rows_queues = array();
-        $rows_days = array();
-        $rows_hours = array();
+        $rows_overview   = array();
+        $rows_agents     = array();
+        $rows_queues     = array();
+        $rows_days       = array();
+        $rows_hours      = array();
         $rows_categories = array();
 
         ////////////////// -------- OVERVIEW SHEET ------/////////////////////////
 
-        $total_stats = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
+        $total_stats = $this->Call_model->get_stats_for_start();
 
         $sla_total_count_sum = $total_stats->sla_count_total;
 
         // Total Calls
         $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + 
-            $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
+        $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
+        
+        // Unique Incoming Calls
+        $rows_overview[] = array(lang('calls_unique_in'), ($total_stats->unique_incoming_calls_answered + $total_stats->unique_incoming_calls_unanswered));
+        
+        // Unique Users
+        $rows_overview[] = array(lang('calls_unique_users'), $total_stats->unique_incoming_calls_answered);
+        
         // Incoming Answered
         $rows_overview[] = array(lang('start_menu_calls_answered'), $total_stats->calls_answered);
 
-        // SLA Less Then 10 Sec
+        // SLA Less Then Or Equal To 10 Sec
         if($total_stats->sla_count_less_than_10 > 0 && $sla_total_count_sum > 0){
-            $rows_overview[] = array(lang('start_menu_sla_less_10'), $total_stats->sla_count_less_than_10,
-                ($total_stats->sla_count_less_than_10 / $total_stats->sla_count_total) *100 ."%");
+            $rows_overview[] = array(lang('start_menu_sla_less_than_or_equal_to_10'), $total_stats->sla_count_less_than_or_equal_to_10,
+                ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) *100 ."%");
         }
         // SLA Between 10 And 20 Sec
         if($total_stats->sla_count_between_10_20 > 0 && $sla_total_count_sum > 0){
-            $rows_overview[] = array(lang('start_menu_sla_greate_10_less_20'),$total_stats->sla_count_between_10_20, 
-                ($total_stats->sla_count_between_10_20 / $total_stats->sla_count_total) *100 ."%");
+            $rows_overview[] = array(lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),$total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20, 
+                ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) *100 ."%"); 
         }
 
-        //  SLA Grate Then 10 Sec
+        //  SLA Greater Then 20 Sec
         if($total_stats->sla_count_grate_than_20 > 0 && $sla_total_count_sum > 0){
-            $rows_overview[] = array(lang('start_menu_sla_greate_20'),$total_stats->sla_count_grate_than_20, 
-                ($total_stats->sla_count_grate_than_20 / $total_stats->sla_count_total) *100 ."%");
+            $rows_overview[] = array(lang('start_menu_sla_greater_than_20'),$total_stats->sla_count_greater_than_20, 
+                ($total_stats->sla_count_greater_than_20 /  $total_stats->sla_count_total) *100 ."%");
         }
+
+        // Hold Time Max
+
+        if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
+            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_min(
+                floor(
+                    $total_stats->max_holdtime)
+                )
+            );
+        }
+
         // Hold Time AVG
-        $total_hold_wait_time = $total_stats->total_holdtime + $total_stats->total_waittime;
+        $total_hold_wait_time      = $total_stats->total_holdtime + $total_stats->total_waittime;
         $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
@@ -727,6 +745,10 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
             floor($total_stats-> incoming_total_calltime / $total_stats->incoming_total_calltime_count)) : 0
         );
+         // Incoming Talk Time Max
+        $rows_overview[] = array(lang('incoming_talk_time_max'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
+            floor($total_stats-> incoming_total_calltime / $total_stats->incoming_total_calltime_count)) : 0
+        );
 
         // Outgoing Talk Time SUM
         $rows_overview[] = array(lang('outgoing_talk_time_sum'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
@@ -736,6 +758,10 @@ class Export extends MY_Controller {
 
         // Outgoing Talk Time AVG
         $rows_overview[] = array(lang('outgoing_talk_time_avg'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
+            floor($total_stats-> outgoing_total_calltime / $total_stats->outgoing_total_calltime_count)) : 0
+        );
+        // Outgoing Talk Time Max
+        $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
             floor($total_stats-> outgoing_total_calltime / $total_stats->outgoing_total_calltime_count)) : 0
         );
         
@@ -749,50 +775,30 @@ class Export extends MY_Controller {
 
 
         ////////////////// ------------ AGENTS SHEET ----------------///////////////////
-        $agent_call_stats = $this->Call_model->get_agent_stats_for_start_page($queue_ids, $date_range);
+        $agent_call_stats  = $this->Call_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
 
         foreach ($this->data->user_agents as $a) {
             $agent_stats[$a->id] = array(
-                'display_name' => $a->display_name,
-                'calls_answered' => 0,
-                'calls_outgoing' => 0,
-                'calls_missed' => 0,
-                'total_calltime' => 0,
-                'total_ringtime' => 0,
-                'total_pausetime' => 0,
-                'avg_calltime' => 0,
-                'avg_ringtime' => 0,
-                'avg_pausetime' => 0,
-                'agent_id' => 0,
-                'sla_count_less_than_10' => 0,
-                'sla_count_between_10_20' => 0,
-                'sla_count_grate_than_20' => 0,
-                'calls_outgoing_answered' => 0,
-                'calls_outgoing_unanswered' => 0,
-                'outgoing_total_calltime' => 0,
-                'outgoing_talk_time_avg' => 0,
-                'incoming_total_calltime' => 0,
-                'incoming_talk_time_avg' => 0,
-                'incoming_and_outgoing_calltime_sum' => 0,
-                'calls_outgoing_answered_and_ununswered_sum' => 0,
-                
+                'display_name'              => $a->display_name,
+                'calls_answered'            => 0,
+                'incoming_total_calltime'   => 0,
+                'calls_missed'              => 0,
+                'calls_outgoing_answered'   => 0,
+                'outgoing_total_calltime'   => 0,
+                'calls_outgoing_unanswered' => 0,  
             );
         }
         foreach($agent_call_stats as $s) {
-            $sla_total_count_sum = $s->sla_count_total; //For Counting
+            // $sla_total_count_sum = $s->sla_count_total; //For Counting
 
-            $agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
-            $agent_stats[$s->agent_id]['outgoing_total_calltime_count'] = $s->outgoing_total_calltime_count; 
-            $agent_stats[$s->agent_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
+            $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
+            $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime; 
             $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $agent_stats[$s->agent_id]['avg_ringtime'] = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
-            $agent_stats[$s->agent_id]['calls_answered'] = $s->calls_answered;
-            $agent_stats[$s->agent_id]['incoming_total_calltime'] = $s->incoming_total_calltime;
-
-            $agent_stats[$s->agent_id]['incoming_and_outgoing_calltime_sum'] = $s->outgoing_total_calltime + $s->incoming_total_calltime;
-            $agent_stats[$s->agent_id]['calls_outgoing_answered_and_ununswered_sum'] = $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
+            $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
+            $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+          
             
             //SLA Less Then 10 Sec
            /* if($s->sla_count_less_than_10 && $s->sla_count_less_than_10 > 0 && $sla_total_count_sum > 0){
@@ -834,41 +840,25 @@ class Export extends MY_Controller {
         }
         $rows_agents[] = array(
             lang('agent'),
-            //lang('ring_time').' - '.lang('avg'),
             lang('calls_answered'),
-            /*lang('start_menu_sla_less_10'),
-            lang('start_menu_sla_greate_10_less_20'),
-            lang('sla_count_between_10_20'),*/
-            //lang('calls_outgoing_answered'),
-            //lang('calls_outgoing_failed'),
-            lang('calls_outgoing'),
+            lang('incoming_talk_time_sum'),
             lang('calls_missed'),
-            lang('call_time'),
-            //lang('outgoing_talk_time_sum'),
-            //lang('outgoing_talk_time_avg'),
-            //lang('incoming_talk_time_sum'),
-            //lang('incoming_talk_time_avg'),
-            lang('pause_time')
+            lang('calls_outgoing_answered'),
+            lang('outgoing_talk_time_sum')
+            lang('calls_outgoing_failed')
         );
        
         foreach ($agent_stats as $id => $i) {
             if ($id == 0) { continue; }
             $rows_agents[] = array(
                 array_key_exists('display_name', $i) ? $i['display_name'] : "დაარქივებული",
-                //sec_to_time($i['avg_ringtime']),
                 $i['calls_answered'],
-                /*$i['sla_count_less_than_10'],
-                $i['sla_count_between_10_20'],
-                $i['sla_count_grate_than_20'],*/
-                //$i['calls_outgoing_answered'],
-                //$i['calls_outgoing_unanswered'],
-                $i['calls_outgoing_answered_and_ununswered_sum'],
-                $i['calls_missed'],
-                sec_to_time($i['incoming_and_outgoing_calltime_sum']),
-               /* sec_to_time($i['outgoing_total_calltime']),
-                sec_to_min($i['outgoing_talk_time_avg']),
                 sec_to_time($i['incoming_total_calltime']),
-                sec_to_min($i['incoming_talk_time_avg']),*/
+                $i['calls_missed'],
+                $i['calls_outgoing_answered'],
+                sec_to_time($i['outgoing_total_calltime']),
+                $i['calls_outgoing_unanswered'],
+
             );
         }
 
@@ -878,59 +868,24 @@ class Export extends MY_Controller {
         $queue_call_stats = $this->Call_model->get_queue_stats_for_start_page($queue_ids, $date_range);
         foreach ($this->data->user_queues as $q) {
             $queue_stats[$q->id] = array(
-                'display_name' => $q->display_name,
-                'calls_total' => 0,
-                'calls_answered' => 0,
-                'calls_outgoing' => 0,
-                'calls_unanswered' => 0,
-                'total_calltime' => 0,
-                'total_holdtime' => 0,
-                'total_waittime' => 0,
-                'avg_calltime' => 0,
-                'avg_holdtime' => 0,
-                'origposition_avg' => 0,
-                'calls_without_service' => 0,
-                'answered_elsewhere' => 0,
-                'called_back' => 0,
-                'incoming_total_calltime' => 0,
-                'incoming_talk_time_avg' => 0,
-                'hold_time_avg' => 0,
-                'calls_outgoing_answered' => 0,
-                'outgoing_total_calltime' => 0,
-                'outgoing_talk_time_avg' => 0,
+                'display_name'              => $q->display_name,
+                'calls_answered'            => 0,
+                'incoming_total_calltime'   => 0,
+                'calls_missed'              => 0,
+                'calls_outgoing_answered'   => 0,
+                'outgoing_total_calltime'   => 0,
                 'calls_outgoing_unanswered' => 0,
-                'incoming_total_calltime_and_outgoing_total_call_time_sum' => 0,
-                'calls_outgoing_answered_and_calls_outgoing_unanswered_sum' => 0,
-                'total_hold_wait_time' => 0,
-
+                'avg_holdtime'              => 0,
             );
         }
         foreach($queue_call_stats as $s) {
-            $queue_stats[$s->queue_id]['calls_answered'] = $s->calls_answered;
-            $queue_stats[$s->queue_id]['calls_outgoing'] = $s->calls_outgoing;
-            $queue_stats[$s->queue_id]['calls_unanswered'] = $s->calls_unanswered;
-            $queue_stats[$s->queue_id]['total_calltime'] = $s->total_calltime;
-            $queue_stats[$s->queue_id]['calls_without_service'] = $s->calls_without_service;
-            $queue_stats[$s->queue_id]['answered_elsewhere'] = $s->answered_elsewhere;
-            $queue_stats[$s->queue_id]['called_back'] = $s->called_back;
-            $queue_stats[$s->queue_id]['incoming_total_calltime_count'] = $s->incoming_total_calltime_count;
-            $queue_stats[$s->queue_id]['incoming_total_calltime'] = $s->incoming_total_calltime;
-            $queue_stats[$s->queue_id]['total_waittime'] = $s->total_waittime;
-            $queue_stats[$s->queue_id]['total_holdtime'] = $s->total_holdtime;
-            $queue_stats[$s->queue_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
-            $queue_stats[$s->queue_id]['outgoing_total_calltime_count'] = $s->outgoing_total_calltime_count;
-            $queue_stats[$s->queue_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
+            $queue_stats[$s->queue_id]['calls_answered']            = $s->calls_answered;
+            $queue_stats[$s->queue_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
+            $queue_stats[$s->queue_id]['calls_missed']              = $s->calls_unanswered;
+            $queue_stats[$s->queue_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
+            $queue_stats[$s->queue_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
             $queue_stats[$s->queue_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $queue_stats[$s->queue_id]['origposition_avg'] = ceil($s->origposition_avg);
-
-            $queue_stats[$s->queue_id]['$total_hold_wait_time'] = $s->total_holdtime + $s->total_waittime;
-
-            $queue_stats[$s->queue_id]['incoming_total_calltime_and_outgoing_total_call_time_sum'] = $s->incoming_total_calltime + $s->outgoing_total_calltime;
-            $queue_stats[$s->queue_id]['calls_outgoing_answered_and_calls_outgoing_unanswered_sum'] = $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
-
-            //Incoming Talk Time AVG
-            $queue_stats[$s->queue_id]['incoming_talk_time_avg'] = $s->incoming_total_calltime > 0 ? ($s->incoming_total_calltime / $s->incoming_total_calltime_count) : 0;
-
+       
             //Hold Time AVG
             $total_hold_wait_time = $s->total_holdtime + $s->total_waittime;
             $total_answered_unanswered = $s->calls_answered + $s->calls_unanswered;
@@ -938,143 +893,141 @@ class Export extends MY_Controller {
             if($total_hold_wait_time > 0 && $total_answered_unanswered > 0) {
                 $queue_stats[$s->queue_id]['hold_time_avg'] = $total_hold_wait_time / $total_answered_unanswered;
             }
-
-            // Outgoing Talk Time AVG
-            $queue_stats[$s->queue_id]['outgoing_talk_time_avg'] = $s->outgoing_total_calltime > 0 ? ($s->outgoing_total_calltime / $s->outgoing_total_calltime_count) : 0;
         }
 
         $rows_queues[] = array(
             lang('queue'),
             lang('calls_answered'),
-            lang('calls_outgoing'),
-            lang('calls_unanswered'),
-            //lang('calls_without_service'),
-            //lang('answered_elsewhere'),
-            //lang('answered_aoutcall'),
-            //lang('incoming_talk_time_sum'),
-            lang('call_time'),
-            //lang('incoming_talk_time_avg'),
-            //lang('hold_time').' ('.lang('avg').')',
-            //lang('start_menu_calls_waiting').' ('.lang('avg').')',
-            //lang('calls_outgoing_answered'),
-            //lang('outgoing_talk_time_sum'),
-            //lang('outgoing_talk_time_avg'),
-            //lang('calls_outgoing_failed'),
+            lang('incoming_talk_time_sum'),
+            lang('calls_missed'),
+            lang('calls_outgoing_answered'),
+            lang('outgoing_talk_time_sum'),
+            lang('calls_outgoing_failed'),
             lang('hold_time')
         );
         foreach ($queue_stats as $i) {
             $rows_queues[] = array(
                 $i['display_name'],
                 $i['calls_answered'],
-                $i['calls_outgoing_answered_and_calls_outgoing_unanswered_sum'],
-                $i['calls_unanswered'],
-                //$i['calls_without_service'],
-                //$i['answered_elsewhere'],
-                //$i['called_back'],
-                //sec_to_time($i['incoming_total_calltime']),
-                sec_to_time($i['incoming_total_calltime_and_outgoing_total_call_time_sum']),
-                //sec_to_min(floor($i['incoming_talk_time_avg'])), //INCOMING CALL TIME AVG
-                //sec_to_min(floor($i['hold_time_avg'] )), // HOLD TIME AVG
-                //$i['origposition_avg'],
-                //$i['calls_outgoing_answered'],
-                //sec_to_time($i['outgoing_total_calltime']),
-                //sec_to_min(floor($i['outgoing_talk_time_avg'])), //OUTGOING CALL TIME AVG
-                //$i['calls_outgoing_unanswered'],
-               sec_to_time($i['total_holdtime']),
+                sec_to_time($i['incoming_total_calltime']),
+                $i['calls_missed'],
+                $i['calls_outgoing_answered'],
+                sec_to_time($i['outgoing_total_calltime']),
+                $i['calls_outgoing_unanswered'],
+               sec_to_time($i['hold_time_avg']),
             );
         }
         ////////////////// ---------- END OF QUEUE SHEET ----------////////////////////
 
         ////////////////// ----------  DAY SHEET --------------////////////////////
+        $start_date      = new DateTime($date_range['date_gt']);
+        $end_date        = new DateTime($date_range['date_lt']);
+        $interval        = new DateInterval('P1D'); // 1 day interval
+        $date_range_list = new DatePeriod($start_date, $interval, $end_date);
+        $dates           = [];
+        foreach ($date_range_list as $date) 
+        {
+            $dates[] = $date->format('Y-m-d');
+        }
+
         $daily_call_stats = $this->Call_model->get_daily_stats_for_start_page($queue_ids, $date_range);
 
-        $rows_days[] = array(
-            lang('date'),
-            lang('calls_answered'),
-            lang('calls_outgoing'),
-            lang('calls_unanswered'),
-            lang('call_time'),
-            //lang('incoming_talk_time_avg'),
-            //lang('hold_time').' ('.lang('avg').')',
-            //lang('calls_outgoing_answered'),
-            //lang('outgoing_talk_time_sum'),
-            //lang('outgoing_talk_time_avg'),
-            //lang('calls_outgoing_failed'),
-            lang('hold_time')
-        );
-        foreach ($daily_call_stats as $i) {
-            $rows_days[] = array(
-                $i->date,
-                $i->calls_answered,
-                $i->calls_outgoing_answered + $i->calls_outgoing_unanswered,
-                $i->calls_unanswered,
-                sec_to_time($i->incoming_total_calltime + $i->outgoing_total_calltime),
-                //sec_to_min(floor($i->incoming_total_calltime > 0 ? $i->incoming_total_calltime / $i->incoming_total_calltime_count : 0)), //INCOMING CALL TIME AVG
-                //sec_to_min(floor($i->total_waittime + $i->total_holdtime > 0 ? ($i->total_waittime + $i->total_holdtime) / ($i->calls_answered + $i->calls_unanswered) : 0)), // HOLD TIME AVG
-                //$i->calls_outgoing_answered,
-                //sec_to_time($i->outgoing_total_calltime),
-                //sec_to_min(floor($i->outgoing_total_calltime > 0 ? $i->outgoing_total_calltime / $i->outgoing_total_calltime_count : 0)), //OUTGOING CALL TIME AVG
-                //$i->calls_outgoing_unanswered >0 ? $i->calls_outgoing_unanswered : 0,
-                sec_to_time($i->total_holdtime),
-              
-            );
-            unset($total_holdtime);
-            unset($hold_time);
-            unset($call_time);
+        
+
+        // Fill in missing dates with default values
+        foreach ($dates as $date) {
+            $found = false;
+            foreach ($daily_call_stats as $i) 
+            {
+                if ($i->date == $date) 
+                {
+                    $found = true;
+                    // Calculate values as before
+                    if (($i->calls_answered + $i->calls_outgoing) == 0) 
+                    {
+                        $avg_calltime = '00:00:00';
+                    } 
+                    else 
+                    {
+                        $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
+                    }
+
+                    if ($i->calls_unanswered == 0) 
+                    {
+                        $avg_holdtime = '00:00:00';
+                    } 
+                    else 
+                    {
+                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+                    }
+
+                    $rows_days[] = array(
+                        'day'                       => $i->date,
+                        'calls_answered'            => $i->calls_answered,
+                        'incoming_total_calltime'   => $i->incoming_total_calltime,
+                        'calls_missed'              => $i->calls_unanswered,
+                        'calls_outgoing_answered'   => $i->calls_outgoing_answered,
+                        'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
+                        'avg_holdtime'              => $avg_holdtime,
+                    );
+                    break;
+                }
+            }
+            if (!$found) {
+                // If the date is not found in $daily_call_stats, set all parameters to 0
+                $row_days[] = array(
+                    'day'                       => $date,
+                    'calls_total'               => 0,
+                    'calls_answered'            => 0,
+                    'calls_missed'              => 0,
+                    'calls_outgoing'            => 0,
+                    'total_calltime'            => '00:00:00',
+                    'avg_calltime'              => '00:00:00',
+                    'total_holdtime'            => '00:00:00',
+                    'avg_holdtime'              => '00:00:00',
+                    'origposition_avg'          => 0,
+                    'calls_outgoing_answered'   => 0,
+                    'calls_outgoing_unanswered' => 0,
+                    'incoming_total_calltime'   => 0,
+                    'outgoing_total_calltime'   => 0,
+                );
+            }
         }
          ////////////////// ----------  END OF DAY SHEET --------------////////////////////
 
         /////////////////// ----------TIME SHEET ----------------//////////////////////////
+        
         $hourly_call_stats = $this->Call_model->get_hourly_stats_for_start_page($queue_ids, $date_range);
         for ($i=0; $i < 24; $i++) {
             $h = $i < 10 ? '0'.$i : $i;
             $hourly_stats[$h] = array(
-                'calls_answered' => 0,
-                'calls_unanswered' => 0,
-                'incoming_total_calltime' => 0,
-                'incoming_total_calltime_count' => 0,
-                'incoming_talk_time_avg' => 0,
-                'hold_time_avg' => 0,
-                'total_holdtime' => 0,
-                'total_waittime' => 0,
-                'calls_outgoing_answered' => 0,
-                'outgoing_total_calltime' => 0,
-                'outgoing_talk_time_avg' => 0,
+                'calls_answered'            => 0,
+                'incoming_total_calltime'   => 0,
+                'calls_unanswered'          => 0,
+                'calls_outgoing_answered'   => 0,
+                'outgoing_total_calltime'   => 0,
                 'calls_outgoing_unanswered' => 0,
-                'calls_outgoing_answered_and_calls_outgoing_unanswered_sum' => 0,
-                'incoming_total_calltime_and_outgoing_total_calltime_sum' =>0,
+                'hold_time_avg'             => 0,
             );
         }
-        foreach($hourly_call_stats as $s) {
-            $hourly_stats[$s->hour]['calls_answered'] = $s->calls_answered;
-            $hourly_stats[$s->hour]['calls_unanswered'] = $s->calls_unanswered ;
-            $hourly_stats[$s->hour]['incoming_total_calltime'] = $s->incoming_total_calltime;
-            //$hourly_stats[$s->hour]['incoming_talk_time_avg'] = ($s->incoming_total_calltime == 0 ? 0 : $s->incomi g_total_calltime) / ($s->incoming_total_calltime_count == 0 ? 0 : $s->incoming_total_calltime_count);
-            $hourly_stats[$s->hour]['incoming_talk_time_avg'] = ($s->incoming_total_calltime > 0 ?  $s->incoming_total_calltime / $s->incoming_total_calltime_count : 0 );
-            $hourly_stats[$s->hour]['hold_time_avg'] = floor($s->total_waittime + $s->total_holdtime > 0 ? ($s->total_waittime + $s->total_holdtime) / ($s->calls_answered + $s->calls_unanswered) : 0); // HOLD TIME AVG
-            $hourly_stats[$s->hour]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
-            $hourly_stats[$s->hour]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
-            $hourly_stats[$s->hour]['outgoing_total_calltime_count'] = $s->outgoing_total_calltime_count;
-            $hourly_stats[$s->hour]['outgoing_talk_time_avg'] = floor($s->outgoing_total_calltime > 0 ? $s->outgoing_total_calltime / $s->outgoing_total_calltime_count : 0);
+        foreach($hourly_call_stats as $s) 
+        {
+            $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
+            $hourly_stats[$s->hour]['incoming_total_calltime']   = $s->incoming_total_calltime;
+            $hourly_stats[$s->hour]['calls_unanswered']          = $s->calls_unanswered;
+            $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
+            $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
             $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-
-            $hourly_stats[$s->hour]['calls_outgoing_answered_and_calls_outgoing_unanswered_sum'] = $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
-            $hourly_stats[$s->hour]['incoming_total_calltime_and_outgoing_total_calltime_sum'] = $s->incoming_total_calltime + $s->outgoing_total_calltime;
-
-            $hourly_stats[$s->hour]['total_holdtime'] = $s->total_holdtime;
+            $hourly_stats[$s->hour]['hold_time_avg']             = floor($s->total_waittime + $s->total_holdtime > 0 ? ($s->total_waittime + $s->total_holdtime) / ($s->calls_answered + $s->calls_unanswered) : 0); // HOLD TIME AVG 
         }
         $rows_hours[] = array(
             lang('hour'),
             lang('calls_answered'),
-            lang('calls_outgoing'),
-            lang('calls_unanswered'),
-            lang('call_time'),
-            //lang('incoming_talk_time_avg'),
-            //lang('hold_time').' ('.lang('avg').')',
-            //lang('calls_outgoing_answered'),
-            //lang('outgoing_talk_time_sum'),
-            //lang('outgoing_talk_time_avg'),
-            //lang('calls_outgoing_failed'),
+            lang('incoming_talk_time_sum'),
+            lang('calls_missed'),
+            lang('calls_outgoing_answered'),
+            lang('outgoing_total_calltime'),
+            lang('calls_outgoing_unanswered'),
             lang('hold_time')
         );
 
@@ -1085,12 +1038,6 @@ class Export extends MY_Controller {
                 $i['calls_outgoing_answered_and_calls_outgoing_unanswered_sum'] > 0 ? $i['calls_outgoing_answered_and_calls_outgoing_unanswered_sum'] : 0,
                 $i['calls_unanswered'],
                 sec_to_time($i['incoming_total_calltime_and_outgoing_total_calltime_sum']),
-                //sec_to_min(floor($i['incoming_talk_time_avg'])), //INCOMING CALL TIME AVG
-                //sec_to_min($i['hold_time_avg']),
-                //$i['calls_outgoing_answered'],
-                //sec_to_time($i['outgoing_total_calltime']),
-                //sec_to_min($i['outgoing_talk_time_avg']), //OUTGOING CALL TIME AVG
-                //$i['calls_outgoing_unanswered'] > 0 ? $i['calls_outgoing_unanswered'] : 0,
                 sec_to_time($i['total_holdtime']),
                 
                 

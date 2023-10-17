@@ -232,7 +232,7 @@ var start = new Vue({
         },
 
         unique_incoming_calls: function() {
-            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered)
+            return parseInt(this.total_stats.unique_incoming_calls_answered) + parseInt(this.total_stats.unique_incoming_calls_unanswered)
         },
 
         unique_outgoing_calls: function() {

@@ -1860,7 +1860,7 @@ class Queue extends MY_Controller {
                         'avg_holdtime'              => $avg_holdtime,
                         'origposition_avg'          => ceil($i->origposition_avg),
                         'calls_outgoing_answered'   => $i->calls_outgoing_answered,
-                        'calls_outgoing_unanswered' => $i->calls_outgoing_answered,
+                        'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
                         'incoming_total_calltime'    => $i->incoming_total_calltime,
                         'outgoing_total_calltime'   => $i->outgoing_total_calltime,
                     );
@@ -1882,7 +1882,7 @@ class Queue extends MY_Controller {
                     'origposition_avg'          => 0,
                     'calls_outgoing_answered'   => 0,
                     'calls_outgoing_unanswered' => 0,
-                    'incoming_total_calltime'    => 0,
+                    'incoming_total_calltime'   => 0,
                     'outgoing_total_calltime'   => 0,
                 );
             }
