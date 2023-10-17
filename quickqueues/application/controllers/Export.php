@@ -976,6 +976,7 @@ class Export extends MY_Controller {
                         'incoming_total_calltime'   =>sec_to_time($i->incoming_total_calltime),
                         'calls_missed'              => $i->calls_unanswered,
                         'calls_outgoing_answered'   => $i->calls_outgoing_answered,
+                        'outgoing_total_calltime'   => sec_to_time($i->outgoing_total_calltime),
                         'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
                         'avg_holdtime'              => sec_to_time($avg_holdtime),
                     );
@@ -993,6 +994,7 @@ class Export extends MY_Controller {
                     'calls_outgoing_answered'   => 0,
                     'outgoing_total_calltime'   => sec_to_time(0),
                     'calls_outgoing_unanswered' => 0,
+                    'avg_holdtime'              => sec(0)
                 );
             }
         }
