@@ -996,7 +996,6 @@ class Export extends MY_Controller {
         /////////////////// ----------TIME SHEET ----------------//////////////////////////
         
         $hourly_call_stats = $this->Call_model->get_hourly_stats_for_start_page($queue_ids, $date_range);
-        var_dump($hourly_call_stats);
         for ($i=0; $i < 24; $i++) {
             $h = $i < 10 ? '0'.$i : $i;
             $hourly_stats[$h] = array(
