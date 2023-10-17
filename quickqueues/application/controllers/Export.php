@@ -682,7 +682,7 @@ class Export extends MY_Controller {
         //  SLA Greater Then 20 Sec
         if($total_stats->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0){
             $rows_overview[] = array(lang('start_menu_sla_greater_than_20'),$total_stats->sla_count_greater_than_20, 
-            number_format(($total_stats->sla_count_greater_than_20 /  $total_stats->sla_count_total) * 100)."%" , 1);
+            number_format(($total_stats->sla_count_greater_than_20 /  $total_stats->sla_count_total) * 100)."%");
         }
 
         // Hold Time Max
