@@ -1073,46 +1073,77 @@ class Export extends MY_Controller {
         $writer->setAuthor('Quickqueues');
       
         // Set up formatting styles
-        $style1     = array('font-style'=>'bold');
-        $style2     = array('halign'=>'left', 'valign'=>'left', 'text_wrap' => true);
-        $borderStyle = array('border' => 'left, right, top, bottom' );
-
-       
-
-        $writer->writeSheetRow(lang('overview'), $row_header, $style1, $style2, $borderStyle);
-        foreach($rows_overview as $row) {
-            $writer->writeSheetRow(lang('overview'), $row, $style2, $borderStyle);
+        $writer = new XLSXWriter();
+        $writer->setAuthor('Quickqueues');
+        
+        // Function to calculate column width based on content
+        function calculateColumnWidth($content) {
+            return strlen($content) + 20; // You can adjust this value as needed
         }
-
-        $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2, $borderStyle);
-        foreach($rows_agents as $row) {
-            $writer->writeSheetRow(lang('agents'), $row, $style2, $borderStyle );
+        
+        // Function to write a row with auto-sized columns
+        function writeAutoSizedRow($writer, $sheetName, $rowData, $styles) {
+            $col_options = [];
+        
+            foreach ($rowData as $cell) {
+                $col_options[] = ['width' => calculateColumnWidth($cell)];
+            }
+        
+            $writer->writeSheetRow($sheetName, $rowData, $styles, $col_options);
         }
-
-        $writer->writeSheetRow(lang('queues'), $row_header, $style1, $style2, $borderStyle);
-        foreach($rows_queues as $row) {
-            $writer->writeSheetRow(lang('queues'), $row, $style2, $borderStyle);
+        
+        // Set up formatting styles
+        $style1 = array('font-style' => 'bold');
+        $style2 = array('halign' => 'left', 'valign' => 'left');
+        $style3 = array('border' => 'left,right,top,bottom');
+        
+        // Define your row_header, rows_overview, rows_agents, rows_queues, rows_days, rows_hours, and other data arrays
+        
+        // Write header row with auto-sized columns
+        writeAutoSizedRow($writer, lang('overview'), $row_header, $style1 + $style2 + $style3);
+        
+        // Write rows with auto-sized columns for $rows_overview
+        foreach ($rows_overview as $row) {
+            writeAutoSizedRow($writer, lang('overview'), $row, $style2 + $style3);
         }
-
-        $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header, $style1, $style2, $borderStyle);
-        foreach($rows_days as $row) {
-            $writer->writeSheetRow(lang('call_distrib_by_day'), $row, $style2, $borderStyle );
+        
+        // Repeat the same for other sections
+        
+        // For the agents section
+        writeAutoSizedRow($writer, lang('agents'), $row_header, $style1 + $style2 + $style3);
+        foreach ($rows_agents as $row) {
+            writeAutoSizedRow($writer, lang('agents'), $row, $style2 + $style3);
         }
-
-        $writer->writeSheetRow(lang('call_distrib_by_hour'), $row_header, $style1, $style2, $borderStyle);
-        foreach($rows_hours as $row) {
-            $writer->writeSheetRow(lang('call_distrib_by_hour'), $row, $style2, $borderStyle);
+        
+        // For the queues section
+        writeAutoSizedRow($writer, lang('queues'), $row_header, $style1 + $style2 + $style3);
+        foreach ($rows_queues as $row) {
+            writeAutoSizedRow($writer, lang('queues'), $row, $style2 + $style3);
         }
-
+        
+        // For the call distribution by day section
+        writeAutoSizedRow($writer, lang('call_distrib_by_day'), $row_header, $style1 + $style2 + $style3);
+        foreach ($rows_days as $row) {
+            writeAutoSizedRow($writer, lang('call_distrib_by_day'), $row, $style2 + $style3);
+        }
+        
+        // For the call distribution by hour section
+        writeAutoSizedRow($writer, lang('call_distrib_by_hour'), $row_header, $style1 + $style2 + $style3);
+        foreach ($rows_hours as $row) {
+            writeAutoSizedRow($writer, lang('call_distrib_by_hour'), $row, $style2 + $style3);
+        }
+        
+        // For the call distribution by category section (if applicable)
         if ($this->data->config->app_call_categories == 'yes') {
-            $writer->writeSheetRow(lang('call_distrib_by_category'), $row_header, $style1, $style2, $borderStyle);
-            foreach($rows_categories as $row) {
-                $writer->writeSheetRow(lang('call_distrib_by_category'), $row, $style2, $borderStyle );
+            writeAutoSizedRow($writer, lang('call_distrib_by_category'), $row_header, $style1 + $style2 + $style3);
+            foreach ($rows_categories as $row) {
+                writeAutoSizedRow($writer, lang('call_distrib_by_category'), $row, $style2 + $style3);
             }
         }
-
+        
         $writer->writeToStdOut();
         exit(0);
+        
     }
 
 
