@@ -494,7 +494,7 @@ class Call_model extends MY_Model {
         /* ------ FOR Incoming: Total & AVG Time ------ */
         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incomingg_max_calltime');
+        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_max_calltime');
         /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
 
         /* ------ FOR Outgoing: Total & AVG Time ------ */

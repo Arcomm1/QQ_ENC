@@ -260,7 +260,7 @@ var start = new Vue({
         },
 
         hold_time_avg: function() {
-            return sec_to_min(Math.floor(this.total_holdtime / this.all_incoming_calls));
+            return sec_to_min(Math.floor(this.total_stats.total_holdtime / this.total_stats.incoming_total_calltime_count));
         },
 
         calls_total: function() {

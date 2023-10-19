@@ -144,7 +144,7 @@
                                             <i class="cil-av-timer text-warning mr-4"></i>
                                             {{ lang['hold_time']+' ('+lang['max']+')' }}
                                         </span>
-                                        <span>{{ hold_time_max }}</span>
+                                        <span>{{ sec_to_time(total_stats.max_holdtime) }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
@@ -238,7 +238,7 @@
                                             <i class="cil-arrow-thick-left text-success mr-4"></i>
                                             {{ lang['incoming_talk_time_max'] }}
                                         </span>
-                                        <span>{{ incoming_total_calltime_max }}</span>
+                                        <span>{{ sec_to_time(total_stats.incomingg_max_calltime) }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>

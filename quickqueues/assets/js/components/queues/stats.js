@@ -35,6 +35,7 @@ var queue_stats = new Vue({
                 .then(response => {
                     this.total_stats_loading = false;
                     this.total_stats = response.data.data;
+
                     console.log(this.total_stats);
                     ctx_event_distrib = document.getElementById("canvas_event_distrib").getContext('2d');
                     this.chart_event_distrib = new Chart(ctx_event_distrib, {
@@ -167,7 +168,11 @@ var queue_stats = new Vue({
         },
 
         export_stats: function() {
-            location.href = app_url+'/export/queue_stats?date_gt='+$('#date_gt').val()+'&date_lt='+$('#date_lt').val();
+     
+            const date_gt = $('#date_gt').val();
+            const date_lt = $('#date_lt').val();
+
+            location.href = app_url + '/export/queue_stats?date_gt=' + date_gt + '&date_lt=' + date_lt + '&queue_id=' + queue_id;
         },
     },
 
@@ -206,9 +211,8 @@ var queue_stats = new Vue({
 						  
 			return this.total_stats.calls_unanswered + ' (' + percent + ')'; 
         },
-
-		unique_incoming_calls: function() {
-            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered)
+        unique_incoming_calls: function() {
+            return parseInt(this.total_stats.unique_incoming_calls_answered) + parseInt(this.total_stats.unique_incoming_calls_unanswered)
         },
 
         unique_outgoing_calls: function() {
