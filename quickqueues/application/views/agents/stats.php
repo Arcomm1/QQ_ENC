@@ -114,15 +114,15 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-av-timer text-warning mr-4"></i>
-                                            {{ lang['ring_time']+' ('+lang['avg']+')' }}
+                                            {{ lang['hold_time']+' ('+lang['avg']+')' }}
                                         </span>
-                                        <span>{{ ring_time_avg }}</span>
+                                        <span>{{hold_time_avg }}</span>
                                         <!-- {{ ring_time_avg }} -->
                                     </li>
 									<li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-av-timer text-warning mr-4"></i>
-                                            {{ lang['ring_time']+' ('+lang['max']+')' }}
+                                            {{ lang['hold_time']+' ('+lang['max']+')' }}
                                         </span>
                                         <span>{{ hold_time_max }}</span>
                                     </li>

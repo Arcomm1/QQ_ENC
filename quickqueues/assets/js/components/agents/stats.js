@@ -129,7 +129,16 @@ var agent_stats = new Vue({
         },
 
         export_stats: function() {
-            location.href = app_url+'/export/overview_new?date_gt='+$('#date_gt').val()+'&date_lt='+$('#date_lt').val();
+
+            let overall_stats = {};
+            axios.post(api_url+'queue/get_total_stats_for_start/',this.form_data)
+            .then(response => 
+                {
+                    overall_stats = response.data.data;
+                    const date_gt = $('#date_gt').val();
+                    const date_lt = $('#date_lt').val();
+                    location.href = app_url + '/export/agent_stats?date_gt=' + date_gt + '&date_lt=' + date_lt + '&agent_id=' + agent_id + '&overall_stats=' + JSON.stringify(overall_stats);
+            });
         },
 
     },
@@ -205,7 +214,7 @@ var agent_stats = new Vue({
 		
 		hold_time_max: function()
 		{
-			return sec_to_min(this.total_stats.max_ringtime_answered);
+			return sec_to_min(this.total_stats.max_holdtime);
 		},
 		
         calls_outgoing_unanswered: function() {
