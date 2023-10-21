@@ -209,12 +209,12 @@ var agent_stats = new Vue({
 		
 		hold_time_avg: function()
 		{
-			return sec_to_min(Math.floor(this.total_holdtime / this.all_incoming_calls));
+			return sec_to_time(Math.floor(this.total_holdtime / this.all_incoming_calls));
 		},
 		
 		hold_time_max: function()
 		{
-			return sec_to_min(this.total_stats.max_holdtime);
+			return sec_to_time(this.total_stats.max_holdtime);
 		},
 		
         calls_outgoing_unanswered: function() {

@@ -221,7 +221,7 @@
                                             <i class="cil-arrow-thick-left text-success mr-4"></i>
                                             {{ lang['incoming_talk_time_max'] }}
                                         </span>
-                                        <span>{{ total_stats.incoming_total_calltime_count > 0 ? sec_to_min(Math.floor(total_stats.incoming_max_calltime)) : 0 }}</span>
+                                        <span>{{ total_stats.incoming_total_calltime_count > 0 ? sec_to_time(Math.floor(total_stats.incoming_max_calltime)) : 0 }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>

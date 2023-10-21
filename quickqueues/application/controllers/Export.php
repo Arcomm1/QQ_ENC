@@ -714,7 +714,7 @@ class Export extends MY_Controller {
         $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
-            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_min(
+            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_time(
                 floor(
                     $total_stats->max_holdtime)
                 )
@@ -724,7 +724,7 @@ class Export extends MY_Controller {
         // Hold Time AVG
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
-            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_min(
+            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_time(
                 floor(
                     $total_stats->total_holdtime / $total_stats->incoming_total_calltime_count)
                 ),
@@ -740,7 +740,7 @@ class Export extends MY_Controller {
 
 
         // ATA AVG
-        $rows_overview[] = array(lang('ata'), $total_stats->ata_count_total > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('ata'), $total_stats->ata_count_total > 0 ? sec_to_time(
             floor($total_stats-> ata_total_waittime / $total_stats->ata_count_total)) : 0
         );
         
@@ -769,12 +769,12 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('incoming_talk_time_sum'), sec_to_time($total_stats->incoming_total_calltime));
         
          // Incoming Talk Time AVG
-        $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats-> incoming_total_calltime / $total_stats->incoming_total_calltime_count)) : 0
         );
          // Incoming Talk Time Max
-        $rows_overview[] = array(lang('incoming_talk_time_max'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
-            floor($total_stats->incomingg_max_calltime)) : 0
+        $rows_overview[] = array(lang('incoming_talk_time_max'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
+            floor($total_stats->incoming_max_calltime)) : 0
         );
 
         // Outgoing Talk Time SUM
@@ -784,11 +784,11 @@ class Export extends MY_Controller {
         
 
         // Outgoing Talk Time AVG
-        $rows_overview[] = array(lang('outgoing_talk_time_avg'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('outgoing_talk_time_avg'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats-> outgoing_total_calltime / $total_stats->outgoing_total_calltime_count)) : 0
         );
         // Outgoing Talk Time Max
-        $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats->outgoing_max_calltime)) : 0
         );
         
@@ -2465,7 +2465,7 @@ class Export extends MY_Controller {
         $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
-            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_min(
+            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_time(
                 floor(
                     $total_stats->max_holdtime)
                 )
@@ -2475,7 +2475,7 @@ class Export extends MY_Controller {
         // Hold Time AVG
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
-            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_min(
+            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_time(
                 floor(
                    ( $total_stats->total_holdtime + $total_stats->total_waittime) / ($total_stats->calls_answered + $total_stats->calls_unanswered))
                 )
@@ -2490,7 +2490,7 @@ class Export extends MY_Controller {
 
 
         // ATA AVG
-        $rows_overview[] = array(lang('ata'), $total_stats->ata_count_total > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('ata'), $total_stats->ata_count_total > 0 ? sec_to_time(
             floor($total_stats-> ata_total_waittime / $total_stats->ata_count_total)) : 0
         );
         
@@ -2519,11 +2519,11 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('incoming_talk_time_sum'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time($total_stats->incoming_total_calltime) : 0);
         
          // Incoming Talk Time AVG
-        $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats-> incoming_total_calltime / $total_stats->incoming_total_calltime_count)) : 0
         );
          // Incoming Talk Time Max
-        $rows_overview[] = array(lang('incoming_talk_time_max'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('incoming_talk_time_max'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats->incoming_max_calltime)) : 0
         );
 
@@ -2534,11 +2534,11 @@ class Export extends MY_Controller {
         
 
         // Outgoing Talk Time AVG
-        $rows_overview[] = array(lang('outgoing_talk_time_avg'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('outgoing_talk_time_avg'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats-> outgoing_total_calltime / $total_stats->outgoing_total_calltime_count)) : 0
         );
         // Outgoing Talk Time Max
-        $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats->outgoing_max_calltime)) : 0
         );
         
@@ -2934,7 +2934,7 @@ class Export extends MY_Controller {
         $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
-            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_min(
+            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_time(
                 floor(
                     $total_hold_wait_time/$total_answered_unanswered)
                 )
@@ -2945,7 +2945,7 @@ class Export extends MY_Controller {
 
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0)
         {
-            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_min(
+            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_time(
                 floor(
                     $total_stats->max_holdtime)
                 )
@@ -2963,12 +2963,12 @@ class Export extends MY_Controller {
         
         
          // Incoming Talk Time AVG
-        $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats-> incoming_total_calltime / $total_stats->incoming_total_calltime_count)) : 0
         );
         
          // Incoming Talk Time Max
-        $rows_overview[] = array(lang('incoming_talk_time_max'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('incoming_talk_time_max'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats->incoming_max_calltime)) : 0
         );
 
@@ -2986,12 +2986,12 @@ class Export extends MY_Controller {
         
 
         // Outgoing Talk Time AVG
-        $rows_overview[] = array(lang('outgoing_talk_time_avg'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('outgoing_talk_time_avg'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats-> outgoing_total_calltime / $total_stats->outgoing_total_calltime_count)) : 0
         );
 
         // Outgoing Talk Time Max
-        $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_min(
+        $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats->outgoing_max_calltime)) : 0
         );
         

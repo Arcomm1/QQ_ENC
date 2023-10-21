@@ -255,7 +255,7 @@ var queue_stats = new Vue({
         /* --- ATA Hold Time --- */
         ata_time_avg: function() {
             if (this.total_stats.ata_count_total > 0) {
-                return sec_to_min(Math.floor(this.total_stats.ata_total_waittime / this.total_stats.ata_count_total));
+                return sec_to_time(Math.floor(this.total_stats.ata_total_waittime / this.total_stats.ata_count_total));
             } else {
                 return '0';
             }
@@ -267,7 +267,7 @@ var queue_stats = new Vue({
         },
 
         call_time_avg:  function() {
-            return sec_to_min(Math.floor(this.total_stats.total_calltime / this.calls_answered_both_directions));
+            return sec_to_time(Math.floor(this.total_stats.total_calltime / this.calls_answered_both_directions));
         },
 
         total_holdtime: function() {
@@ -275,11 +275,11 @@ var queue_stats = new Vue({
         },
 
         hold_time_max: function() {
-            return sec_to_min(this.total_stats.max_waittime);
+            return sec_to_time(this.total_stats.max_waittime);
         },
 
         hold_time_avg: function() {
-            return sec_to_min(Math.floor(this.total_holdtime / this.all_incoming_calls));
+            return sec_to_time(Math.floor(this.total_holdtime / this.all_incoming_calls));
         },
         calls_total: function() {
             return this.all_incoming_calls + parseInt(this.total_stats.calls_outgoing_answered) + parseInt(this.total_stats.calls_outgoing_unanswered);

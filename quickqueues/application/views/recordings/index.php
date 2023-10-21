@@ -235,14 +235,14 @@
                                             </div>
                                         </td>
                                         <td scope="row">
-                                            <div><?php echo sec_to_min($c->calltime); ?></div>
+                                            <div><?php echo sec_to_time($c->calltime); ?></div>
                                             <div class="small text-medium-emphasis">
-                                                <!--<div><?php /*echo sec_to_min($c->holdtime); */?></div>-->
+                                                <!--<div><?php /*echo sec_to_time($c->holdtime); */?></div>-->
                                                 <?php
                                                 if ($c->event_type == 'ABANDON') {
-                                                    echo "<div>".sec_to_min($c->waittime)."</div>";
+                                                    echo "<div>".sec_to_time($c->waittime)."</div>";
                                                 } else {
-                                                    echo "<div>".sec_to_min($c->holdtime)."</div>";
+                                                    echo "<div>".sec_to_time($c->holdtime)."</div>";
                                                 }
                                                 ?>
                                             </div>
@@ -332,10 +332,10 @@
                                 <td>{{ e.event_type }}</td>
                                 <td v-if="e.agent_id > 0">{{ agents[e.agent_id].display_name }}</td>
                                 <td v-else="e.agent_id > 0"></td>
-                                <td>{{ sec_to_min(e.calltime) }}</td>
-                                <td v-if="e.event_type == 'ABANDON'">{{ sec_to_min(e.waittime) }}</td>
-                                <td v-else>{{ sec_to_min(e.holdtime) }}</td>
-                                <td>{{ sec_to_min(e.ringtime) }}</td>
+                                <td>{{ sec_to_time(e.calltime) }}</td>
+                                <td v-if="e.event_type == 'ABANDON'">{{ sec_to_time(e.waittime) }}</td>
+                                <td v-else>{{ sec_to_time(e.holdtime) }}</td>
+                                <td>{{ sec_to_time(e.ringtime) }}</td>
                             </tr>
                         </table>
                     </small>
