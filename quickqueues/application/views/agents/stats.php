@@ -259,7 +259,7 @@
                                             <td>{{ h.calls_outgoing_answered }}</td>
                                             <td>{{ sec_to_time(h.outgoing_total_calltime) }}</td>
                                             <td>{{ h.calls_outgoing_unanswered }}</td>
-                                            <td>{{ h.avg_holdtime }}</td>
+                                            <td>{{ sec_to_time(h.avg_holdtime) }}</td>
                                         </tr>
                                     </tbody>
                                 </table>

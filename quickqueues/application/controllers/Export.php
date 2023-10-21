@@ -2847,7 +2847,6 @@ class Export extends MY_Controller {
         // Last Call 
         $rows_overview[] = array(lang('last_call'), $agent->last_call);
        
-
         // Total Calls
         $overallCalls        = (intval($overall_stats->calls_answered ) + intval($overall_stats->calls_unanswered)) + (intval($overall_stats->calls_outgoing_answered) + intval($overall_stats->calls_outgoing_unanswered));				   
 	    $agentCalls	         =  intval($total_stats->calls_answered) + intval($total_stats->calls_outgoing);
@@ -2997,64 +2996,7 @@ class Export extends MY_Controller {
         
         ////////////////// ----------- END OF OVERVIEW SHEET---------------/////////////////////////
 
-        ////////////////// ------------ AGENTS SHEET ----------------///////////////////
-        $agent_call_stats  = $this->Call_model->get_agent_stats_for_start_page($agent_id, $date_range);
-        $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($agent_id, $date_range);
-        $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
-
-        foreach ($this->Queue_model->get_agents($agent_id) as $a) {
-            $agent_stats[$a->id] = array(
-                'display_name'              => $a->display_name,
-                'calls_answered'            => 0,
-                'incoming_total_calltime'   => 0,
-                'calls_missed'              => 0,
-                'calls_outgoing_answered'   => 0,
-                'outgoing_total_calltime'   => 0,
-                'calls_outgoing_unanswered' => 0,
-            );
-        }
-
-        foreach($agent_call_stats as $s) {
-            // $sla_total_count_sum = $s->sla_count_total; //For Counting
-
-            $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
-            $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime; 
-            $agent_stats[$s->agent_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
-            $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
-            $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-        
-        }
-
-        foreach ($agent_event_stats as $s) {
-            $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
-        }
-        foreach ($agent_pause_stats as $s) {
-            $agent_stats[$s->agent_id]['total_pausetime'] = $s->total_pausetime;
-        }
-        $rows_agents[] = array(
-            lang('agent'),
-            lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
-            lang('calls_missed'),
-            lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
-            lang('calls_outgoing_failed')
-        );
-       
-        foreach ($agent_stats as $id => $i) {
-            if ($id == 0) { continue; }
-            $rows_agents[] = array(
-                array_key_exists('display_name', $i) ? $i['display_name'] : "დაარქივებული",
-                $i['calls_answered'],
-                sec_to_time($i['incoming_total_calltime']),
-                $i['calls_missed'],
-                $i['calls_outgoing_answered'],
-                sec_to_time($i['outgoing_total_calltime']),
-                $i['calls_outgoing_unanswered'],
-
-            );
-        }
-
+      
         ////////////////// ------ END OF AGENTS SHEET ------- /////////////////////
 
         ////////////////// ----------  DAY SHEET --------------////////////////////
@@ -3068,7 +3010,7 @@ class Export extends MY_Controller {
             $dates[] = $date->format('Y-m-d');
         }
 
-        $daily_call_stats = $this->Call_model->get_daily_stats_for_start_page($agent_id, $date_range);
+        $daily_call_stats = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
         $rows_days[] = array(
             lang('day'),
             lang('calls_answered'),
@@ -3093,7 +3035,7 @@ class Export extends MY_Controller {
                     if($i->calls_unanswered == 0)
                     {
 
-                        $avg_holdtme = '00:00:00';
+                        $avg_holdtime = '00:00:00';
                     }
                     else
                     {
@@ -3132,7 +3074,8 @@ class Export extends MY_Controller {
          ////////////////// ----------  END OF DAY SHEET --------------////////////////////
          /////////////////// ----------TIME SHEET ----------------//////////////////////////
         
-         $hourly_call_stats = $this->Call_model->get_hourly_stats_for_start_page($agent_id, $date_range);
+         $hourly_call_stats = $this->Call_model->get_hourly_stats_for_agent_page($agent_id, $date_range);
+
       
         $hourly_stats = array();
         for ($i = 10; $i < 24; $i++) {
@@ -3168,7 +3111,7 @@ class Export extends MY_Controller {
             $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
             $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
             $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $hourly_stats[$s->hour]['hold_time_avg']             = ceil(($s->total_holdtime + $s->total_waittime) == 0 || $s->calls_unanswered == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / $s->calls_unanswered);
+            $hourly_stats[$s->hour]['hold_time_avg']             = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
         }
 
         $rows_hours[] = array(
@@ -3220,8 +3163,7 @@ class Export extends MY_Controller {
         // Set up formatting styles
         $style1     = array('font-style'=>'bold');
         $style2     = array('halign'=>'left', 'valign'=>'left');
-        $style3     = array(['border'=>'left','right','top','bottom'], ['border-style'=>'medium']);
-
+        
 
        
 
@@ -3231,11 +3173,6 @@ class Export extends MY_Controller {
             $writer->writeSheetRow(lang('overview'), $row, $style2, $style3);
         }
 
-        $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2, $style3 );
-        foreach($rows_agents as $row) 
-        {
-            $writer->writeSheetRow(lang('agents'), $row, $style2, $style3  );
-        }
 
         $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header, $style1, $style2, $style3 );
         foreach($rows_days as $row)
