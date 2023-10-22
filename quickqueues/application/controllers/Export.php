@@ -1131,11 +1131,12 @@ class Export extends MY_Controller {
         // Set up formatting styles
         $style1     = array('font-style'=>'bold');
         $style2     = array('halign'=>'left', 'valign'=>'left');
-        $style3     = array(['border'=>'left','right','top','bottom'], ['border-style'=>'medium']);
+        $style3     = array('border'=>'left,right,top,bottom', 'border-style'=>'medium');
 
 
        
 
+        $writer->initializeSheet(lang('overview'),[50,10,10]);
         $writer->writeSheetRow(lang('overview'), $row_header, $style1, $style2, $style3);
         foreach($rows_overview as $row) 
         {

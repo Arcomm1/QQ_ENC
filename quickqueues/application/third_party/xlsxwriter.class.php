@@ -116,7 +116,7 @@ class XLSXWriter
         $zip->close();
     }
 
-    protected function initializeSheet($sheet_name, $col_widths=array(), $auto_filter=false, $freeze_rows=false, $freeze_columns=false )
+    public function initializeSheet($sheet_name, $col_widths=array(), $auto_filter=false, $freeze_rows=false, $freeze_columns=false )
     {
         //if already initialized
         if ($this->current_sheet==$sheet_name || isset($this->sheets[$sheet_name]))
