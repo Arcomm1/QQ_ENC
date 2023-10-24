@@ -819,245 +819,98 @@ class Export extends MY_Controller {
 
 
         ////////////////// ------------ AGENTS SHEET ----------------///////////////////
-    
         $agent_call_stats  = $this->Call_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
-        
 
-        foreach ($this->data->user_agents as $a) 
-        {
+        foreach ($this->data->user_agents as $a) {
             $agent_stats[$a->id] = array(
-                'display_name'                                           => $a->display_name,
-                'last_call'                                              => $a->last_call,
-                'calls_total'                                            => 0,
-                'calls_total_perc'                                       => 0,
-                'calls_answered'                                         => 0,
-                'calls_answered_perc'                                    => 0,
-                'sla_count_less_than_or_equal_to_10'                     => 0,
-                'sla_less_than_10_perc'                                  => 0,
-                'sla_count_greater_than_10_and_less_than_or_equal_to_20' => 0,
-                'sla_between_10_20_perc'                                 => 0,
-                'sla_count_greater_than_20'                              => 0,
-                'sla_more_than_20_perc'                                  => 0,
-                'avg_holdtime'                                           => 0,
-                'max_holdtime'                                           => 0,
-                'calls_missed'                                           => 0,
-                'calls_missed_perc'                                      => 0,
-                'incoming_talk_time_sum'                                 => 0,
-                'incoming_talk_time_avg'                                 => 0,
-                'incoming_talk_time_max'                                  => 0,
-                'calls_outgoing_answered'                                => 0,
-                'calls_outgoing_unanswered'                              => 0,
-                'outgoing_talk_time_sum'                                 => 0,
-                'outgoing_talk_time_avg'                                 => 0,  
-                'outgoing_talk_time_max'                                 => 0,  
+                'display_name'              => $a->display_name,
+                'calls_answered'            => 0,
+                'incoming_total_calltime'   => 0,
+                'calls_missed'              => 0,
+                'calls_outgoing_answered'   => 0,
+                'outgoing_total_calltime'   => 0,
+                'calls_outgoing_unanswered' => 0,  
             );
         }
-    
-        foreach($agent_call_stats as $s) 
-        {
+        foreach($agent_call_stats as $s) {
+            // $sla_total_count_sum = $s->sla_count_total; //For Counting
 
-            $sla_total_count_sum = $s->sla_count_total; //For Counting
+            $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
+            $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime; 
+            $agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
+            $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
+            $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+          
             
-            // Total Calls
-            $totalCalls = (intval($total_stats->calls_answered ) + intval($total_stats->calls_unanswered)) + (intval($total_stats->calls_outgoing_answered) + intval($total_stats->calls_outgoing_unanswered));
-            $agentCalls = intval($s->calls_answered) + intval($s->calls_outgoing);
-
-            if($agentCalls > 0 && $totalCalls > 0)
-            {
-                $agent_stats[$s->agent_id]['calls_total_perc'] = number_format(($agentCalls / $totalCalls) * 100, 2);
-            }
-            else
-            {
-                $agent_stats[$s->agent_id]['calls_total_perc'] = '0';
-            }
-            $agent_stats[$s->agent_id]['calls_total']          = $agentCalls;
-
-            //Calls Answered 
-
-            $total_calls_answered = intval($total_stats->calls_answered);
-            $agent_calls_answered = intval($s->calls_answered);
-  
-            if($agent_calls_answered > 0 && $total_calls_answered > 0) 
-            {
-                $agent_stats[$s->agent_id]['calls_answered']      = $agent_calls_answered;
-                $agent_stats[$s->agent_id]['calls_answered_perc'] = number_format(($agent_calls_answered / $total_calls_answered) * 100, 2);
-            }
-            else
-            {
-                $agent_stats[$s->agent_id]['calls_answered']      = 0;
-                $agent_stats[$s->agent_id]['calls_answered_perc'] = '0';
+            //SLA Less Then 10 Sec
+           /* if($s->sla_count_less_than_10 && $s->sla_count_less_than_10 > 0 && $sla_total_count_sum > 0){
+                $agent_stats[$s->agent_id]['sla_count_less_than_10'] = ($s->sla_count_less_than_10 / $s->sla_count_total) * 100 ."%" ;
+               
+            } else{
+                $agent_stats[$s->agent_id]['sla_count_less_than_10'] = 0;
             }
 
-            // SLA Less Then Or Equal To 10 Sec
+            //SLA Between 10 -> 20 Sec
+            if($s->sla_count_between_10_20 && $s->sla_count_between_10_20 > 0 && $sla_total_count_sum > 0){
+                $agent_stats[$s->agent_id]['sla_count_between_10_20'] = ($s->sla_count_between_10_20 / $s->sla_count_total) * 100 ."%" ;
+               
+            } else{
+                $agent_stats[$s->agent_id]['sla_count_between_10_20'] = 0;
+            }
 
-            if ($s->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0) 
-            {
-                $percentage                                                           = ($s->sla_count_less_than_or_equal_to_10 / $s->sla_count_total) * 100;
-                $formatted_percentage                                                 = number_format($percentage, 2); 
-                $agent_stats[$s->agent_id]['sla_count_less_than_or_equal_to_10'] = $s->sla_count_less_than_or_equal_to_10;
-                $agent_stats[$s->agent_id]['sla_less_than_10_perc']                   =  $formatted_percentage;
-            }
-            else
-            {
-                $agent_stats[$s->agent_id]['sla_count_less_than_or_equal_to_10']      = 0;
-                $agent_stats[$s->agent_id]['sla_less_than_10_perc']                   = '0';
-            }
-            // SLA Between 10 And 20 Sec
-            if ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) 
-            {
-                $percentage                                                                          = ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $s->sla_count_total) * 100;
-                $formatted_percentage                                                                = number_format($percentage, 2);
-                $agent_stats[$s->agent_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20'] = $s->sla_count_greater_than_10_and_less_than_or_equal_to_20;
-                $agent_stats[$s->agent_id]['sla_between_10_20_perc']                                 =  $formatted_percentage;
+            //SLA Grate Then 20 Sec
+            if($s->sla_count_grate_than_20 && $s->sla_count_grate_than_20 > 0 && $sla_total_count_sum > 0){
+                $agent_stats[$s->agent_id]['sla_count_grate_than_20'] = ($s->sla_count_grate_than_20 / $s->sla_count_total) * 100 ."%" ;
+               
+            } else{
+                $agent_stats[$s->agent_id]['sla_count_grate_than_20'] = 0;
+            }*/
+
+            /*//Outgoing Talk Time AVG
+            $agent_stats[$s->agent_id]['outgoing_talk_time_avg'] = $s->outgoing_total_calltime > 0 ?  $s->outgoing_total_calltime / $s->calls_outgoing_answered : 0;
             
-            }
-            else
-            {
-                $agent_stats[$s->agent_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20'] = 0;
-                $agent_stats[$s->agent_id]['sla_between_10_20_perc']                                 =  $formatted_percentage;
-            }
-        
-
-            //  SLA Greater Then 20 Sec
-            if ($s->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) 
-            {
-                $percentage                                                                          = ($s->sla_count_greater_than_20 / $s->sla_count_total) * 100;
-                $formatted_percentage                                                                = number_format($percentage, 2); // Format to 2 decimal places
-                $agent_stats[$s->agent_id]['sla_count_greater_than_20']                              = $s->sla_count_greater_than_20;
-                $agent_stats[$s->agent_id]['sla_more_than_20_perc']                                  = $formatted_percentage;
-            }
-            else
-            {
-                $agent_stats[$s->agent_id]['sla_count_greater_than_20']                              = 0;
-                $agent_stats[$s->agent_id]['sla_more_than_20_perc']                                  = '0';
-            }
-
-            // Hold Time Avg
-           
-           
-            $total_hold_wait_time      = $s->total_holdtime + $s->total_waittime;
-            $total_answered_unanswered = $s->calls_answered + $s->calls_unanswered;
-
-            if($total_hold_wait_time > 0 && $total_answered_unanswered > 0)
-            {
-                $agent_stats[$s->agent_id]['avg_holdtime'] = sec_to_time(floor($total_hold_wait_time/$total_answered_unanswered));   
-            }
-
-             // Hold Time Max
-
-            if($total_hold_wait_time > 0 && $total_answered_unanswered > 0)
-            {
-                $agent_stats[$s->agent_id]['max_holdtime'] = sec_to_time(floor($s->max_holdtime));   
-            }
-
-            // Calls Missed
-            $calls_unanswered_percent                       = $s->calls_unanswered > 0 && ($s->calls_answered + $s->calls_unanswered) > 0 ? number_format(($s->calls_unanswered / ($s->calls_answered + $s->calls_unanswered) * 100), 2)  : '0';
-            $agent_stats[$s->agent_id]['calls_missed']      = $s->calls_unanswered; 
-            $agent_stats[$s->agent_id]['calls_missed_perc'] = $calls_unanswered_percent; 
-
-            
-            // Incoming Talk Time SUM(Total)
-           $agent_stats[$s->agent_id]['incoming_talk_time_sum'] = $s->incoming_total_calltime_count > 0 ? sec_to_time($s->incoming_total_calltime) : 0;
-
-           // Incoming Talk Time AVG
-           $agent_stats[$s->agent_id]['incoming_talk_time_avg'] = $s->incoming_total_calltime_count > 0 ? sec_to_time(
-            floor($s-> incoming_total_calltime / $s->incoming_total_calltime_count)) : 0;
-
-            
-            // Incoming Talk Time Max
-            $agent_stats[$s->agent_id]['incoming_talk_time_max'] = intval($s->incoming_total_calltime_count) > 0 ? sec_to_time(
-            floor($s->incoming_max_calltime)) : 0;
-  
-       
-            // Outgoing Answered 
-      
-            $agent_stats[$s->agent_id]['calls_outgoing_answered'] = (intval($s->calls_outgoing_answered));
-            
-            // Outgoing Unanswered 
-            
-            $agent_stats[$s->agent_id]['calls_outgoing_unanswered']   = intval($s->calls_outgoing_unanswered);
- 
-                
-            // Outgoing Talk Time SUM
-            $agent_stats[$s->agent_id]['outgoing_talk_time_sum']  = $s->outgoing_max_calltime > 0 ? sec_to_time(($s->outgoing_total_calltime)) : 0;
-                
-
-            // Outgoing Talk Time AVG
-            $agent_stats[$s->agent_id]['outgoing_talk_time_avg']   = $s->outgoing_total_calltime_count > 0 ? sec_to_time(
-                floor($s-> outgoing_total_calltime / $s->outgoing_total_calltime_count)) : 0;
-
-            // Outgoing Talk Time Max
-            $agent_stats[$s->agent_id]['outgoing_talk_time_max']   = $s->outgoing_total_calltime_count > 0 ? sec_to_time(
-                floor($s->outgoing_max_calltime)) : 0;
+            //Incoming Talk Time AVG
+            $agent_stats[$s->agent_id]['incoming_talk_time_avg'] = $s->incoming_total_calltime > 0 ? $s->incoming_total_calltime / $s->incoming_total_calltime_count : 0;*/
+              
         }
         
-       
-       
+        foreach ($agent_event_stats as $s) {
+            $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
+        }
+        foreach ($agent_pause_stats as $s) {
+            $agent_stats[$s->agent_id]['total_pausetime'] = $s->total_pausetime;
+        }
         $rows_agents[] = array(
             lang('agent'),
-            lang('last_call'),
-            lang('calls_total'),
-            '%',
             lang('calls_answered'),
-            '%',
-            lang('start_menu_sla_less_than_or_equal_to_10'),
-            '%',
-            lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),
-            '%',
-            lang('start_menu_sla_greater_than_20'),
-            '%',
-            lang('hold_time').' ('.lang('avg').')',
-            lang('hold_time').' ('.lang('max').')',
-            lang('start_menu_calls_unanswered'),
-            '%',
             lang('incoming_talk_time_sum'),
-            lang('incoming_talk_time_avg'),
-            lang('incoming_talk_time_max'),
+            lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('calls_outgoing_failed'),
             lang('outgoing_talk_time_sum'),
-            lang('outgoing_talk_time_avg'),
-            lang('outgoing_talk_time_max'),
-        );  
-    
-        foreach($agent_stats as $id => $i)
-        {
-           if($id == 0) {continue; }
-           $rows_agents[] = array(
-            array_key_exists('display_name', $i) ? $i['display_name'] : "დაარქივებული",
-            $i['last_call'],
-            $i['calls_total'],
-            $i['calls_total_perc'],
-            $i['calls_answered'],
-            $i['calls_answered_perc'],
-            $i['sla_count_less_than_or_equal_to_10'],
-            $i['sla_less_than_10_perc'],
-            $i['sla_count_greater_than_10_and_less_than_or_equal_to_20'],
-            $i['sla_between_10_20_perc'],
-            $i['sla_count_greater_than_20'],
-            $i['sla_more_than_20_perc'],
-            $i['avg_holdtime'],
-            $i['max_holdtime'],
-            $i['calls_missed'],
-            $i['calls_missed_perc'],
-            $i['incoming_talk_time_sum'],
-            $i['incoming_talk_time_avg'],
-            $i['incoming_talk_time_max'],
-            $i['calls_outgoing_answered'],
-            $i['calls_outgoing_unanswered'],
-            $i['outgoing_talk_time_sum'],
-            $i['outgoing_talk_time_avg'],
-            $i['outgoing_talk_time_max'],
-           );
+            lang('calls_outgoing_failed')
+        );
+       
+        foreach ($agent_stats as $id => $i) {
+            if ($id == 0) { continue; }
+            $rows_agents[] = array(
+                array_key_exists('display_name', $i) ? $i['display_name'] : "დაარქივებული",
+                $i['calls_answered'],
+                sec_to_time($i['incoming_total_calltime']),
+                $i['calls_missed'],
+                $i['calls_outgoing_answered'],
+                sec_to_time($i['outgoing_total_calltime']),
+                $i['calls_outgoing_unanswered'],
+
+            );
         }
+
         ////////////////// ------ END OF AGENTS SHEET ------- /////////////////////
 
         ////////////////// ------- QUEUE SHEET --------------/////////////////////
         $queue_call_stats = $this->Call_model->get_queue_stats_for_start_page($queue_ids, $date_range);
-        foreach ($this->data->user_queues as $q) 
-        {
+        foreach ($this->data->user_queues as $q) {
             $queue_stats[$q->id] = array(
                 'display_name'              => $q->display_name,
                 'calls_answered'            => 0,
@@ -1307,7 +1160,7 @@ class Export extends MY_Controller {
             $writer->writeSheetRow(lang('overview'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('agents'),[50,15,15,5,30,5,15,5,30,5,20,5,30,30,30,5,20,40,40,30,20,20,40,40]);
+        $writer->initializeSheet(lang('agents'),[50,30,30,30,30,30,30]);
         $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2, $style3 );
         foreach($rows_agents as $row) 
         {
@@ -2362,6 +2215,7 @@ class Export extends MY_Controller {
                 $stats_by_day[$d] = $a;
             }
             if ($c->agent_id > 0) {
+                
                 $agent_stats[$c->agent_id]['calls_total']++;
             }
             if ($c->event_type == 'COMPLETECALLER' || $c->event_type == 'COMPLETEAGENT') {
@@ -2735,6 +2589,7 @@ class Export extends MY_Controller {
         $agent_call_stats  = $this->Call_model->get_agent_stats_for_start_page($queue_id, $date_range);
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_id, $date_range);
         $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
+     
 
         foreach ($this->Queue_model->get_agents($queue_id) as $a) {
             $agent_stats[$a->id] = array(
@@ -3157,6 +3012,7 @@ class Export extends MY_Controller {
         // Outgoing Answered 
       
        $rows_overview[] = array(lang('calls_outgoing_answered'), (intval($total_stats->calls_outgoing_answered)));
+      
        // Outgoing Unanswered 
       
        $rows_overview[] = array(lang('calls_outgoing_failed'), (intval($total_stats->calls_outgoing) - intval($total_stats->calls_outgoing_answered)));

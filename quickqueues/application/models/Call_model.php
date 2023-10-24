@@ -607,14 +607,24 @@ class Call_model extends MY_Model {
          $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_greater_than_20');
          /* ------ End Of  FOR SLA: Hold Time ------ */
 
+        $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
+        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
+        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
+        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS max_holdtime');
+        $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
+        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS max_ringtime_answered');
+
         /* ------ FOR Incoming: Total & AVG Time ------ */
         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
+        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_max_calltime');
         /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
+
 
         /* ------ FOR Outgoing: Total & AVG Time ------ */
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
+        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_max_calltime');
 
         /* ------ End Of  FOR Outgoing: Total & AVG Time  ------ */
         $this->db->where_in('queue_id', $queue_ids);
