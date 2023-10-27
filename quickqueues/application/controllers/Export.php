@@ -654,7 +654,7 @@ class Export extends MY_Controller {
         $date_range = array('date_gt' => $date_gt, 'date_lt' => $date_lt);
         $precision = $this->data->config->app_round_to_hundredth == 'yes' ? 2 : false;
 
-        $row_header = array(lang('stats'). ' '.$date_gt.' > '.$date_lt);
+        $row_header = array(lang('overall').' '.lang('stats'). ' '.$date_gt.' > '.$date_lt);
 
         $queue_ids = array();
 
@@ -818,7 +818,7 @@ class Export extends MY_Controller {
         ////////////////// ----------- END OF OVERVIEW SHEET---------------/////////////////////////
 
 
-        ////////////////// ------------ AGENTS SHEET ----------------///////////////////
+        ////////////////// ------------ AGENTS OVERVIEW SHEET ----------------///////////////////
     
         $agent_call_stats  = $this->Call_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_ids, $date_range);
@@ -1053,53 +1053,268 @@ class Export extends MY_Controller {
            );
         }
         ////////////////// ------ END OF AGENTS SHEET ------- /////////////////////
+        
+      
 
         ////////////////// ------- QUEUE SHEET --------------/////////////////////
         $queue_call_stats = $this->Call_model->get_queue_stats_for_start_page($queue_ids, $date_range);
+        $sla_total_count_sum = $s->sla_count_total;
         foreach ($this->data->user_queues as $q) 
         {
             $queue_stats[$q->id] = array(
-                'display_name'              => $q->display_name,
-                'calls_answered'            => 0,
-                'incoming_total_calltime'   => 0,
-                'calls_missed'              => 0,
-                'calls_outgoing_answered'   => 0,
-                'outgoing_total_calltime'   => 0,
-                'calls_outgoing_unanswered' => 0,
-                'avg_holdtime'              => 0,
+                'display_name'                                                => $q->display_name,
+                'calls_total'                                                 => 0,
+                'unique_incoming_calls'                                       => 0,
+                'unique_users'                                                => 0,
+                'calls_answered'                                              => 0,
+                'calls_answered_perc'                                         => 0,
+                'sla_count_less_than_or_equal_to_10'                          => 0,
+                'sla_count_less_than_or_equal_to_10_perc'                     => 0,
+                'sla_count_greater_than_10_and_less_than_or_equal_to_20'      => 0,
+                'sla_count_greater_than_10_and_less_than_or_equal_to_20_perc' => 0,
+                'sla_count_greater_than_20'                                   => 0,
+                'sla_count_greater_than_20_perc'                              => 0,
+                'max_holdtime'                                                => 0,
+                'hold_time_avg'                                               => 0,
+                'calls_unanswered'                                            => 0,
+                'calls_unanswered_perc'                                       => 0,
+                'ata_time_avg'                                                => 0,
+                'calls_without_service'                                       => 0,
+                'answered_elsewhere'                                          => 0,
+                'called_back'                                                 => 0,
+                'calls_outgoing_answered'                                     => 0, 
+                'calls_outgoing_unanswered'                                   => 0,
+                'calls_duplicate'                                             => 0,
+                'calls_offwork'                                               => 0,
+                'incoming_total_calltime_count'                               => 0,
+                'incoming_total_calltime_avg'                                 => 0,
+                'incoming_talk_time_max'                                      => 0,
+                'outgoing_total_calltime_count'                               => 0,
+                'outgoing_total_calltime_avg'                                 => 0,
+                'outgoing_total_calltime_max'                                 => 0,
+                'origposition_avg'                                            => 0,
+                'origposition_max'                                            => 0,
             );
         }
-        foreach($queue_call_stats as $s) {
-            $queue_stats[$s->queue_id]['calls_answered']            = $s->calls_answered;
-            $queue_stats[$s->queue_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
-            $queue_stats[$s->queue_id]['calls_missed']              = $s->calls_unanswered;
-            $queue_stats[$s->queue_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
-            $queue_stats[$s->queue_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
-            $queue_stats[$s->queue_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $queue_stats[$s->queue_id]['avg_holdtime']              = ceil($s->total_waittime + $s->total_holdtime > 0 ? ($s->total_waittime + $s->total_holdtime) / ($s->calls_answered + $s->calls_unanswered) : 0);
+        foreach($queue_call_stats as $s) 
+        {
+            //Calls Total
+            $queue_stats[$s->queue_id]['calls_total']           = $s->calls_answered + $s->calls_unanswered + $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
+           
+           //Unique Incoming Calls
+            $queue_stats[$s->queue_id]['unique_incoming_calls'] = $s->unique_incoming_calls_answered + $s->unique_incoming_calls_unanswered;
             
+            //Unique Users
+            $queue_stats[$s->queue_id]['unique_users']          = $s->unique_incoming_calls_answered;
+            
+            //Calls Answered
+            $calls_answered_percent                             = $s->calls_answered > 0 && ($s->calls_answered + $s->calls_unanswered) > 0 ? (($s->calls_answered / ($s->calls_answered + $s->calls_unanswered)) * 100) : 0;
+            $calls_answered_formatted_perc                      = number_format($calls_answered_percent, 2);
+            $queue_stats[$s->queue_id]['calls_answered']        = $s->calls_answered;
+            $queue_stats[$s->queue_id]['calls_answered_perc']   = $calls_answered_formatted_perc;
+
+             // SLA Less Then Or Equal To 10 Sec
+
+             if ($s->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0) 
+             {
+                 $sla_less_10_percentage                                               = ($s->sla_count_less_than_or_equal_to_10 / $s->sla_count_total) * 100;
+                 $sla_less_10_percentage_formatted_percentage                          = number_format($sla_less_10_percentage, 2);
+                 $queue_stats[$s->queue_id]['sla_count_less_than_or_equal_to_10']      = $s->sla_count_less_than_or_equal_to_10;
+                 $queue_stats[$s->queue_id]['sla_count_less_than_or_equal_to_10_perc'] = $sla_less_10_percentage_formatted_percentage;    
+             }
+             else
+             {
+                $queue_stats[$s->queue_id]['sla_count_less_than_or_equal_to_10']      = 0;
+                $queue_stats[$s->queue_id]['sla_count_less_than_or_equal_to_10_perc'] = 0;   
+             }
+
+            // SLA Between 10 And 20 Sec
+
+            if ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) 
+            {
+                $sla_between_10_20_percentage                                                             = ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $s->sla_count_total) * 100;
+                $sla_between_10_20_percentage_formatted_percentage                                        = number_format($sla_between_10_20_percentage, 2); 
+                $queue_stats[$s->queue_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20']      = $s->sla_count_greater_than_10_and_less_than_or_equal_to_20;
+                $queue_stats[$s->queue_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20_perc'] =  $sla_between_10_20_percentage_formatted_percentage;  
+            }
+            else
+            {
+                $queue_stats[$s->queue_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20']      = 0;
+                $queue_stats[$s->queue_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20_perc'] = 0;  
+            }
+        
+
+            //  SLA Greater Then 20 Sec
+
+            if ($s->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) 
+            {
+                $sla_count_greater_than_20_percentage                        = ($s->sla_count_greater_than_20 / $s->sla_count_total) * 100;
+                $sla_count_greater_than_20_percentage_formatted_percentage   = number_format($sla_count_greater_than_20_percentage, 2); 
+                $queue_stats[$s->queue_id]['sla_count_greater_than_20']      = $s->sla_count_greater_than_20;
+                $queue_stats[$s->queue_id]['sla_count_greater_than_20_perc'] = $sla_count_greater_than_20_percentage_formatted_percentage; 
+            }
+            else
+            {
+                $queue_stats[$s->queue_id]['sla_count_greater_than_20']      = 0;
+                $queue_stats[$s->queue_id]['sla_count_greater_than_20_perc'] = 0; 
+            }
+
+            // Hold Time Max
+
+            $total_hold_wait_time      = $s->total_holdtime + $s->total_waittime;
+            $total_answered_unanswered = $s->calls_answered + $s->calls_unanswered;
+    
+            if($total_hold_wait_time > 0 && $total_answered_unanswered > 0)
+            {
+                $queue_stats[$s->queue_id]['max_holdtime'] = sec_to_time(floor($s->max_holdtime));
+            }
+  
+         
+           // Hold Time AVG
+
+            if($total_hold_wait_time > 0 && $total_answered_unanswered > 0)
+            {
+                $queue_stats[$s->queue_id]['hold_time_avg'] = sec_to_time(floor(( $s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered)));
+            }
+          
+          // Incoming Unanswered
+          $calls_unanswered_percent                           = $s->calls_unanswered > 0 && ($s->calls_answered + $s->calls_unanswered) > 0 ? number_format(($s->calls_unanswered / ($s->calls_answered + $s->calls_unanswered) * 100), 2) : 0;
+          $queue_stats[$s->queue_id]['calls_unanswered']      = $s->calls_unanswered;
+          $queue_stats[$s->queue_id]['calls_unanswered_perc'] = $calls_unanswered_percent;
+  
+          // ATA AVG
+          $queue_stats[$s->queue_id]['ata_time_avg']          = $s->ata_count_total > 0 ? sec_to_time(floor($total_stats-> ata_total_waittime / $s->ata_count_total)) : 0;
+          
+          // Without Service
+          $queue_stats[$s->queue_id]['calls_without_service'] = $s->calls_without_service;
+  
+          // Answered Elsewhere
+          $queue_stats[$s->queue_id]['answered_elsewhere']    = $s->answered_elsewhere;
+         
+  
+          // Answered Aoutcall - ნაპასუხები გადარეკილი
+
+          $queue_stats[$s->queue_id]['called_back']           = $s->called_back;
+  
+          // Outgoing Answered - ნაპასუხები გამავალი
+
+          $queue_stats[$s->queue_id]['calls_outgoing_answered']= $s->calls_outgoing_answered;
+
+          
+          // Outgoing Failed (Unanswered)
+
+          $queue_stats[$s->queue_id]['calls_outgoing_unanswered']= $s->calls_outgoing_unanswered;
+          
+          // Duplicated Calls
+
+          $queue_stats[$s->queue_id]['calls_duplicate']              = $s->calls_duplicate;
+  
+          // Off Work
+
+          $queue_stats[$s->queue_id]['calls_offwork']                = $s->calls_offwork;
+     
+          
+          // Incoming Talk Time SUM(Total)
+          $queue_stats[$s->queue_id]['incoming_total_calltime_count']= $s->incoming_total_calltime_count > 0 ? sec_to_time($s->incoming_total_calltime) : 0;
+          
+           // Incoming Talk Time AVG
+
+          $queue_stats[$s->queue_id]['incoming_total_calltime_avg']       = $s->incoming_total_calltime_count > 0 ? sec_to_time(
+            floor($s->incoming_total_calltime / $s->incoming_total_calltime_count)) : 0;
+
+          
+          // Incoming Talk Time Max
+          $queue_stats[$s->queue_id]['incoming_talk_time_max']        = $s->incoming_total_calltime_count > 0 ? sec_to_time(floor($s->incoming_max_calltime)) : 0;
+  
+          // Outgoing Talk Time SUM
+
+          $queue_stats[$s->queue_id]['outgoing_total_calltime_count'] = $s->outgoing_max_calltime > 0 ? sec_to_time($s-> outgoing_total_calltime) : 0;
+  
+          // Outgoing Talk Time AVG
+
+          $queue_stats[$s->queue_id]['outgoing_total_calltime_avg']         = $s->outgoing_total_calltime_count > 0 ? sec_to_time(floor($s->outgoing_total_calltime / $s->outgoing_total_calltime_count)) : 0;
+
+          // Outgoing Talk Time Max
+
+          $queue_stats[$s->queue_id]['outgoing_total_calltime_max']       = $s->outgoing_total_calltime_count > 0 ? sec_to_time(floor($s->outgoing_max_calltime)) : 0;
+       
+          // Position In Queue AVG
+
+          $queue_stats[$s->queue_id]['origposition_avg']            = ceil($s->origposition_avg);
+  
+          // Position In Queue MAX
+
+          $queue_stats[$s->queue_id]['origposition_max']            = ceil($s->origposition_max);
         }
 
         $rows_queues[] = array(
             lang('queue'),
-            lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
-            lang('calls_missed'),
+            lang('calls_total'),
+            lang('calls_unique_in'),
+            lang('calls_unique_users'),
+            lang('start_menu_calls_answered'),
+            '%',
+            lang('start_menu_sla_less_than_or_equal_to_10'),
+            '%',
+            lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),
+            '%',
+            lang('start_menu_sla_greater_than_20'),
+            '%',
+            lang('hold_time').' ('.lang('max').')',
+            lang('hold_time').' ('.lang('avg').')',
+            lang('start_menu_calls_unanswered'),
+            '%',
+            lang('ata'),
+            lang('calls_without_service'),
+            lang('answered_elsewhere'),
+            lang('answered_aoutcall'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
             lang('calls_outgoing_failed'),
-            lang('hold_time')
+            lang('duplicate_calls'),
+            lang('start_menu_calls_offwork'),
+            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_avg'),
+            lang('incoming_talk_time_max'),
+            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_avg'),
+            lang('outgoing_talk_time_max'),
+            lang('start_menu_calls_waiting').' ('. lang('avg').') ',
+            lang('start_menu_calls_waiting').' ('. lang('max').') ',   
         );
         foreach ($queue_stats as $i) {
             $rows_queues[] = array(
                 $i['display_name'],
+                $i['calls_total'],
+                $i['unique_incoming_calls'],
+                $i['unique_users'],
                 $i['calls_answered'],
-                sec_to_time($i['incoming_total_calltime']),
-                $i['calls_missed'],
+                $i['calls_answered_perc'],
+                $i['sla_count_less_than_or_equal_to_10'],
+                $i['sla_count_less_than_or_equal_to_10_perc'],
+                $i['sla_count_greater_than_10_and_less_than_or_equal_to_20'],
+                $i['sla_count_greater_than_10_and_less_than_or_equal_to_20_perc'],
+                $i['sla_count_greater_than_20'],
+                $i['sla_count_greater_than_20_perc'],
+                $i['max_holdtime'],
+                $i['hold_time_avg'],
+                $i['calls_unanswered'],
+                $i['calls_unanswered_perc'],
+                $i['ata_time_avg'],
+                $i['calls_without_service'],
+                $i['answered_elsewhere'],
+                $i['called_back'],
                 $i['calls_outgoing_answered'],
-                sec_to_time($i['outgoing_total_calltime']),
                 $i['calls_outgoing_unanswered'],
-               sec_to_time($i['avg_holdtime']),
+                $i['calls_duplicate'],
+                $i['calls_offwork'],
+                $i['incoming_total_calltime_count'],
+                $i['incoming_total_calltime_avg'],
+                $i['incoming_talk_time_max'],
+                $i['outgoing_total_calltime_count'],
+                $i['outgoing_total_calltime_avg'],
+                $i['outgoing_total_calltime_max'],
+                $i['origposition_avg'],
+                $i['origposition_max'],
             );
         }
         ////////////////// ---------- END OF QUEUE SHEET ----------////////////////////
@@ -1300,35 +1515,35 @@ class Export extends MY_Controller {
 
        
 
-        $writer->initializeSheet(lang('overview'),[50,10,10]);
+        $writer->initializeSheet(lang('overview'),[70,10,10]);
         $writer->writeSheetRow(lang('overview'), $row_header, $style1, $style2, $style3);
         foreach($rows_overview as $row) 
         {
             $writer->writeSheetRow(lang('overview'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('agents'),[50,15,15,5,30,5,15,5,30,5,20,5,30,30,30,5,20,40,40,30,20,20,40,40]);
+        $writer->initializeSheet(lang('agents'),[70,15,15,5,30,5,15,5,30,5,20,5,30,30,30,5,20,40,40,30,20,20,40,40]);
         $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2, $style3 );
         foreach($rows_agents as $row) 
         {
             $writer->writeSheetRow(lang('agents'), $row, $style2, $style3  );
         }
 
-        $writer->initializeSheet(lang('queues'),[50,30,30,30,30,30,30,30]);
+        $writer->initializeSheet(lang('queues'),[70,20,30,30,30,5,15,5,30,5,25,5,30,30,20,5,20,20,30,30,25,20,30,30,30,40,40,30,40,40,30,30]);
         $writer->writeSheetRow(lang('queues'), $row_header, $style1, $style2, $style3 );
         foreach($rows_queues as $row)
         {
             $writer->writeSheetRow(lang('queues'), $row, $style2,$style3 );
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_day'),[50,30,30,30,30,30,30,30]);
+        $writer->initializeSheet(lang('call_distrib_by_day'),[70,30,30,30,30,30,30,30]);
         $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header, $style1, $style2, $style3 );
         foreach($rows_days as $row)
         {
             $writer->writeSheetRow(lang('call_distrib_by_day'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_hour'),[50,30,30,30,30,30,30,30]);
+        $writer->initializeSheet(lang('call_distrib_by_hour'),[70,30,30,30,30,30,30,30]);
         $writer->writeSheetRow(lang('call_distrib_by_hour'), $row_header, $style1, $style2, $style3);
         foreach($rows_hours as $row) 
         {
@@ -1337,7 +1552,7 @@ class Export extends MY_Controller {
 
         if ($this->data->config->app_call_categories == 'yes') 
         {
-            $writer->initializeSheet(lang('call_distrib_by_category'),[50,30,30,30,30,30,30,30]);
+            $writer->initializeSheet(lang('call_distrib_by_category'),[70,30,30,30,30,30,30,30]);
             $writer->writeSheetRow(lang('call_distrib_by_category'), $row_header, $style1, $style2, $style3);
             foreach($rows_categories as $row) 
             {

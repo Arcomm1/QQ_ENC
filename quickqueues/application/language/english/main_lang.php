@@ -29,6 +29,7 @@ $lang['profile']            = "Profile";
 $lang['users']              = "Users";
 $lang['preferences']        = "Preferences";
 $lang['realtime']           = "Realtime";
+$lang['overall']             = "Overall";
 $lang['stats']              = "Stats";
 $lang['sign_out']           = "Log out";
 $lang['sign_in']            = "Log in";

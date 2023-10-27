@@ -14,6 +14,7 @@ $lang['profile']            = "პროფილი";
 $lang['users']              = "მომხმარებლები";
 $lang['preferences']        = "პარამეტრები";
 $lang['realtime']           = "მიმოხილვა";
+$lang['overall']            = "საერთო";
 $lang['stats']              = "სტატისტიკა";
 $lang['sign_out']           = "გამოსვლა";
 $lang['sign_in']            = "ავტორიზაცია";
