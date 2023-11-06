@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Migration_Create_portal_user_settings extends CI_Migration {
+class Migration_Add_Additional_portal_user_settings extends CI_Migration {
 
     public function up()
     {
