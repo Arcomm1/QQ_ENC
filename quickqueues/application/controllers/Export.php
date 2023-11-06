@@ -701,7 +701,8 @@ class Export extends MY_Controller {
         }
         
         // SLA Between 10 And 20 Sec
-        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) {
+        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) 
+        {
             $percentage = ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) * 100;
             $formatted_percentage = number_format($percentage, 2) . "%"; // Format to 2 decimal places
         
@@ -714,7 +715,8 @@ class Export extends MY_Controller {
         
 
         //  SLA Greater Then 20 Sec
-        if ($total_stats->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) {
+        if ($total_stats->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) 
+        {
             $percentage = ($total_stats->sla_count_greater_than_20 / $total_stats->sla_count_total) * 100;
             $formatted_percentage = number_format($percentage, 2) . "%"; // Format to 2 decimal places
         
@@ -730,7 +732,8 @@ class Export extends MY_Controller {
         $total_hold_wait_time      = $total_stats->total_holdtime + $total_stats->total_waittime;
         $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
 
-        if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
+        if($total_hold_wait_time > 0 && $total_answered_unanswered > 0)
+        {
             $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_time(
                 floor(
                     $total_stats->max_holdtime)
@@ -740,12 +743,19 @@ class Export extends MY_Controller {
 
         // Hold Time AVG
 
-        if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
+       // თუ  $total_stats->incoming_total_calltime_count 0-ია
+        
+        if($total_hold_wait_time > 0 && $total_answered_unanswered > 0 && $total_stats->incoming_total_calltime_count > 0)
+        {
             $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_time(
                 floor(
                     $total_stats->total_holdtime / $total_stats->incoming_total_calltime_count)
                 ),
             );
+        }
+        else
+        {
+            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_time(0));
         }
         
        
@@ -783,7 +793,7 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('start_menu_calls_offwork'), $total_stats->calls_offwork);
         
         // Incoming Talk Time SUM(Total)
-        $rows_overview[] = array(lang('incoming_talk_time_sum'), sec_to_time($total_stats->incoming_total_calltime));
+        $rows_overview[] = array(lang('incoming_talk_time_sum_overview'), sec_to_time($total_stats->incoming_total_calltime));
         
          // Incoming Talk Time AVG
         $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
@@ -795,7 +805,7 @@ class Export extends MY_Controller {
         );
 
         // Outgoing Talk Time SUM
-        $rows_overview[] = array(lang('outgoing_talk_time_sum'), $total_stats->outgoing_max_calltime > 0 ? sec_to_time(
+        $rows_overview[] = array(lang('outgoing_talk_time_sum_overview'), $total_stats->outgoing_max_calltime > 0 ? sec_to_time(
             $total_stats-> outgoing_total_calltime) : 0
         );
         
@@ -887,7 +897,7 @@ class Export extends MY_Controller {
             else
             {
                 $agent_stats[$s->agent_id]['calls_answered']      = 0;
-                $agent_stats[$s->agent_id]['calls_answered_perc'] = '0';
+                $agent_stats[$s->agent_id]['calls_answered_perc'] = 0;
             }
 
             // SLA Less Then Or Equal To 10 Sec
@@ -902,7 +912,7 @@ class Export extends MY_Controller {
             else
             {
                 $agent_stats[$s->agent_id]['sla_count_less_than_or_equal_to_10']      = 0;
-                $agent_stats[$s->agent_id]['sla_less_than_10_perc']                   = '0';
+                $agent_stats[$s->agent_id]['sla_less_than_10_perc']                   = 0;
             }
             // SLA Between 10 And 20 Sec
             if ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) 
@@ -916,7 +926,7 @@ class Export extends MY_Controller {
             else
             {
                 $agent_stats[$s->agent_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20'] = 0;
-                $agent_stats[$s->agent_id]['sla_between_10_20_perc']                                 =  $formatted_percentage;
+                $agent_stats[$s->agent_id]['sla_between_10_20_perc']                                 = 0;
             }
         
 
@@ -931,7 +941,7 @@ class Export extends MY_Controller {
             else
             {
                 $agent_stats[$s->agent_id]['sla_count_greater_than_20']                              = 0;
-                $agent_stats[$s->agent_id]['sla_more_than_20_perc']                                  = '0';
+                $agent_stats[$s->agent_id]['sla_more_than_20_perc']                                  = 0;
             }
 
             // Hold Time Avg
@@ -1012,12 +1022,12 @@ class Export extends MY_Controller {
             lang('hold_time').' ('.lang('max').')',
             lang('start_menu_calls_unanswered'),
             '%',
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('incoming_talk_time_avg'),
             lang('incoming_talk_time_max'),
             lang('calls_outgoing_answered'),
             lang('calls_outgoing_failed'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('outgoing_talk_time_avg'),
             lang('outgoing_talk_time_max'),
         );  
@@ -1272,10 +1282,10 @@ class Export extends MY_Controller {
             lang('calls_outgoing_failed'),
             lang('duplicate_calls'),
             lang('start_menu_calls_offwork'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('incoming_talk_time_avg'),
             lang('incoming_talk_time_max'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('outgoing_talk_time_avg'),
             lang('outgoing_talk_time_max'),
             lang('start_menu_calls_waiting').' ('. lang('avg').') ',
@@ -1334,10 +1344,10 @@ class Export extends MY_Controller {
         $rows_days[] = array(
             lang('day'),
             lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
             lang('hold_time')
         );
@@ -1437,10 +1447,10 @@ class Export extends MY_Controller {
         $rows_hours[] = array(
             lang('hour'),
             lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
             lang('hold_time')
         );
@@ -1522,28 +1532,28 @@ class Export extends MY_Controller {
             $writer->writeSheetRow(lang('overview'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('agents'),[70,15,15,5,30,5,15,5,30,5,20,5,30,30,30,5,20,40,40,30,20,20,40,40]);
+        $writer->initializeSheet(lang('agents'),[70,15,15,5,30,5,15,5,30,5,20,5,30,30,30,5,40,40,40,30,20,40,40,40]);
         $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2, $style3 );
         foreach($rows_agents as $row) 
         {
             $writer->writeSheetRow(lang('agents'), $row, $style2, $style3  );
         }
 
-        $writer->initializeSheet(lang('queues'),[70,20,30,30,30,5,15,5,30,5,25,5,30,30,20,5,20,20,30,30,25,20,30,30,30,40,40,30,40,40,30,30]);
+        $writer->initializeSheet(lang('queues'),[70,20,30,30,30,5,15,5,30,5,25,5,30,30,20,5,20,20,30,30,25,20,30,30,40,40,40,40,40,40,30,30]);
         $writer->writeSheetRow(lang('queues'), $row_header, $style1, $style2, $style3 );
         foreach($rows_queues as $row)
         {
             $writer->writeSheetRow(lang('queues'), $row, $style2,$style3 );
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_day'),[70,30,30,30,30,30,30,30]);
+        $writer->initializeSheet(lang('call_distrib_by_day'),[70,30,40,30,30,40,30,30]);
         $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header, $style1, $style2, $style3 );
         foreach($rows_days as $row)
         {
             $writer->writeSheetRow(lang('call_distrib_by_day'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_hour'),[70,30,30,30,30,30,30,30]);
+        $writer->initializeSheet(lang('call_distrib_by_hour'),[70,30,40,30,30,40,30,30]);
         $writer->writeSheetRow(lang('call_distrib_by_hour'), $row_header, $style1, $style2, $style3);
         foreach($rows_hours as $row) 
         {
@@ -2912,7 +2922,7 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('start_menu_calls_offwork'), $total_stats->calls_offwork);
         
         // Incoming Talk Time SUM(Total)
-        $rows_overview[] = array(lang('incoming_talk_time_sum'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time($total_stats->incoming_total_calltime) : 0);
+        $rows_overview[] = array(lang('incoming_talk_time_sum_overview'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time($total_stats->incoming_total_calltime) : 0);
         
          // Incoming Talk Time AVG
         $rows_overview[] = array(lang('incoming_talk_time_avg'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time(
@@ -2924,7 +2934,7 @@ class Export extends MY_Controller {
         );
 
         // Outgoing Talk Time SUM
-        $rows_overview[] = array(lang('outgoing_talk_time_sum'), $total_stats->outgoing_max_calltime > 0 ? sec_to_time(
+        $rows_overview[] = array(lang('outgoing_talk_time_sum_overview'), $total_stats->outgoing_max_calltime > 0 ? sec_to_time(
             $total_stats-> outgoing_total_calltime) : 0
         );
         
@@ -2983,10 +2993,10 @@ class Export extends MY_Controller {
         $rows_agents[] = array(
             lang('agent'),
             lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed')
         );
        
@@ -3021,10 +3031,10 @@ class Export extends MY_Controller {
         $rows_days[] = array(
             lang('day'),
             lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
             lang('hold_time')
         );
@@ -3123,10 +3133,10 @@ class Export extends MY_Controller {
         $rows_hours[] = array(
             lang('hour'),
             lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
             lang('hold_time')
         );
@@ -3171,28 +3181,28 @@ class Export extends MY_Controller {
 
        
 
-        $writer->initializeSheet(lang('overview'),[70,10,10]);
+        $writer->initializeSheet(lang('overview'),[90,10,10]);
         $writer->writeSheetRow(lang('overview'), $row_header, $style1, $style2, $style3);
         foreach($rows_overview as $row) 
         {
             $writer->writeSheetRow(lang('overview'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('agents'),[50,30,30,30,30,30,30]);
+        $writer->initializeSheet(lang('agents'),[90,30,40,30,30,40,30]);
         $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2, $style3 );
         foreach($rows_agents as $row) 
         {
             $writer->writeSheetRow(lang('agents'), $row, $style2, $style3  );
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_day'),[50,30,30,30,30,30,30, 30]);
+        $writer->initializeSheet(lang('call_distrib_by_day'),[90,30,40,30,30,40,30, 30]);
         $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header, $style1, $style2, $style3 );
         foreach($rows_days as $row)
         {
             $writer->writeSheetRow(lang('call_distrib_by_day'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_hour'),[50,30,30,30,30,30,30, 30]);
+        $writer->initializeSheet(lang('call_distrib_by_hour'),[90,30,40,30,30,40,30, 30]);
         $writer->writeSheetRow(lang('call_distrib_by_hour'), $row_header, $style1, $style2, $style3);
         foreach($rows_hours as $row) 
         {
@@ -3201,7 +3211,7 @@ class Export extends MY_Controller {
 
         if ($this->data->config->app_call_categories == 'yes') 
         {
-            $writer->initializeSheet(lang('call_distrib_by_category'),[50,30,30,30,30,30,30, 30]);
+            $writer->initializeSheet(lang('call_distrib_by_category'),[90,30,30,30,30,30,30, 30]);
             $writer->writeSheetRow(lang('call_distrib_by_category'), $row_header, $style1, $style2, $style3);
             foreach($rows_categories as $row) 
             {
@@ -3356,7 +3366,7 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('start_menu_calls_unanswered'), $total_stats->calls_unanswered, $calls_unanswered_percent);
         
         // Incoming Talk Time SUM(Total)
-        $rows_overview[] = array(lang('incoming_talk_time_sum'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time($total_stats->incoming_total_calltime) : 0);
+        $rows_overview[] = array(lang('incoming_talk_time_sum_overview'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time($total_stats->incoming_total_calltime) : 0);
         
         
          // Incoming Talk Time AVG
@@ -3377,7 +3387,7 @@ class Export extends MY_Controller {
        $rows_overview[] = array(lang('calls_outgoing_failed'), (intval($total_stats->calls_outgoing) - intval($total_stats->calls_outgoing_answered)));
         
        // Outgoing Talk Time SUM
-        $rows_overview[] = array(lang('outgoing_talk_time_sum'), $total_stats->outgoing_max_calltime > 0 ? sec_to_time(
+        $rows_overview[] = array(lang('outgoing_talk_time_sum_overview'), $total_stats->outgoing_max_calltime > 0 ? sec_to_time(
             ($total_stats->outgoing_total_calltime)) : 0
         );
         
@@ -3412,10 +3422,10 @@ class Export extends MY_Controller {
         $rows_days[] = array(
             lang('day'),
             lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
             lang('hold_time')
         );
@@ -3515,10 +3525,10 @@ class Export extends MY_Controller {
         $rows_hours[] = array(
             lang('hour'),
             lang('calls_answered'),
-            lang('incoming_talk_time_sum'),
+            lang('incoming_talk_time_sum_overview'),
             lang('calls_missed'),
             lang('calls_outgoing_answered'),
-            lang('outgoing_talk_time_sum'),
+            lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
             lang('hold_time')
         );
@@ -3565,21 +3575,21 @@ class Export extends MY_Controller {
 
        
 
-        $writer->initializeSheet(lang('overview'),[70,30,15]);
+        $writer->initializeSheet(lang('overview'),[90,30,15]);
         $writer->writeSheetRow(lang('overview'), $row_header, $style1, $style2);
         foreach($rows_overview as $row) 
         {
             $writer->writeSheetRow(lang('overview'), $row, $style2);
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_day'),[50,30,30,30,30,30,30, 30]);
+        $writer->initializeSheet(lang('call_distrib_by_day'),[90,30,40,30,30,40,30,30]);
         $writer->writeSheetRow(lang('call_distrib_by_day'), $row_header, $style1, $style2);
         foreach($rows_days as $row)
         {
             $writer->writeSheetRow(lang('call_distrib_by_day'), $row, $style2);
         }
 
-        $writer->initializeSheet(lang('call_distrib_by_hour'),[50,30,30,30,30,30,30,30]);
+        $writer->initializeSheet(lang('call_distrib_by_hour'),[90,30,40,30,30,40,30,30]);
         $writer->writeSheetRow(lang('call_distrib_by_hour'), $row_header, $style1, $style2);
         foreach($rows_hours as $row) 
         {

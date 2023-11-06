@@ -667,3 +667,8 @@ $lang['category_refresh']       = 'Category Refresh';
 $lang['days']               = "Days";
 $lang['hours']              = "Hours";
 $lang['categories']         = "Categories";
+
+/* ----------- For System Overview --------- */
+
+$lang['incoming_talk_time_sum_overview'] =  "Incoming talk time (sum)";
+$lang['outgoing_talk_time_sum_overview'] = "Outgoing talk time (sum)";;

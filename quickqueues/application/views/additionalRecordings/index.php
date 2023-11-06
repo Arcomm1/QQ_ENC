@@ -7,82 +7,17 @@
                         <div class="col">
                             <?php echo form_open(false,array('method' => 'get')); ?>
                             <div class="row">
-                                <input type="hidden" name="subject_search_array" id="subject_search_array" value="">
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control" id="src" name="src" placeholder="src" value="<?php echo $this->input->get('src'); ?>">
-                                        <label for="src"><?php echo lang('src'); ?></label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control" id="dst" name="dst" placeholder="dst" value="<?php echo $this->input->get('dst'); ?>">
-                                        <label for="dst"><?php echo lang('dst'); ?></label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <select class="form-select" id="queue_id" name="queue_id">
-                                        <option selected value="0"><?php echo lang('select_queue'); ?></option>
-                                        <?php foreach ($user_queues as $q) { ?>
-                                            <?php if ($this->input->get('queue_id') == $q->id) { ?>
-                                                <option selected value="<?php echo $q->id; ?>"><?php echo $q->display_name; ?></option>
-                                            <?php } else { ?>
-                                                <option value="<?php echo $q->id; ?>"><?php echo $q->display_name; ?></option>
-                                            <?php } ?>
-                                        <?php } ?>
-                                        </select>
-                                        <label for="queue_id"><?php echo lang('queue'); ?></label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <select class="form-select" id="agent_id" name="agent_id">
-                                        <option selected value="0"><?php echo lang('select_agent'); ?></option>
-                                        <?php foreach ($user_agents as $a) { ?>
-                                            <?php if ($this->input->get('agent_id') == $a->id) { ?>
-                                                <option selected value="<?php echo $a->id; ?>"><?php echo $a->display_name; ?></option>
-                                            <?php } else { ?>
-                                                <option value="<?php echo $a->id; ?>"><?php echo $a->display_name; ?></option>
-                                            <?php } ?>
-                                        <?php } ?>
-                                        </select>
-                                        <label for="agent_id"><?php echo lang('agent'); ?></label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control" id="comment" name="comment" placeholder="comment" value="<?php echo $this->input->get('comment'); ?>">
-                                        <label for="comment"><?php echo lang('comment'); ?></label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <select class="form-select" id="event_type" name="event_type">
-                                        <option selected value="0"><?php echo lang('event'); ?></option>
-                                        <?php foreach ($interesting_events as $event_id => $event_name) { ?>
-                                            <?php if ($this->input->get('event_type') == $event_id) { ?>
-                                                <option selected value="<?php echo $event_id; ?>"><?php echo lang($event_name); ?></option>
-                                            <?php } else { ?>
-                                                <option value="<?php echo $event_id; ?>"><?php echo lang($event_name); ?></option>
-                                            <?php } ?>
-                                        <?php } ?>
-                                        </select>
-                                        <label for="event_type"><?php echo lang('event'); ?></label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
+                                <div class="col-md-3 col-sm-12" style="width:100%">
                                     <div class="form-floating mb-3">
                                         <input class="form-control" autocomplete="off" tupe="text" id="date_gt" name="date_gt" placeholder="date_gt" value="<?php echo $this->input->get('date_gt'); ?>">
                                         <label for="date_gt"><?php echo lang('date_gt'); ?></label>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-12">
+                                <div class="col-md-3 col-sm-12" style="width:100%">
                                     <div class="form-floating mb-3">
-                                        <input class="form-control" style="width:88%;display: inline-block" autocomplete="off" type="text" id="date_lt" name="date_lt" placeholder="date_lt" value="<?php echo $this->input->get('date_lt'); ?>">
+                                        <input class="form-control" style="display: inline-block" autocomplete="off" type="text" id="date_lt" name="date_lt" placeholder="date_lt" value="<?php echo $this->input->get('date_lt'); ?>">
                                         <label for="date_lt"><?php echo lang('date_lt'); ?></label>
+                                    
 
                                     <div class="btn-group" style="display: inline-block;float:right">
                                         <button id="predefined_periods" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
@@ -99,51 +34,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Search -->
-                            <div class="row">
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <?php
-                                        $all_parent_subjects=$this->Call_subjects_model->get_main_subjects();
-                                        echo "<select name='search_parent_subjects' id='search_parent_subjects' class='form-control'>";
-                                            echo "<option value=''>".lang('subject_title')."</option>";
-                                            foreach($all_parent_subjects as $parent_subject){
-                                                $subject_id=$parent_subject['id'];
-                                                echo "<option value='".$subject_id."'>".$parent_subject['title']."</option>";
-
-                                            }
-                                        echo "</select>";
-                                        ?>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <?php
-                                            echo "<select name='search_child_1_subject' id='search_child_1_subject' class='form-control' >";
-                                                echo "<option value=''>".lang('childd_1_suject')."</option>";
-                                            echo "</select>";
-                                        ?>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <?php
-                                            echo "<select name='search_child_2_subject' id='search_child_2_subject' class='form-control' >";
-                                                echo "<option value=''>".lang('childd_2_suject')."</option>";
-                                            echo "</select>";
-                                        ?>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <div class="form-floating mb-3">
-                                        <?php
-                                            echo "<select name='search_child_3_subject' id='search_child_3_subject' class='form-control' >";
-                                                echo "<option value=''>".lang('childd_3_suject')."</option>";
-                                            echo "</select>";
-                                        ?>
-                                    </div>
-                                </div>
-                            </div>
                             <!-- ////Endsearch//// -->
                             <div class="row">
                                 <div class="col">
@@ -153,9 +43,6 @@
                                         <button type="submit" class="btn btn-primary"><?php echo lang('search'); ?></button>
                                         <span class="btn btn-ghost"><?php echo lang('found')." $num_calls ".lang('calls'); ?></span>
                                     </div>
-                                </div>
-                                <div class="col">
-                                    <a class="btn btn-ghost text-success" href="<?php echo site_url('recordings?event_type=UNANSWERED&calls_without_service=yes&date_gt=&date_lt='); ?>">{{ lang['callback_queue'] }}</a>
                                 </div>
                             </div>
 

@@ -719,6 +719,7 @@ $lang['start_menu_sla_greater_than_20'] = "SLA > 20 წამზე";
 $lang['ata'] = "ATA (საშუალო დრო)";
 $lang['answered_aoutcall'] = "ნაპასუხები (გადარეკილი)";
 
+
 $lang['incoming_talk_time_sum'] = "დრო (ჯამური)";
 $lang['incoming_talk_time_avg'] = "შემომავალი  საუბრის დრო (საშუალო)";
 $lang['incoming_talk_time_max'] = "შემომავალი  საუბრის დრო (მაქსიმალური)";
@@ -750,6 +751,10 @@ $lang['dnd_duration'] = "შესვენების ხანგრძლი
 /* ----------- For Braks ------------- */
 $lang['breaks'] = "შესვენებები";
 
+/* ----------- For System Overview --------- */
+
+$lang['incoming_talk_time_sum_overview'] = "შემომავალი საუბრის დრო (ჯამური)";
+$lang['outgoing_talk_time_sum_overview'] = "გამავალი საუბრის დრო (ჯამური)";
 
 
 

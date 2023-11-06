@@ -138,7 +138,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-arrow-thick-left text-success mr-4"></i>
-                                            {{ lang['incoming_talk_time_sum'] }}
+                                            {{ lang['incoming_talk_time_sum_overview'] }}
                                         </span>
                                         <span>{{ incoming_total_calltime_count }}</span>
                                     </li>
@@ -176,7 +176,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-arrow-thick-right text-primary mr-4"></i>
-                                            {{ lang['outgoing_talk_time_sum'] }}
+                                            {{ lang['outgoing_talk_time_sum_overview'] }}
                                         </span>
                                         <span>{{ outgoing_total_calltime_count }}</span>
                                     </li>

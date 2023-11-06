@@ -479,10 +479,11 @@ class Call_model extends MY_Model {
         // $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 10 AND  holdtime <= 20 THEN 1 END) AS sla_count_between_10_20');
         // $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_grate_than_10');
         // $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_grate_than_20');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 0 THEN 1 END) AS sla_count_total');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 10 AND holdtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_greater_than_20');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 0 THEN 1 END) AS sla_count_total');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 10 AND <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 20 THEN 1 END) AS sla_count_greater_than_20');
+        
 
         /* ------ End Of  FOR SLA: Hold Time ------ */
 
@@ -531,10 +532,11 @@ class Call_model extends MY_Model {
         // $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_grate_than_10');
         // $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_grate_than_20');
         
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 0 THEN 1 END) AS sla_count_total');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 10 AND holdtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_greater_than_20');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 0 THEN 1 END) AS sla_count_total');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 10 AND <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 20 THEN 1 END) AS sla_count_greater_than_20');
+        
 
         /* ------ End Of  FOR SLA: Hold Time ------ */
 
@@ -601,10 +603,11 @@ class Call_model extends MY_Model {
         $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
 
          /* ------ FOR SLA: Hold Time ------ */
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 0 THEN 1 END) AS sla_count_total');
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 10 AND holdtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_greater_than_20');
+         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 0 THEN 1 END) AS sla_count_total');
+         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
+         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 10 AND <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
+         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 20 THEN 1 END) AS sla_count_greater_than_20');
+         
          /* ------ End Of  FOR SLA: Hold Time ------ */
 
         $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
@@ -672,10 +675,11 @@ class Call_model extends MY_Model {
 
             /* ------ FOR SLA: Hold Time ------ */
 
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 0 THEN 1 END) AS sla_count_total');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 10 AND holdtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND holdtime > 20 THEN 1 END) AS sla_count_greater_than_20');
+            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 0 THEN 1 END) AS sla_count_total');
+            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
+            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 10 AND <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
+            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND > 20 THEN 1 END) AS sla_count_greater_than_20');
+            
 
             /* ------ End Of  FOR SLA: Hold Time ------ */
 
