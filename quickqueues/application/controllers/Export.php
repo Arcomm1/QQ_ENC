@@ -3249,7 +3249,8 @@ class Export extends MY_Controller {
         $agent               = $this->Agent_model->get($agent_id);
         $row_header           = array(lang('stats').' '.$date_gt.' > '.$date_lt.'('.lang('agent').': '.$agent->display_name.')');
         $agent_daily_stats   = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
-        $agent_hourly_stats  = $this->Call_model->get_hourly_stats_for_agent_page($agent_id, $date_range);
+        $agent_hourly_stats  = $this->Agent_model->get_hourly_stats_for_agents($agent_id);
+        var_dump($agent_hourly_stats);
         $sla_total_count_sum = $total_stats->sla_count_total;
 
         // Last Call 
@@ -3511,6 +3512,8 @@ class Export extends MY_Controller {
                 'hold_time_avg'             => 0,
             );
         }
+        var_dump($hourly_call_stats);
+        return;
 
         foreach ($hourly_call_stats as $s) {
             $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
@@ -3561,7 +3564,7 @@ class Export extends MY_Controller {
             );
         }
          /////////////////// ---------- END OFTIME SHEET ----------------//////////////////////////
-        $this->_prepare_headers('agent_'.$agent->display_name.'_stats-'.date('Ymd-His').'.xlsx');
+        // $this->_prepare_headers('agent_'.$agent->display_name.'_stats-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();

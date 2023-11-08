@@ -712,6 +712,7 @@ class Agent extends MY_Controller {
         $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
         $stats = $this->Call_model->get_hourly_stats_for_agent_page($id, $date_range);
+
         //$stats = $stats[0];
        // $stats->avg_holdtime = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
        for ($i=0; $i < 24; $i++) 
