@@ -157,7 +157,7 @@
                                     agent_statuses[agent.extension].Status == 2 ||
                                     agent_statuses[agent.extension].Status == 4 ||
                                     agent_statuses[agent.extension].Status == 8)">
-                                    {{ sec_to_time(agent.incoming_talk_time_sum) }}
+                                    {{ sec_to_time(agent.incoming_total_calltime) }}
                                 </td>
                                 <td v-if="agent_statuses[agent.extension] &&
                                     (agent_statuses[agent.extension].Status == 0 ||

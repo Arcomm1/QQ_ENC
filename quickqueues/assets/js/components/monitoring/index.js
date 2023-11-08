@@ -251,7 +251,7 @@ var monitoring_dashboard = new Vue({
 
         setInterval(() => this.get_queue_stats(), 5000);
         setInterval(() => this.get_basic_stats(), 60000);
-        setInterval(() => this.get_agent_stats(), 60000);
+        setInterval(() => this.get_agent_stats(), 6000);
         setInterval(() => this.get_freepbx_agents(), 3000);
         setInterval(() => this.get_agent_realtime_status(), 2000);
         setInterval(() => this.get_realtime_data(), 2000);

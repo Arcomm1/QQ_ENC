@@ -1416,7 +1416,7 @@ class Agent extends MY_Controller {
 
         $agent_call_stats = $this->Call_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_ids, $date_range);
-
+       
         foreach ($this->data->user_agents as $a) {
             $agent_stats[$a->id] = array(
                 'display_name' => $a->display_name,

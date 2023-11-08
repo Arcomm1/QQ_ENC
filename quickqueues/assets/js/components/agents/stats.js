@@ -48,7 +48,7 @@ var agent_stats = new Vue({
                 .then(response => {
                     this.total_stats_loading = false;
                     this.total_stats = response.data.data;
-                    console.log(this.total_stats);
+                    console.log(this.total_stats, 'this');
                     ctx_event_distrib = document.getElementById("canvas_event_distrib").getContext('2d');
                     this.chart_event_distrib = new Chart(ctx_event_distrib, {
                         type: 'bar',
@@ -222,9 +222,12 @@ var agent_stats = new Vue({
         },
 
         ring_time_avg: function() {
-            return sec_to_min(Math.floor(this.total_ringtime / this.calls_total));
+            return sec_to_min(Math.floor(this.total_stats.total_ringtime / this.total_stats.incoming_total_calltime_count));
         },
 
+        ring_time_max: function(){
+            return sec_to_min(this.total_stats.max_ringtime_answered)
+        },
         /*--- SLA Hold Time --- */
         sla_count_less_than_or_equal_to_10_percent: function() {
             if (this.total_stats.sla_count_total > 0) {
