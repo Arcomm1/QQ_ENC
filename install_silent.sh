@@ -14,8 +14,8 @@ fi
 
 DEST="/var/www/html/callcenter"
 APPUSER="admin"
-APPPASS="admin"
-APPEMAIL="admin@example.com"
+APPPASS="ThisNew25!!QQ4569ZZC"
+APPEMAIL="support@arcomm.ge"
 
 echo "================================================================================"
 echo "Welcome to Quickqueues installer!"
