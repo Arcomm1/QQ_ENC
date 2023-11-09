@@ -183,12 +183,12 @@ else
     echo "Source: " $(pwd)/quickqueues/
     echo "Dest  : " $DEST
     mkdir -p $DEST
-    /bin/ln -s $(pwd)/quickqueues/* $DEST/
-    /bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
+    /bin/ln -sf $(pwd)/quickqueues/* $DEST/
+    /bin/ln -sf $(pwd)/VERSION $DEST/application/VERSION
     #/bin/cp VERSION $DEST/application/VERSION
     #/bin/cp -r quickqueues/* $DEST/
     sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
-    /bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
+    /bin/ln -sf $(pwd)/bin/qqctl /usr/local/bin/qqctl
     echo $DEST > .install_dest
     #rm -f quickqueues/application/config/database.php
 	chmod +x /usr/local/bin/qqctl
