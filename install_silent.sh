@@ -112,20 +112,43 @@ echo "==========================================================================
 
 echo ""
 echo "Moving application files to installation destination"
+if [ -d $DEST ]; then
+    echo "Folder $DEST already exists."
+    echo "To proceed with installation, and overwrite directory contents, type y,"
+    echo "otherwise precc n, or Ctrl-C to exit and start over"
+    echo ""
+    echo "Overwrite contents of $DEST? [y/N]"
+    read OVERWRITE
+    if [[ -z $OVERWRITE ]]; then
+        echo "Exitting installer"
+        exit
+    elif [ $OVERWRITE == 'n' ]; then
+        echo "Exitting"
+        exit
+    elif [ $OVERWRITE != "y" ]; then
+        echo "Invalid input, exitting"
+        exit
+    else
+        echo "Overwriting existing installation destination"
+        echo "destination is " $DEST/
+        /bin/cp -rf quickqueues/* $DEST/
+        echo $DEST > .install_dest
+    fi
 
-echo "Copying installation files"
-echo "Source: " $(pwd)/quickqueues/
-echo "Dest  : " $DEST
-mkdir -p $DEST
-/bin/ln -s $(pwd)/quickqueues/* $DEST/
-/bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
-#/bin/cp VERSION $DEST/application/VERSION
-#/bin/cp -r quickqueues/* $DEST/
-sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
-/bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
-echo $DEST > .install_dest
-#rm -f quickqueues/application/config/database.php
-
+else
+    echo "Copying installation files"
+    echo "Source: " $(pwd)/quickqueues/
+    echo "Dest  : " $DEST
+    mkdir -p $DEST
+    /bin/ln -s $(pwd)/quickqueues/* $DEST/
+    /bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
+    #/bin/cp VERSION $DEST/application/VERSION
+    #/bin/cp -r quickqueues/* $DEST/
+    sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
+    /bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
+    echo $DEST > .install_dest
+    #rm -f quickqueues/application/config/database.php
+fi
 echo "================================================================================"
 
 echo "Generating Cron job (this will overwrite any previous Quickqueues cron jobs schedules)"
