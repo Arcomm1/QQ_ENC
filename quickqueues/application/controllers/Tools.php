@@ -55,11 +55,23 @@ class Tools extends CI_Controller {
             if (!in_array($role, array('guest', 'agent', 'manager', 'admin'))) {
                 exit("Please specify valid role\n");
             }
-            if ($this->User_model->create(array('name' => $username, 'password' => md5($password), 'role' => $role, 'enabled' => 'yes'))) {
-                echo "User created successfully.\n";
-            } else {
-                echo "Could not create user.\n";
-            }
+	
+			// Initialize an empty array to store names
+			$userNames = array();
+			// Iterate through the results and populate the $userNames array
+			foreach ($this->User_model->get_all() as $u) {
+				$userNames[] = $u->name;
+			}
+				
+			if (in_array($username, $userNames)) {
+				echo "User already exists, skip creation";
+			} else {
+				if ($this->User_model->create(array('name' => $username, 'password' => md5($password), 'role' => $role, 'enabled' => 'yes'))) {
+					echo "User created successfully.\n";
+				} else {
+					echo "Could not create user.\n";
+				}
+			}			
             exit();
         }
     }
