@@ -155,6 +155,7 @@ var monitoring_dashboard = new Vue({
         {
             if (this.isAgentSpeaking && this.agent_statuses[agentExtension]['StatusText'] === 'InUse') 
             {
+                this.callDurations[agentExtension] = 0;
                 if (!this.callDurations[agentExtension]) 
                 {
                     this.callDurations[agentExtension] = 0;
