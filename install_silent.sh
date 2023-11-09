@@ -113,19 +113,19 @@ echo "==========================================================================
 echo ""
 echo "Moving application files to installation destination"
 
-if [ -d $DEST ]; then
-    echo "Overwriting existing installation destination"
-    /bin/cp -rf quickqueues/* $DEST/
-    echo $DEST > .install_dest
-else
-    echo "Copying installation files"
-    mkdir -p $DEST
-    /bin/ln -s $(pwd)/quickqueues/* $DEST/
-    /bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
-    sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
-    /bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
-    echo $DEST > .install_dest
-fi
+echo "Copying installation files"
+echo "Source: " $(pwd)/quickqueues/
+echo "Dest  : " $DEST
+mkdir -p $DEST
+/bin/ln -s $(pwd)/quickqueues/* $DEST/
+/bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
+#/bin/cp VERSION $DEST/application/VERSION
+#/bin/cp -r quickqueues/* $DEST/
+sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
+/bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
+echo $DEST > .install_dest
+#rm -f quickqueues/application/config/database.php
+
 echo "================================================================================"
 
 echo "Generating Cron job (this will overwrite any previous Quickqueues cron jobs schedules)"
