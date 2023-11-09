@@ -14,7 +14,7 @@ fi
 
 DEST="/var/www/html/callcenter"
 APPUSER="admin"
-APPPASS="ThisNew25!!QQ4569ZZC"
+APPPASS="admin"
 APPEMAIL="support@arcomm.ge"
 
 echo "================================================================================"
