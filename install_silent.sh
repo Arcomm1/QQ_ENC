@@ -41,6 +41,14 @@ AMPMGRPASS=`cat /etc/amportal.conf | grep AMPMGRPASS | tr '=' ' ' | gawk '{print
 AMPMGRHOST=`cat /etc/amportal.conf | grep ASTMANAGERHOST | tr '=' ' ' | gawk '{print $2}'`
 AMPMGRPORT=`cat /etc/amportal.conf | grep ASTMANAGERPORT | tr '=' ' ' | gawk '{print $2}'`
 
+echo "Checking Development Folder"
+echo "================================================================================"
+if [ -d "quickqueues/application/config/development" ]; then
+    rm -rf "quickqueues/application/config/development"
+    echo "Development config Folder deleted."
+else
+    echo "Development Folder does not exist."
+fi
 
 echo ""
 echo "Generating configuration files"
