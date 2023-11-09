@@ -30,7 +30,6 @@ var monitoring_dashboard = new Vue({
             agents_unavailable         : 0,
             total_callers              : 0,
 
-            isAgentSpeaking            : false,
             callDurations              : {},
 
             queueStats                 : {},
@@ -108,7 +107,8 @@ var monitoring_dashboard = new Vue({
                         this.agents_unavailable = 0;
         
                         for (let fa in this.freepbx_agents) {
-                            if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Idle') {
+                            if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Idle')
+                            {
                                 this.agents_free++;
                             }
                             if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Unavailable') 
@@ -118,32 +118,14 @@ var monitoring_dashboard = new Vue({
                             if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'InUse') 
                             {
                                 this.agents_on_call++;
-                                this.updateCallDuration(this.freepbx_agents[fa].extension);
                             }
                             if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Busy') 
                             {
                                 this.agents_busy++;
                             }
                         }
-        
-                        this.updateAgentSpeakingStatus(); 
                     }
                 });
-        },
-        
-        updateAgentSpeakingStatus: function() 
-        {
-            let anyAgentSpeaking = this.agents_on_call > 0;
-        
-            if (!anyAgentSpeaking) 
-            {
-                this.isAgentSpeaking = false;
-                this.callDuration = 0;
-            } 
-            else 
-            {
-                this.isAgentSpeaking = true;
-            }
         },
        
         isAgentOnCall(agentExtension) 
@@ -153,9 +135,8 @@ var monitoring_dashboard = new Vue({
 
         updateCallDuration: function(agentExtension) 
         {
-            if (this.isAgentSpeaking && this.agent_statuses[agentExtension]['StatusText'] === 'InUse') 
+            if (this.isAgentOnCall(agentExtension)) 
             {
-                this.callDurations[agentExtension] = 0;
                 if (!this.callDurations[agentExtension]) 
                 {
                     this.callDurations[agentExtension] = 0;
@@ -282,12 +263,9 @@ var monitoring_dashboard = new Vue({
 
         setInterval(() => 
         {
-            for (const agentExtension in this.callDurations) 
+            for (const key in this.agent_statuses) 
             {
-                if (this.isAgentOnCall(agentExtension)) 
-                {
-                    this.updateCallDuration(agentExtension);
-                }
+                this.updateCallDuration(key);
             }
         }, 1000);
 
