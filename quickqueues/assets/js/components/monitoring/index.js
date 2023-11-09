@@ -31,7 +31,7 @@ var monitoring_dashboard = new Vue({
             total_callers              : 0,
 
             isAgentSpeaking            : false,
-            callDuration               : 0,
+            callDurations              : {},
 
             queueStats                 : {},
             queueStats_loading         : false,
@@ -64,7 +64,8 @@ var monitoring_dashboard = new Vue({
                 const totalCallsByQueue = {};
       
                 for (const queueId in this.queueStats) {
-                  if (this.queueStats.hasOwnProperty(queueId)) {
+                  if (this.queueStats.hasOwnProperty(queueId)) 
+                  {
                     const queueData  = this.queueStats[queueId];
                     const totalCalls =
                       queueData.calls_answered +
@@ -94,55 +95,76 @@ var monitoring_dashboard = new Vue({
             });
         },
 
-        get_agent_realtime_status: function() 
-        {
+        get_agent_realtime_status: function() {
             axios.get(api_url+'agent/get_realtime_status_for_all_agents/')
                 .then(response => {
-                    if (typeof(response.data.data) == 'object') 
-                    {
-
-                        this.agent_statuses         = response.data.data;
-
+                    if (typeof(response.data.data) == 'object') {
+                        this.agent_statuses = response.data.data;
                         this.agent_statuses_loading = false;
+        
+                        this.agents_busy = 0;
+                        this.agents_on_call = 0;
+                        this.agents_free = 0;
+                        this.agents_unavailable = 0;
+        
+                        for (let fa in this.freepbx_agents) {
+                            if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Idle') {
+                                this.agents_free++;
+                            }
+                            if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Unavailable') 
+                            {
+                                this.agents_unavailable++;
+                            }
+                            if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'InUse') 
+                            {
+                                this.agents_on_call++;
+                                this.updateCallDuration(this.freepbx_agents[fa].extension);
+                            }
+                            if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Busy') 
+                            {
+                                this.agents_busy++;
+                            }
+                        }
+        
+                        this.updateAgentSpeakingStatus(); 
                     }
-                })
-                .then(() => {
-                    this.agents_busy        = 0;
-                    this.agents_on_call     = 0;
-                    this.agents_free        = 0;
-                    this.agents_unavailable = 0;
-                    let anyAgentSpeaking    = false;
-                    for (fa in this.freepbx_agents) 
-                    {
-                        if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Idle') 
-                        {
-                            this.agents_free++;
-                        }
-                        if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Unavailable') 
-                        {
-                            this.agents_unavailable++;
-                        }
-                        if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'InUse') 
-                        {
+                });
+        },
+        
+        updateAgentSpeakingStatus: function() 
+        {
+            let anyAgentSpeaking = this.agents_on_call > 0;
+        
+            if (!anyAgentSpeaking) 
+            {
+                this.isAgentSpeaking = false;
+                this.callDuration = 0;
+            } 
+            else 
+            {
+                this.isAgentSpeaking = true;
+            }
+        },
+       
+        isAgentOnCall(agentExtension) 
+        {
+            return this.agent_statuses[agentExtension]['StatusText'] === 'InUse';
+        },
 
-                            anyAgentSpeaking = true;
-                            this.agents_on_call++;
-                        }
-                        if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Busy') 
-                        {
-                            this.agents_busy++;
-                        }
-                    }
-                    if (!anyAgentSpeaking) 
-                    {
-                        this.isAgentSpeaking = false;
-                        this.callDuration = 0;
-                    }
-                    else 
-                    {
-                        this.isAgentSpeaking = true;
-                    }
-                })
+        updateCallDuration: function(agentExtension) 
+        {
+            if (this.isAgentSpeaking && this.agent_statuses[agentExtension]['StatusText'] === 'InUse') 
+            {
+                if (!this.callDurations[agentExtension]) 
+                {
+                    this.callDurations[agentExtension] = 0;
+                }
+                this.callDurations[agentExtension]++;
+            }
+            else
+            {
+                this.callDurations[agentExtension] = 0;
+            }
         },
 
         get_realtime_data: function() 
@@ -259,11 +281,14 @@ var monitoring_dashboard = new Vue({
 
         setInterval(() => 
         {
-            if (this.isAgentSpeaking)
+            for (const agentExtension in this.callDurations) 
             {
-                this.callDuration++
+                if (this.isAgentOnCall(agentExtension)) 
+                {
+                    this.updateCallDuration(agentExtension);
+                }
             }
-        }, 1000)
+        }, 1000);
 
         
     }

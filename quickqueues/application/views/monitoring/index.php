@@ -155,7 +155,7 @@
                                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                                         {{ agent_current_calls[agent.extension].second_party }}
                                                     </span>
-                                                    <span>{{ sec_to_time(callDuration) }}</span>
+                                                    <span>{{ sec_to_time(callDurations[agent.extension]) }}</span>
                                                     <span v-else></span>
                                                 </div>
                                                 <div class="small text-medium-emphasis monitoring-dashboard-small-text">
