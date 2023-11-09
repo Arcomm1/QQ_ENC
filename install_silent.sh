@@ -124,16 +124,12 @@ echo "Copying installation files"
 echo "Source: " $(pwd)/quickqueues/
 echo "Dest  : " $DEST
 mkdir -p $DEST
+/bin/ln -s $(pwd)/quickqueues/* $DEST/
+/bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
+sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
+/bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
+echo $DEST > .install_dest	
 
-if [ -d $DEST ]; then
-    echo "Directory already exists"
-	/bin/ln -s $(pwd)/quickqueues/* $DEST/
-	/bin/ln -s $(pwd)/VERSION $DEST/application/VERSION
-	sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
-	/bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
-	echo $DEST > .install_dest	
-    # Perform your additional actions here
-fi
 
 echo "================================================================================"
 
