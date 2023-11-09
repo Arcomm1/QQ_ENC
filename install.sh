@@ -191,6 +191,7 @@ else
     /bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
     echo $DEST > .install_dest
     #rm -f quickqueues/application/config/database.php
+	chmod +x /usr/local/bin/qqctl
 fi
 echo "================================================================================"
 

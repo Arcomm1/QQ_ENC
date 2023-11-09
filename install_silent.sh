@@ -132,7 +132,7 @@ mkdir -p $DEST
 sed -i 's|QQDEST|'$DEST'|g' 'bin/qqctl'
 /bin/ln $(pwd)/bin/qqctl /usr/local/bin/qqctl
 echo $DEST > .install_dest	
-
+chmod +x /usr/local/bin/qqctl
 
 echo "================================================================================"
 
