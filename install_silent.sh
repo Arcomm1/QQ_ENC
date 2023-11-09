@@ -99,7 +99,7 @@ if [ -f 'quickqueues/index.php' ]; then
 	#change password to standart
 	sudo -S mysql -u $AMPDBUSER -p$AMPDBPASS asterisk -e "USE asterisk; UPDATE qq_users SET password=MD5('ThisNew25\!\!QQ4569ZZC') WHERE name='admin';"
 	#remove dublicate admin users
-	sudo -S mysql -u $AMPDBUSER -p$AMPDBPASS asterisk -e "USE asterisk; DELETE t1 FROM qq_users t1 INNER JOIN qq_users t2 WHERE t1.id > t2.id AND t1.name = 'admin' AND t1.name = t2.name;"	
+	sudo -S mysql -u $AMPDBUSER -p$AMPDBPASS asterisk -e "USE asterisk; DELETE t1 FROM qq_users t1 INNER JOIN qq_users t2 WHERE t1.id > t2.id AND t1.name = 'admin' AND t1.name = t2.name;"
 else
     echo "Could not find application directory"
     exit
