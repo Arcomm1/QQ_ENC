@@ -3337,25 +3337,25 @@ class Export extends MY_Controller {
         }
         
 
-        // Hold Time Avg
-        $total_hold_wait_time      = $total_stats->total_holdtime + $total_stats->total_waittime;
-        $total_answered_unanswered = $total_stats->calls_answered + $total_stats->calls_unanswered;
+        // Ring Time Avg
+  
 
-        if($total_hold_wait_time > 0 && $total_answered_unanswered > 0){
-            $rows_overview[] = array(lang('hold_time').' ('.lang('avg').')', sec_to_time(
+        if($total_stats->total_ringtime > 0 && $total_stats->incoming_total_calltime_count > 0)
+        {
+            $rows_overview[] = array(lang('ring_time').' ('.lang('avg').')', sec_to_time(
                 floor(
-                    $total_hold_wait_time/$total_answered_unanswered)
+                    $total_stats->total_ringtime/$total_stats->incoming_total_calltime_count)
                 )
             );
         }
 
-        // Hold Time Max
+        // Ring Time Max
 
-        if($total_hold_wait_time > 0 && $total_answered_unanswered > 0)
+        if($total_stats->total_ringtime > 0 && $total_stats->incoming_total_calltime_count > 0)
         {
-            $rows_overview[] = array(lang('hold_time').' ('.lang('max').')', sec_to_time(
+            $rows_overview[] = array(lang('ring_time').' ('.lang('max').')', sec_to_time(
                 floor(
-                    $total_stats->max_holdtime)
+                    $total_stats->max_ringtime_answered)
                 )
             );
         }
@@ -3512,8 +3512,7 @@ class Export extends MY_Controller {
                 'hold_time_avg'             => 0,
             );
         }
-        // var_dump($hourly_call_stats);
-     
+
 
         foreach ($hourly_call_stats as $s) {
             $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;

@@ -222,11 +222,11 @@ var agent_stats = new Vue({
         },
 
         ring_time_avg: function() {
-            return sec_to_min(Math.floor(this.total_stats.total_ringtime / this.total_stats.incoming_total_calltime_count));
+            return sec_to_time(Math.floor(this.total_stats.total_ringtime / this.total_stats.incoming_total_calltime_count));
         },
 
         ring_time_max: function(){
-            return sec_to_min(this.total_stats.max_ringtime_answered)
+            return sec_to_time(this.total_stats.max_ringtime_answered)
         },
         /*--- SLA Hold Time --- */
         sla_count_less_than_or_equal_to_10_percent: function() {
