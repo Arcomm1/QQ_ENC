@@ -111,7 +111,7 @@ class AdditionalRecordings extends MY_Controller {
         } elseif ($this->input->get('event_type') == 'INCOMINGOFFWORK') {
             $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
         } elseif ($this->input->get('event_type') == 'OUTGOING') {
-            $where['event_type'] = array('OUT_ANSWERED', 'OUT_BUDY', 'OUT_FAILED', 'OUT_NOANSWER');
+            $where['event_type'] = array('OUT_ANSWERED', 'OUT_BUSY', 'OUT_FAILED', 'OUT_NOANSWER');
         } elseif ($this->input->get('event_type') == 'OUT_ANSWERED') {
             $where['event_type'] = 'OUT_ANSWERED';
         } elseif ($this->input->get('event_type') == 'OUT_UNANSWERED') {
