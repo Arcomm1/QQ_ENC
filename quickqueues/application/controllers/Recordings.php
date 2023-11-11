@@ -111,7 +111,7 @@ class Recordings extends MY_Controller {
         } elseif ($this->input->get('event_type') == 'INCOMINGOFFWORK') {
             $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
         } elseif ($this->input->get('event_type') == 'OUTGOING') {
-            $where['event_type'] = array('OUT_ANSWERED', 'OUT_BUDY', 'OUT_FAILED', 'OUT_NOANSWER');
+            $where['event_type'] = array('OUT_ANSWERED', 'OUT_BUSY', 'OUT_FAILED', 'OUT_NOANSWER');
         } elseif ($this->input->get('event_type') == 'OUT_ANSWERED') {
             $where['event_type'] = 'OUT_ANSWERED';
         } elseif ($this->input->get('event_type') == 'OUT_UNANSWERED') {
@@ -143,7 +143,8 @@ class Recordings extends MY_Controller {
         $config['anchor_class'] = 'follow_link';
         $config['suffix']       = '&action=search';
 
-        foreach ($this->input->get() as $f => $v) {
+        foreach ($this->input->get() as $f => $v) 
+        {
             if ($f == 'per_page') { continue; }
             $config['suffix'] .= '&'.$f."=".$v;
         }
@@ -156,16 +157,19 @@ class Recordings extends MY_Controller {
         $page = $this->input->get('per_page');
         $this->data->page = $page;
 
-        if ($this->input->get('random') == 'true') {
+        if ($this->input->get('random') == 'true') 
+        {
             $this->data->calls = $this->Call_model->search($where, $like, 20, 0, true);
         }
-        else{
+        else
+        {
             $this->data->calls = $this->Call_model->search($where, $like, $config["per_page"], $page);
         }
 
         $this->data->pagination_links  = $this->pagination->create_links();
 
-        if ($this->data->config->app_call_tags == 'yes') {
+        if ($this->data->config->app_call_tags == 'yes') 
+        {
             $this->data->call_tags = $this->Call_tag_model->get_all();
         }
 
