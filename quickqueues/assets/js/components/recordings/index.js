@@ -16,7 +16,6 @@ var recordings = new Vue({
                 from     : '',
                 to       : ''
             },
-            recordings         : {}
         }
     },
 
@@ -88,7 +87,9 @@ var recordings = new Vue({
      
     },
 
-    created () {
+    created () 
+    {
+        console.log(this.hasRecordingFile);
         $('#nav_recordings').addClass('active text-primary');
     }
 
