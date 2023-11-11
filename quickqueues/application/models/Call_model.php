@@ -622,11 +622,11 @@ class Call_model extends MY_Model {
 
         /* ------ End Of  FOR Outgoing: Total & AVG Time  ------ */
         $this->db->where_in('queue_id', $queue_ids);
-        $this->db->where('qq_calls.agent_id', 'qq_agents.id', FALSE);
+        $this->db->join('qq_agents', 'qq_calls.agent_id = qq_agents.id', 'left');
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('agent_id');
-        $this->db->from('qq_calls, qq_agents');
+        $this->db->from('qq_calls');
         return $this->db->get()->result();
     }
 
