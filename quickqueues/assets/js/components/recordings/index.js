@@ -89,7 +89,6 @@ var recordings = new Vue({
 
     created () 
     {
-        console.log(this.hasRecordingFile);
         $('#nav_recordings').addClass('active text-primary');
     }
 
