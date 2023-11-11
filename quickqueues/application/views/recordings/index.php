@@ -249,11 +249,11 @@
                                         </td>
                                         <td scope="row" class="clickable-cell">
                                             <?php if ($logged_in_user->can_listen == 'yes') { ?>
-                                                <a v-if="recordingsPopUp.audioFile !== ''" @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>, '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>, '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_listen == 'own') { ?>
                                                 <?php if ($logged_in_user->associated_agent_id == $c->agent_id) { ?>
-                                                    <a v-if="recordingsPopUp.audioFile !== ''" @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>,  '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                    <a @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>,  '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                                 <?php } ?>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_download == 'yes') { ?>
