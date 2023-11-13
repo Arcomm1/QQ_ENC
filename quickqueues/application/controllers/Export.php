@@ -846,7 +846,7 @@ class Export extends MY_Controller {
         $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
         
         // var_dump($total_stats);
-        var_dump($agent_call_stats);
+        // var_dump($agent_call_stats);
         // var_dump($agent_event_stats);
         foreach ($this->data->user_agents as $a) 
         {
@@ -1526,7 +1526,7 @@ class Export extends MY_Controller {
         // }
         ////////////////// End category sheet /////////////////////////////////////////////////////
 
-        // $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
+        $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
