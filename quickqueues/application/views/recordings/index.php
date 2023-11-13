@@ -431,12 +431,15 @@
 <script>
     $(document).ready(function() 
     {
+        console.log('Document ready!');
         family_array=[];
 
         //Pass Reocrd Id And All Required Data To Modal Window
-        $(document).on('click', '.get_id', function() {
+        $(document).on('click', '.get_id', function() 
+        {
             $('#call_record_id').val(this.id);
             $('#subject_comment').val('');
+
             var call_record_id=this.id;
 
             $.ajax({
@@ -447,7 +450,10 @@
                     id: call_record_id,
                 },
                 cache: false,
-                success: function(dataResult){
+                success: function(dataResult)
+                {
+                   
+                   
                     var dataResult = JSON.parse(dataResult);
                     var subject_comment_result=dataResult[0].comment;
                     var subject_family_result=dataResult[0].subject_family;
@@ -455,6 +461,7 @@
                     var id_to_find_childs_array=[];
                     //IF Result Is Not Empty
                     if(subject_family_result){
+                       
                         var family_array_result=subject_family_result.split('|');
                         var family_array_length=family_array_result.length-1;
                         var select_id_array=['child_1_subject', 'child_2_subject', 'child_3_subject'];
@@ -493,6 +500,7 @@
                                                 }));
                                         });
                                 },
+                               
                             });
                         }
                         $("#parent_subjects option[value="+parent_selected_id_array[0]+"]").attr('selected','selected');
@@ -509,7 +517,8 @@
         });
 
         //Collect  Child 1 Data
-        $(document).on('change', '#parent_subjects', function() {
+        $(document).on('change', '#parent_subjects', function() 
+        {
             $('#child_1_subject').find('option:not(:first)').remove();
             $('#child_2_subject').find('option:not(:first)').remove();
             $('#child_3_subject').find('option:not(:first)').remove();
@@ -813,7 +822,7 @@
             $('#child_3_subject').find('option:not(:first)').remove();
         });
 
-        //click event fot tabe row
+        //click event fot table row
         $(".table-row").click(function() 
         {
             $(".table-row").removeClass("table-active");

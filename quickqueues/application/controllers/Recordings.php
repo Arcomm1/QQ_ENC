@@ -123,7 +123,7 @@ class Recordings extends MY_Controller {
         $like['src'] = $this->input->get('src');
         $like['dst'] = $this->input->get('dst');
         $like['transferdst'] = $this->input->get('transferred_to');
-        $like['comment'] = $this->input->get('search_comment');
+        $like['comment'] = $this->input->get('comment');
         //zura
         $like['subject_family'] = $this->input->get('subject_search_array');
         //echo $like['subject_family'];
