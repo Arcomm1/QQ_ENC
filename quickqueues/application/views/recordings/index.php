@@ -250,18 +250,22 @@
                                         <td scope="row" class="clickable-cell">
                                             <?php  if ($logged_in_user->can_listen == 'yes') { ?>
                                                 <a v-if="<?php echo $c->calltime; ?> > 0"  @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>, '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
-                                            <?php } ?>
+                                                <a v-else class="text-decoration-none"> <i class="cil-media-play text-muted"></i></a>
+                                                <?php } ?>
                                             <?php if ($logged_in_user->can_listen == 'own') { ?>
                                                 <?php if ($logged_in_user->associated_agent_id == $c->agent_id) { ?>
                                                     <a v-if="<?php echo $c->calltime; ?> > 0" @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>,  '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                    <a v-else class="text-decoration-none"> <i class="cil-media-play text-muted"></i></a>
                                                 <?php } ?>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_download == 'yes') { ?>
                                                 <a v-if="<?php echo $c->calltime; ?> > 0" href="<?php echo site_url('api/recording/get_file/'.$c->id); ?>" class="text-decoration-none"><i class="cil-cloud-download text-info"></i></a>
+                                                <a v-else  class="text-decoration-none"><i class="cil-cloud-download text-muted"></i></a>
                                             <?php } ?>
                                             <?php if ($logged_in_user->can_download == 'own') { ?>
                                                 <?php if ($logged_in_user->associated_agent_id == $c->agent_id) { ?>
                                                     <a v-if="<?php echo $c->calltime; ?> > 0" href="<?php echo site_url('api/recording/get_file/'.$c->id); ?>" class="text-decoration-none"><i class="cil-cloud-download text-info"></i></a>
+                                                    <a v-else  class="text-decoration-none"><i class="cil-cloud-download text-muted"></i></a>
                                                 <?php } ?>
                                             <?php } ?>
                                             <i class="cil-comment-bubble text-warning modal_clear get_id" style="cursor:pointer; position:relative;" id="<?php echo $c->id ?>" data-toggle="modal" data-target="#call_subjects">
