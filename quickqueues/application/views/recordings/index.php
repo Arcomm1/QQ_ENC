@@ -249,12 +249,12 @@
                                         </td>
                                         <td scope="row" class="clickable-cell">
                                             <?php  if ($logged_in_user->can_listen == 'yes') { ?>
-                                                <a v-if="<?php echo $c->calltime; ?> > 0"  @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>, '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                <a v-if="<?php echo $c->calltime; ?> > 0"  @click="load_player(<?php echo str_replace(PHP_EOL, '', $c->id); ?>, <?php echo str_replace(PHP_EOL, '', $rowNumber); ?>, '<?php echo str_replace(PHP_EOL, '', $c->src); ?>', '<?php echo str_replace(PHP_EOL, '', $c->dst); ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                                 <a v-else class="text-decoration-none"> <i class="cil-media-play text-muted"></i></a>
                                                 <?php } ?>
                                             <?php if ($logged_in_user->can_listen == 'own') { ?>
                                                 <?php if ($logged_in_user->associated_agent_id == $c->agent_id) { ?>
-                                                    <a v-if="<?php echo $c->calltime; ?> > 0" @click="load_player(<?php echo $c->id; ?>, <?php echo $rowNumber; ?>,  '<?php echo $c->src; ?>', '<?php echo $c->dst; ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
+                                                    <a v-if="<?php echo $c->calltime; ?> > 0" @click="load_player(<?php echo str_replace(PHP_EOL, '', $c->id); ?>, <?php echo str_replace(PHP_EOL, '', $rowNumber); ?>,  '<?php echo str_replace(PHP_EOL, '', $c->src); ?>', '<?php echo str_replace(PHP_EOL, '', $c->dst); ?>')" data-coreui-toggle="modal" data-coreui-target="#play_recording" class="text-decoration-none"> <i class="cil-media-play text-success"></i></a>
                                                     <a v-else class="text-decoration-none"> <i class="cil-media-play text-muted"></i></a>
                                                 <?php } ?>
                                             <?php } ?>
