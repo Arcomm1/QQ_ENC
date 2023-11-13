@@ -75,7 +75,7 @@
                                 </div>
                                 <div class="col-md-3 col-sm-12">
                                     <div class="form-floating mb-3">
-                                        <input class="form-control" autocomplete="off" tupe="text" id="date_gt" name="date_gt" placeholder="date_gt" value="<?php echo $this->input->get('date_gt'); ?>">
+                                        <input class="form-control" autocomplete="off" type="text" id="date_gt" name="date_gt" placeholder="date_gt" value="<?php echo $this->input->get('date_gt'); ?>">
                                         <label for="date_gt"><?php echo lang('date_gt'); ?></label>
                                     </div>
                                 </div>
