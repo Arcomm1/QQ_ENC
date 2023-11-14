@@ -208,7 +208,7 @@
                                             <i class="cil-copy text-primary mr-4"></i>
                                             {{ lang['duplicate_calls'] }}
                                         </span>
-                                        <span>{{ total_stats.calls_duplicate }}</span>
+                                        <span>{{ total_stats }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>

@@ -1526,7 +1526,7 @@ class Export extends MY_Controller {
         // }
         ////////////////// End category sheet /////////////////////////////////////////////////////
 
-        $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
+        // $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
@@ -2991,6 +2991,7 @@ class Export extends MY_Controller {
         foreach($agent_call_stats as $s) {
             // $sla_total_count_sum = $s->sla_count_total; //For Counting
 
+            
             $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
             $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime; 
             $agent_stats[$s->agent_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
@@ -3263,7 +3264,7 @@ class Export extends MY_Controller {
         $agent_event_stats   = $this->Event_model->get_agent_stats_for_agent_stats_page($agent_id, $date_range);
         $agent               = $this->Agent_model->get($agent_id);
         $row_header           = array(lang('stats').' '.$date_gt.' > '.$date_lt.'('.lang('agent').': '.$agent->display_name.')');
-        $agent_daily_stats   = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
+        // $agent_daily_stats   = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
         // $agent_hourly_stats  = $this->Agent_model->get_hourly_stats_for_agents($agent_id);
 
         $sla_total_count_sum = $total_stats->sla_count_total;
@@ -3272,8 +3273,9 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('last_call'), $agent->last_call);
        
         // Total Calls
-        $overallCalls        = (intval($overall_stats->calls_answered ) + intval($overall_stats->calls_unanswered)) + (intval($overall_stats->calls_outgoing_answered) + intval($overall_stats->calls_outgoing_unanswered));				   
-	    $agentCalls	         =  intval($total_stats->calls_answered) + intval($total_stats->calls_unanswered) + intval($total_stats->calls_outgoing_answered) + intval($total_stats->calls_outgoing_unanswered);
+        $calls_outgoing_unanswered = intval($total_stats->calls_outgoing) - intval($total_stats->calls_outgoing_answered);
+        $overallCalls        = (intval($overall_stats->calls_answered ) + intval($overall_stats->calls_unanswered)) + (intval($overall_stats->calls_outgoing_answered) + intval($overall_stats->calls_outgoing_unanswered));
+        $agentCalls	         =  intval($total_stats->calls_answered) + intval($total_stats->calls_unanswered) + intval($total_stats->calls_outgoing_answered) + $calls_outgoing_unanswered;
 	    if ($agentCalls > 0 && $overallCalls > 0) 
         {
             $agent_calls_percent =intval("%.2f%%",(($agentCalls / $overallCalls) * 100) * 100) / 100;
