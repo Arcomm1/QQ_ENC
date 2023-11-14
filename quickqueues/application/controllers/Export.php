@@ -687,12 +687,12 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('start_menu_calls_answered'), $total_stats->calls_answered);
 
         // SLA Less Then Or Equal To 10 Sec
-        if ($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $total_stats->sla_count_total > 0) 
+    
+        if ($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $total_stats->calls_answered > 0) 
         {
-            $percentage = ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
-        
-            $rows_overview[] = array(
+            $percentage           = ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2);
+            $rows_overview[]      = array(
                 lang('start_menu_sla_less_than_or_equal_to_10'),
                 $total_stats->sla_count_less_than_or_equal_to_10,
                 $formatted_percentage
@@ -704,10 +704,10 @@ class Export extends MY_Controller {
         }
         
         // SLA Between 10 And 20 Sec
-        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $total_stats->sla_count_total > 0) 
+        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $total_stats->calls_answered > 0) 
         {
-            $percentage = ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+            $percentage           = ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
         
             $rows_overview[] = array(
                 lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),
@@ -722,10 +722,10 @@ class Export extends MY_Controller {
         
 
         //  SLA Greater Then 20 Sec
-        if ($total_stats->sla_count_greater_than_20 >= 0 && $total_stats->sla_count_total > 0) 
+        if ($total_stats->sla_count_greater_than_20 >= 0 && $total_stats->calls_answered > 0) 
         {
-            $percentage = ($total_stats->sla_count_greater_than_20 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+            $percentage           = ($total_stats->sla_count_greater_than_20 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
             
             $rows_overview[] = array(
                 lang('start_menu_sla_greater_than_20'),
@@ -881,7 +881,7 @@ class Export extends MY_Controller {
         foreach($agent_call_stats as $s) 
         {
 
-            $sla_total_count_sum = $s->sla_count_total; //For Counting
+          
             
             // Total Calls
             $totalCalls = $total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered;
@@ -908,7 +908,8 @@ class Export extends MY_Controller {
             if($agent_calls_answered > 0 && $total_calls_answered > 0) 
             {
                 $agent_stats[$s->agent_id]['calls_answered']      = $agent_calls_answered;
-                $agent_stats[$s->agent_id]['calls_answered_perc'] = intval((($agent_calls_answered / $total_calls_answered) * 100) * 100) / 100;
+                $percent                                          = ($agent_calls_answered / $total_calls_answered) * 100;
+                $agent_stats[$s->agent_id]['calls_answered_perc'] = number_format($percent, 2);
             }
             else
             {
@@ -918,23 +919,24 @@ class Export extends MY_Controller {
 
             // SLA Less Then Or Equal To 10 Sec
 
-            if ($s->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0) 
+            if ($s->sla_count_less_than_or_equal_to_10 > 0 && $s->calls_answered > 0) 
             {
-                $percentage                                                           = ($s->sla_count_less_than_or_equal_to_10 / $s->sla_count_total) * 100;
-                $formatted_percentage                                                 = intval($percentage * 100) / 100; 
+                $percentage                                                           = ($s->sla_count_less_than_or_equal_to_10 / $s->calls_answered) * 100;
+                $formatted_percentage                                                 = number_format($percentage, 2); 
                 $agent_stats[$s->agent_id]['sla_count_less_than_or_equal_to_10']      = $s->sla_count_less_than_or_equal_to_10;
-                $agent_stats[$s->agent_id]['sla_less_than_10_perc']                   =  $formatted_percentage;
+                $agent_stats[$s->agent_id]['sla_less_than_10_perc']                   = $formatted_percentage;
             }
             else
             {
                 $agent_stats[$s->agent_id]['sla_count_less_than_or_equal_to_10']      = 0;
                 $agent_stats[$s->agent_id]['sla_less_than_10_perc']                   = 0;
             }
+
             // SLA Between 10 And 20 Sec
-            if ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) 
+            if ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $s->calls_answered > 0) 
             {
-                $percentage                                                                          = ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $s->sla_count_total) * 100;
-                $formatted_percentage                                                                = intval($percentage * 100) / 100;
+                $percentage                                                                          = ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $s->calls_answered) * 100;
+                $formatted_percentage                                                                = number_format($percentage, 2);
                 $agent_stats[$s->agent_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20'] = $s->sla_count_greater_than_10_and_less_than_or_equal_to_20;
                 $agent_stats[$s->agent_id]['sla_between_10_20_perc']                                 =  $formatted_percentage;
             
@@ -947,10 +949,10 @@ class Export extends MY_Controller {
         
 
             //  SLA Greater Then 20 Sec
-            if ($s->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) 
+            if ($s->sla_count_greater_than_20 > 0 && $s->calls_answered > 0) 
             {
-                $percentage                                                                          = ($s->sla_count_greater_than_20 / $s->sla_count_total) * 100;
-                $formatted_percentage                                                                = intval($percentage * 100) / 100; 
+                $percentage                                                                          = ($s->sla_count_greater_than_20 / $s->calls_answered) * 100;
+                $formatted_percentage                                                                = number_format($percentage, 2); 
                 $agent_stats[$s->agent_id]['sla_count_greater_than_20']                              = $s->sla_count_greater_than_20;
                 $agent_stats[$s->agent_id]['sla_more_than_20_perc']                                  = $formatted_percentage;
             }
@@ -1080,7 +1082,7 @@ class Export extends MY_Controller {
 
         ////////////////// ------- QUEUE SHEET --------------/////////////////////
         $queue_call_stats = $this->Call_model->get_queue_stats_for_start_page($queue_ids, $date_range);
-        $sla_total_count_sum = $s->sla_count_total;
+   
         foreach ($this->data->user_queues as $q) 
         {
             $queue_stats[$q->id] = array(
@@ -1137,10 +1139,10 @@ class Export extends MY_Controller {
 
              // SLA Less Then Or Equal To 10 Sec
 
-             if ($s->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0) 
+             if ($s->sla_count_less_than_or_equal_to_10 > 0 && $s->calls_answered > 0) 
              {
-                 $sla_less_10_percentage                                               = ($s->sla_count_less_than_or_equal_to_10 / $s->sla_count_total) * 100;
-                 $sla_less_10_percentage_formatted_percentage                          = intval($sla_less_10_percentage * 100) / 100;
+                 $sla_less_10_percentage                                               = ($s->sla_count_less_than_or_equal_to_10 / $s->calls_answered) * 100;
+                 $sla_less_10_percentage_formatted_percentage                          = number_format($sla_less_10_percentage, 2);
                  $queue_stats[$s->queue_id]['sla_count_less_than_or_equal_to_10']      = $s->sla_count_less_than_or_equal_to_10;
                  $queue_stats[$s->queue_id]['sla_count_less_than_or_equal_to_10_perc'] = $sla_less_10_percentage_formatted_percentage;    
              }
@@ -1152,10 +1154,10 @@ class Export extends MY_Controller {
 
             // SLA Between 10 And 20 Sec
 
-            if ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) 
+            if ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $s->calls_answered > 0) 
             {
-                $sla_between_10_20_percentage                                                             = ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $s->sla_count_total) * 100;
-                $sla_between_10_20_percentage_formatted_percentage                                        = intval($sla_between_10_20_percentage * 100) / 100;
+                $sla_between_10_20_percentage                                                             = ($s->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $s->calls_answered) * 100;
+                $sla_between_10_20_percentage_formatted_percentage                                        = number_format($sla_between_10_20_percentage, 2);
                 $queue_stats[$s->queue_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20']      = $s->sla_count_greater_than_10_and_less_than_or_equal_to_20;
                 $queue_stats[$s->queue_id]['sla_count_greater_than_10_and_less_than_or_equal_to_20_perc'] =  $sla_between_10_20_percentage_formatted_percentage;  
             }
@@ -1168,10 +1170,10 @@ class Export extends MY_Controller {
 
             //  SLA Greater Then 20 Sec
 
-            if ($s->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) 
+            if ($s->sla_count_greater_than_20 > 0 && $s->calls_answered > 0) 
             {
-                $sla_count_greater_than_20_percentage                        = ($s->sla_count_greater_than_20 / $s->sla_count_total) * 100;
-                $sla_count_greater_than_20_percentage_formatted_percentage   = intval($sla_count_greater_than_20_percentage * 100) / 100;
+                $sla_count_greater_than_20_percentage                        = ($s->sla_count_greater_than_20 / $s->calls_answered) * 100;
+                $sla_count_greater_than_20_percentage_formatted_percentage   = number_format($sla_count_greater_than_20_percentage, 2);
                 $queue_stats[$s->queue_id]['sla_count_greater_than_20']      = $s->sla_count_greater_than_20;
                 $queue_stats[$s->queue_id]['sla_count_greater_than_20_perc'] = $sla_count_greater_than_20_percentage_formatted_percentage; 
             }
@@ -1526,7 +1528,7 @@ class Export extends MY_Controller {
         // }
         ////////////////// End category sheet /////////////////////////////////////////////////////
 
-        // $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
+        $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
@@ -2816,7 +2818,7 @@ class Export extends MY_Controller {
         
         $total_stats = $this->Call_model->get_stats_for_start($queue_id, $date_range);
 
-        $sla_total_count_sum = $total_stats->sla_count_total;
+      
 
         // Total Calls
         $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
@@ -2831,10 +2833,10 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('start_menu_calls_answered'), $total_stats->calls_answered);
 
         // SLA Less Then Or Equal To 10 Sec
-        if ($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0) 
+        if ($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $total_stats->calls_answered > 0) 
         {
-            $percentage = ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+            $percentage = ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
         
             $rows_overview[] = array(
                 lang('start_menu_sla_less_than_or_equal_to_10'),
@@ -2848,9 +2850,9 @@ class Export extends MY_Controller {
         }
         
         // SLA Between 10 And 20 Sec
-        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) {
-            $percentage = ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $total_stats->calls_answered > 0) {
+            $percentage = ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
         
             $rows_overview[] = array(
                 lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),
@@ -2865,9 +2867,9 @@ class Export extends MY_Controller {
         
 
         //  SLA Greater Then 20 Sec
-        if ($total_stats->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) {
-            $percentage = ($total_stats->sla_count_greater_than_20 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+        if ($total_stats->sla_count_greater_than_20 > 0 && $total_stats->calls_answered > 0) {
+            $percentage = ($total_stats->sla_count_greater_than_20 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
         
             $rows_overview[] = array(
                 lang('start_menu_sla_greater_than_20'),
@@ -2989,7 +2991,7 @@ class Export extends MY_Controller {
         }
 
         foreach($agent_call_stats as $s) {
-            // $sla_total_count_sum = $s->sla_count_total; //For Counting
+         
 
             
             $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
@@ -3057,20 +3059,17 @@ class Export extends MY_Controller {
         
 
         // Fill in missing dates with default values
-        foreach ($dates as $date) {
+        foreach ($dates as $date) 
+        {
             $found = false;
             foreach ($daily_call_stats as $i) 
             {
                 if ($i->date == $date) 
                 {
-                    $found = true;
+                    $found        = true;
+                    $avg_holdtime = null;
                     // Calculate values as before
-                    if($i->calls_unanswered == 0)
-                    {
-
-                        $avg_holdtme = '00:00:00';
-                    }
-                    else
+                    if (($i->total_holdtime + $i->total_waittime) > 0 && $i->calls_unanswered > 0)
                     {
                         $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
                     }
@@ -3089,6 +3088,7 @@ class Export extends MY_Controller {
                 }
             }
             
+
             if (!$found) {
                 // If the date is not found in $daily_call_stats, set all parameters to 0
                 $rows_days[] = array(
@@ -3102,6 +3102,7 @@ class Export extends MY_Controller {
                     'avg_holdtime'              => '00:00:00',
                     
                 );
+
             }
         }
          ////////////////// ----------  END OF DAY SHEET --------------////////////////////
@@ -3267,7 +3268,7 @@ class Export extends MY_Controller {
         // $agent_daily_stats   = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
         // $agent_hourly_stats  = $this->Agent_model->get_hourly_stats_for_agents($agent_id);
 
-        $sla_total_count_sum = $total_stats->sla_count_total;
+   
 
         // Last Call 
         $rows_overview[] = array(lang('last_call'), $agent->last_call);
@@ -3304,10 +3305,10 @@ class Export extends MY_Controller {
 
         // SLA Less Then Or Equal To 10 Sec
 
-        if ($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $sla_total_count_sum > 0) 
+        if ($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $total_stats->calls_answered > 0) 
         {
-            $percentage = ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+            $percentage = ($total_stats->sla_count_less_than_or_equal_to_10 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
         
             $rows_overview[] = array(
                 lang('start_menu_sla_less_than_or_equal_to_10'),
@@ -3321,9 +3322,9 @@ class Export extends MY_Controller {
         }
         
         // SLA Between 10 And 20 Sec
-        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $sla_total_count_sum > 0) {
-            $percentage = ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+        if ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 > 0 && $total_stats->calls_answered > 0) {
+            $percentage = ($total_stats->sla_count_greater_than_10_and_less_than_or_equal_to_20 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
         
             $rows_overview[] = array(
                 lang('start_menu_sla_greater_than_10_less_then_or_equal_to_20'),
@@ -3338,9 +3339,9 @@ class Export extends MY_Controller {
         
 
         //  SLA Greater Then 20 Sec
-        if ($total_stats->sla_count_greater_than_20 > 0 && $sla_total_count_sum > 0) {
-            $percentage = ($total_stats->sla_count_greater_than_20 / $total_stats->sla_count_total) * 100;
-            $formatted_percentage = intval($percentage * 100) / 100; // Format to 2 decimal places
+        if ($total_stats->sla_count_greater_than_20 > 0 && $total_stats->calls_answered > 0) {
+            $percentage = ($total_stats->sla_count_greater_than_20 / $total_stats->calls_answered) * 100;
+            $formatted_percentage = number_format($percentage, 2); // Format to 2 decimal places
         
             $rows_overview[] = array(
                 lang('start_menu_sla_greater_than_20'),
