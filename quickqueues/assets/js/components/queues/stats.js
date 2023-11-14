@@ -226,7 +226,7 @@ var queue_stats = new Vue({
         /*--- SLA Hold Time --- */
         sla_count_less_than_or_equal_to_10_percent: function() {
             if (this.total_stats.sla_count_total > 0) {
-                let less_than_or_equal_to_10 = (this.total_stats.sla_count_less_than_or_equal_to_10 / this.total_stats.sla_count_total) * 100;
+                let less_than_or_equal_to_10 = (this.total_stats.sla_count_less_than_or_equal_to_10 / this.total_stats.calls_answered) * 100;
                 return less_than_or_equal_to_10.toFixed(2)+'%';
             } else {
                 return '0%';
@@ -235,7 +235,7 @@ var queue_stats = new Vue({
 
         sla_count_greater_than_10_and_less_than_or_equal_to_20_percent: function() {
             if (this.total_stats.sla_count_total > 0) {
-                let greater_than_10_and_less_than_or_equal_to_20 = (this.total_stats.sla_count_greater_than_10_and_less_than_or_equal_to_20 / this.total_stats.sla_count_total) * 100;
+                let greater_than_10_and_less_than_or_equal_to_20 = (this.total_stats.sla_count_greater_than_10_and_less_than_or_equal_to_20 / this.total_stats.calls_answered) * 100;
                 return greater_than_10_and_less_than_or_equal_to_20.toFixed(2)+'%';
             } else {
                 return '0%';
@@ -244,7 +244,7 @@ var queue_stats = new Vue({
 
         sla_count_greater_than_20_percent: function() {
             if (this.total_stats.sla_count_total > 0) {
-                let greater_than_20 = (this.total_stats.sla_count_greater_than_20 / this.total_stats.sla_count_total) * 100;
+                let greater_than_20 = (this.total_stats.sla_count_greater_than_20 / this.total_stats.calls_answered) * 100;
                 return greater_than_20.toFixed(2)+'%';
             } else {
                 return '0%';
