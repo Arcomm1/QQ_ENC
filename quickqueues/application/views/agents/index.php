@@ -217,6 +217,7 @@
                                     </div>
                                 </td>
                                 <td v-if="agent_current_calls[agent.extension]">{{ agent.calls_answered }}</td>
+                                <td v-if="agent_current_calls[agent.extension]"> {{ sec_to_time(agent.incoming_total_calltime) }}</td>
                                 <td v-if="agent_current_calls[agent.extension]">{{ agent.calls_missed }}</td>
                                 <td v-if="agent_current_calls[agent.extension]">{{ agent.calls_outgoing_answered }}</td>
                                 <td v-if="agent_current_calls[agent.extension]">{{ sec_to_time(agent.outgoing_total_calltime) }}</td>
