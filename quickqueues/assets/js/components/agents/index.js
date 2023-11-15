@@ -91,7 +91,8 @@ var agent_overview = new Vue({
         get_current_calls: function() {
             axios.get(api_url+'agent/get_current_calls_for_all_agents')
             .then(response => {
-                if (typeof(response.data.data) == 'object') {
+                if (typeof(response.data.data) == 'object') 
+                {
                     this.agent_current_calls = response.data.data;
                     this.agent_current_calls_loading = false;
                 }
@@ -99,10 +100,10 @@ var agent_overview = new Vue({
         },
 
         refresh_stats: function() {
-            setInterval( () => this.get_overview(), 50000);
-            setInterval( () => this.get_queues(), 5000);
-            setInterval( () => this.get_realtime_status(), 2000);
-            setInterval( () => this.get_current_calls(), 3000);
+            setInterval( () => this.get_overview(), 60000);
+            setInterval( () => this.get_queues(), 10000);
+            setInterval( () => this.get_realtime_status(), 5000);
+            setInterval( () => this.get_current_calls(), 5000);
         },
 
         get_queues: function() {
