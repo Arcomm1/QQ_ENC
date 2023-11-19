@@ -144,13 +144,13 @@
                                     </thead>
                                     <tbody class="monitoring-dashboard-table-body">
                                         <tr v-cloak v-for="agent in freepbx_agents" class="align-middle">
-                                            <td v-bind:id="'agent_status_'+agent.agent_id" v-if="agent_current_calls[agent.extension]">
+                                            <td v-bind:id="'agent_status_'+agent.id" v-if="agent_current_calls[agent.extension]">
                                                 <div>
                                                     <span>
                                                         <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
                                                         <i v-else class="cil-phone mr-3 text-dark"></i>
                                                     </span>
-                                                    <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
+                                                    <a v-bind:href="'agents/stats/'+agent.id" class="ml-3 link-dark">{{ agent.display_name }}</a>
                                                     <span v-if="agent_current_calls[agent.extension]">
                                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                                         {{ agent_current_calls[agent.extension].second_party }}
@@ -174,7 +174,7 @@
                                             <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_outgoing_unanswered }}</td>
                                         </tr>
                                         <tr v-for="agent in freepbx_agents">
-                                            <td  v-bind:id="'agent_status_'+agent.agent_id"
+                                            <td  v-bind:id="'agent_status_'+agent.id"
                                                  v-if="agent_statuses[agent.extension] && 
                                                  (agent_statuses[agent.extension].Status == 0 ||
                                                   agent_statuses[agent.extension].Status == 2 ||
@@ -185,7 +185,7 @@
                                                         <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
                                                         <i v-else class="cil-phone mr-3 text-dark"></i>
                                                     </span>
-                                                    <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
+                                                    <a v-bind:href="'agents/stats/'+agent.id" class="ml-3 link-dark">{{ agent.display_name }}</a>
                                                     <span v-if="agent_current_calls[agent.extension]">
                                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                                         {{ agent_current_calls[agent.extension].second_party }}
