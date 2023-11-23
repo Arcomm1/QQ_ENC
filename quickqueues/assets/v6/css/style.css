@@ -675,10 +675,9 @@ html:not([dir=rtl]) .list-inline-item:not(:last-child) {
   --cui-gutter-x: 1.5rem;
   --cui-gutter-y: 0;
   display: flex;
-  flex-wrap: wrap;
-  margin-top: calc(var(--cui-gutter-y) * -1);
+  /* margin-top: calc(var(--cui-gutter-y) * -1);
   margin-right: calc(var(--cui-gutter-x) * -.5);
-  margin-left: calc(var(--cui-gutter-x) * -.5);
+  margin-left: calc(var(--cui-gutter-x) * -.5); */
 }
 .row > * {
   flex-shrink: 0;
