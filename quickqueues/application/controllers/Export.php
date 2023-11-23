@@ -3226,16 +3226,6 @@ class Export extends MY_Controller {
             $writer->writeSheetRow(lang('call_distrib_by_hour'), $row, $style2, $style3);
         }
 
-        if ($this->data->config->app_call_categories == 'yes') 
-        {
-            $writer->initializeSheet(lang('call_distrib_by_category'),[90,30,30,30,30,30,30, 30]);
-            $writer->writeSheetRow(lang('call_distrib_by_category'), $row_header, $style1, $style2, $style3);
-            foreach($rows_categories as $row) 
-            {
-                $writer->writeSheetRow(lang('call_distrib_by_category'), $row, $style2, $style3 );
-            }
-        }
-
         $writer->writeToStdOut();
         exit(0);
     }
@@ -3614,16 +3604,6 @@ class Export extends MY_Controller {
         foreach($rows_hours as $row) 
         {
             $writer->writeSheetRow(lang('call_distrib_by_hour'), $row, $style2);
-        }
-
-        if ($this->data->config->app_call_categories == 'yes') 
-        {
-            $writer->initializeSheet(lang('call_distrib_by_category'),[50,30,30,30,30,30,30, 30]);
-            $writer->writeSheetRow(lang('call_distrib_by_category'), $row_header, $style1, $style2);
-            foreach($rows_categories as $row) 
-            {
-                $writer->writeSheetRow(lang('call_distrib_by_category'), $row, $style2);
-            }
         }
 
         $writer->writeToStdOut();
