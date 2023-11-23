@@ -272,7 +272,6 @@
                                                 <?php 
                                                         $comment        = $this->Call_subjects_model->get_call_params($c->id);
                                                         $commentText    = $comment['comment'];
-                                                        $categoryId     = $comment['category_id'];
                                                         $subjectFamily  = $comment['subject_family'];
                                                         
                                                         if(strlen($commentText) > 0)
