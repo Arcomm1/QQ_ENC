@@ -252,7 +252,7 @@ class Export extends MY_Controller {
         $style2     = array('halign'=>'left', 'valign'=>'left');
         $style3     = array('border'=>'left,right,top,bottom', 'border-style'=>'medium');
 
-        $writer->initializeSheet(lang('recordings'),[50, 40, 40, 40, 40, 40, 40, 40, 50]);
+        $writer->initializeSheet(lang('recordings'),[50, 40, 40, 40, 40, 40, 40, 40, 30, 30, 30, 30, 30, 30, 30]);
         $writer->writeSheetRow(lang('recordings'), $row_header, $style1, $style2, $style3);
         foreach($rows as $row) 
         {
