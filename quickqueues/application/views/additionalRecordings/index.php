@@ -154,15 +154,15 @@
                                             <i class="cil-comment-bubble text-warning modal_clear get_id" style="cursor:pointer; position:relative;" id="<?php echo $c->id ?>" data-toggle="modal" data-target="#call_subjects">
                                                 <?php 
                                                         $comment = $this->Call_subjects_model->get_call_params($c->id);
-                                                        $commentText = $comment['comment'];
-                                                        $categoryID  = $comment['category_id'];
+                                                        $commentText   = $comment['comment'];
+                                                        $subjectFamily = $comment['subject_family'];
                                                         
                                                         if(strlen($commentText) > 0)
                                                         {
                                                             $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:-3px; left:6px; font-weight: bold;";
                                                             echo '<i class="cil-check-alt text-success" style="'.$inlineStyle.'" ></i>';
                                                         }
-                                                        if(strlen($categoryID) > 0)
+                                                        if(strlen($subjectFamily) > 0)
                                                         {
                                                             $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:5px; left:6px; font-weight: bold;";
                                                             echo '<i class="cil-check-alt text-info" style="'.$inlineStyle.'" ></i>';
