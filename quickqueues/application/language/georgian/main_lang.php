@@ -1,6 +1,6 @@
 <?php
 //For settings page
-
+$lang['period']             = "პერიოდი";
 $lang['settings']           = "პარამეტრები";
 $lang['overload']           = "დატვირთვა რიგზე";
 $lang['sms_text']           = "SMS ტექსტი";
@@ -682,7 +682,7 @@ $lang['subjects']           = "თემები";
 $lang['main_subjects']      = "მთავარი თემები";
 $lang['add_new_subject']    = "ახალი თემის დამატება";
 $lang['manage_categories']  = "კატეგორიების მართვა";
-$lang['category_title']  = "კატეგორიის დასახელება";
+$lang['category_title']     = "კატეგორიის დასახელება";
 
 $lang['manage_subjects']  = "თემების მართვა";
 $lang['subject_title']  = "თემის დასახელება";
@@ -697,9 +697,10 @@ $lang['categories']         = "კატეგორიები";
 $lang['amount']             = "რაოდენობა";
 
 $lang['out_answered']       = 'გამავალი ნაპასუხები';
-$lang['out_unanswered']       = 'გამავალი უპასუხო';
-$lang['category_export']       = 'კატეგორიების ექსპორტი';
-$lang['category_refresh']       = 'კატეგორიების განახლება';
+$lang['out_unanswered']     = 'გამავალი უპასუხო';
+$lang['category_export']    = 'კატეგორიების ექსპორტი';
+$lang['category_refresh']   = 'კატეგორიების განახლება';
+$lang['category_stats']     = 'კატეგორიების სტატისტიკა';
 
 
 $lang['can_listen']         = "ზარის მოსმენა";

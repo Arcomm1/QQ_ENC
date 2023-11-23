@@ -327,7 +327,7 @@ $lang['play_recording']     = "Play recording";
 $lang['app_mark_answered_elsewhere'] = "Mark calls as answered elsewhere";
 $lang['desc_app_mark_answered_elsewhere'] = "Answered elsewhere interval in minutes. If set, calls that were abaonded or left unanaswered in someway, will be marked as answered elsewhere if same caler will call again and this will be answered within specifid amount of time. Setting this to 0 disables this option.";
 
-
+$lang['period']             = "Period";
 $lang['Monday']             = "Monday";
 $lang['Tuesday']            = "Tuesday";
 $lang['Wednesday']          = "Wednesday";
@@ -667,6 +667,7 @@ $lang['category_refresh']       = 'Category Refresh';
 $lang['days']               = "Days";
 $lang['hours']              = "Hours";
 $lang['categories']         = "Categories";
+$lang['category_stats']     = "Category Stats";
 
 /* ----------- For System Overview --------- */
 

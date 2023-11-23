@@ -3893,133 +3893,237 @@ class Export extends MY_Controller {
         exit(0);
     }
 
-    function category_export(){
+    // function category_export()
+    // {
+    //     $date_gt = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
+    //     $date_lt = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+
+    //     header('Content-Encoding: UTF-16');
+    //     header('Content-type: text/csv; charset=UTF-16');
+    //     header('Content-Disposition: attachment; filename=Category.csv');
+    //     header("Pragma: no-cache");
+    //     header("Expires: 0");
+    //     $handle = fopen('php://output', 'w');
+
+    //     fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+    //     fputs($handle, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+
+    //     fputcsv($handle, array('პერიოდი: '.$date_gt.'დან'. $date_lt.'-მდე'));
+    //     $main_subjects=$this->Call_subjects_model->get_main_subjects();
+
+    //     foreach ($main_subjects as $main_subject) 
+    //     {
+    //         $subject_family = $main_subject['id'] . '|';
+
+    //         //Calculate Child 1 amount
+    //         $child_1_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family, $date_gt, $date_lt);
+    //         if (count($child_1_count) > 0) 
+    //         {
+    //             //echo $main_subject['title'] . "-" . count($child_1_count);
+    //             $main_subject_title=$main_subject['title'].'('.count($child_1_count).')';
+    //             fputcsv($handle, array($main_subject_title));
+    //         }
+
+    //         //Child 1 subjects
+    //         $child_1_subjects=$this->Call_subjects_model->get_child_1_subject_all(array('parent_id'=>$main_subject['id']));
+
+    //         foreach ($child_1_subjects as $child_1_subject) 
+    //         {
+    //             $subject_family_1 = $main_subject['id'] . '|' . $child_1_subject['id'] . '|';
+
+    //             //Calculate Child 2 amount
+    //             $child_2_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_1, $date_gt, $date_lt);
+    //             if (count($child_2_count) > 0) 
+    //             {
+    //                 //echo $child_1_subject['title'] . "--" . count($child_2_count) . "=>";
+    //                 $child_1_subject_title=$child_1_subject['title'] .'('.count($child_2_count).')';
+    //                 fputcsv($handle, array('---', $child_1_subject_title));
+    //             }
+
+    //             //child 2 subjcets
+    //             $child_2_subjects=$this->Call_subjects_model->get_child_2_subject(array('parent_id'=>$child_1_subject['id']));
+    //             foreach ($child_2_subjects as $child_2_subject) 
+    //             {
+    //                 $subject_family_2 = $main_subject['id'] . '|' . $child_1_subject['id'] . '|' . $child_2_subject['id'] . '|';
+
+    //                 //Calculate Child 3 amount
+    //                 $child_3_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_2, $date_gt, $date_lt);
+    //                 if (count($child_3_count) > 0) 
+    //                 {
+    //                     //echo $child_2_subject['title'] . "---" . count($child_3_count) . "=>";
+    //                     $child_2_subject_title=$child_2_subject['title'] .'('. count($child_3_count).')';
+    //                     fputcsv($handle, array('---', '---', $child_2_subject_title));
+    //                 }
+
+    //                 //child 3 subjcets
+    //                 $child_3_subjects=$this->Call_subjects_model->get_child_3_subject(array('parent_id'=>$child_2_subject['id']));
+    //                 foreach ($child_3_subjects as $child_3_subject){
+    //                     $subject_family_3=$main_subject['id'].'|'.$child_1_subject['id'].'|'.$child_2_subject['id'].'|'.$child_3_subject['id'].'|';
+
+    //                     //Calculate Child 4 amount
+    //                     $child_4_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_3, $date_gt, $date_lt);
+
+    //                     if(count($child_4_count)>0)
+    //                     {
+    //                         //echo $child_3_subject['title']."--".count($child_4_count)."<br>";
+    //                         $child_3_subject_title=$child_3_subject['title'].'('.count($child_4_count).')';
+    //                         fputcsv($handle, array('---', '---','---', $child_3_subject_title));
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     fclose($handle);
+    // }
+
+    function category_export()
+    {
+
         $date_gt = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
         $date_lt = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
 
-        header('Content-Encoding: UTF-16');
-        header('Content-type: text/csv; charset=UTF-16');
-        header('Content-Disposition: attachment; filename=Category.csv');
-        header("Pragma: no-cache");
-        header("Expires: 0");
-        $handle = fopen('php://output', 'w');
+        $this->_prepare_headers('category_stats-'.date('Ymd-His').'.xlsx');
+        $writer = new XLSXWriter();
+        $writer->setAuthor('Quickqueues');
 
-        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-        fputs($handle, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
 
-        fputcsv($handle, array('პერიოდი: '.$date_gt.'დან'. $date_lt.'-მდე'));
-        $main_subjects=$this->Call_subjects_model->get_main_subjects();
+        $style1     = array('font-style'=>'bold');
+        $style2     = array('halign'=>'left', 'valign'=>'left');
+        $style3     = array(['border'=>'left','right','top','bottom'], ['border-style'=>'medium']);
 
-        foreach ($main_subjects as $main_subject) {
+        $row_header = array(lang('category_stats') . '-' . lang('period') . ':' . $date_gt . '-' . $date_lt);
+        $writer->initializeSheet(lang('categories'),[90,30,30,30,30]);
+        $writer->writeSheetRow(lang('categories'), $row_header, $style1, $style2, $style3);
+        
+ 
+
+        $main_subjects = $this->Call_subjects_model->get_main_subjects();
+
+        // Loop through each main subject
+        foreach ($main_subjects as $main_subject) 
+        {
+            // Build the subject_family for the main subject
             $subject_family = $main_subject['id'] . '|';
 
-            //Calculate Child 1 amount
+            // Calculate and display Child 1 amount
             $child_1_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family, $date_gt, $date_lt);
-            if (count($child_1_count) > 0) {
-                //echo $main_subject['title'] . "-" . count($child_1_count);
-                $main_subject_title=$main_subject['title'].'('.count($child_1_count).')';
-                fputcsv($handle, array($main_subject_title));
+            if (count($child_1_count) > 0) 
+            {
+                $main_subject_title = $main_subject['title'] . '(' . count($child_1_count) . ')';
+                $writer->writeSheetRow(lang('categories'), array($main_subject_title),$style2, $style3);
             }
 
-            //Child 1 subjects
-            $child_1_subjects=$this->Call_subjects_model->get_child_1_subject_all(array('parent_id'=>$main_subject['id']));
+            // Get Child 1 subjects for the current main subject
+            $child_1_subjects = $this->Call_subjects_model->get_child_1_subject_all(array('parent_id'=>$main_subject['id']));
 
-            foreach ($child_1_subjects as $child_1_subject) {
+            // Loop through each Child 1 subject
+            foreach ($child_1_subjects as $child_1_subject) 
+            {
+                // Build the subject_family for Child 1 subject
                 $subject_family_1 = $main_subject['id'] . '|' . $child_1_subject['id'] . '|';
 
-                //Calculate Child 2 amount
+                // Calculate and display Child 2 amount
                 $child_2_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_1, $date_gt, $date_lt);
-                if (count($child_2_count) > 0) {
-                    //echo $child_1_subject['title'] . "--" . count($child_2_count) . "=>";
-                    $child_1_subject_title=$child_1_subject['title'] .'('.count($child_2_count).')';
-                    fputcsv($handle, array('---', $child_1_subject_title));
+                if (count($child_2_count) > 0) 
+                {
+                    $child_1_subject_title = $child_1_subject['title'] . '(' . count($child_2_count) . ')';
+                    $writer->writeSheetRow(lang('categories'), array('---', $child_1_subject_title),$style2, $style3);
                 }
 
-                //child 2 subjcets
-                $child_2_subjects=$this->Call_subjects_model->get_child_2_subject(array('parent_id'=>$child_1_subject['id']));
-                foreach ($child_2_subjects as $child_2_subject) {
+                // Get Child 2 subjects for the current Child 1 subject
+                $child_2_subjects = $this->Call_subjects_model->get_child_2_subject(array('parent_id'=>$child_1_subject['id']));
+
+                // Loop through each Child 2 subject
+                foreach ($child_2_subjects as $child_2_subject) 
+                {
+                    // Build the subject_family for Child 2 subject
                     $subject_family_2 = $main_subject['id'] . '|' . $child_1_subject['id'] . '|' . $child_2_subject['id'] . '|';
 
-                    //Calculate Child 3 amount
+                    // Calculate and display Child 3 amount
                     $child_3_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_2, $date_gt, $date_lt);
-                    if (count($child_3_count) > 0) {
-                        //echo $child_2_subject['title'] . "---" . count($child_3_count) . "=>";
-                        $child_2_subject_title=$child_2_subject['title'] .'('. count($child_3_count).')';
-                        fputcsv($handle, array('---', '---', $child_2_subject_title));
+                    if (count($child_3_count) > 0) 
+                    {
+                        $child_2_subject_title = $child_2_subject['title'] . '(' . count($child_3_count) . ')';
+                        $writer->writeSheetRow(lang('categories'), array('---', '---', $child_2_subject_title),$style2, $style3);   
                     }
 
-                    //child 3 subjcets
-                    $child_3_subjects=$this->Call_subjects_model->get_child_3_subject(array('parent_id'=>$child_2_subject['id']));
-                    foreach ($child_3_subjects as $child_3_subject){
-                        $subject_family_3=$main_subject['id'].'|'.$child_1_subject['id'].'|'.$child_2_subject['id'].'|'.$child_3_subject['id'].'|';
+                    // Get Child 3 subjects for the current Child 2 subject
+                    $child_3_subjects = $this->Call_subjects_model->get_child_3_subject(array('parent_id'=>$child_2_subject['id']));
 
-                        //Calculate Child 4 amount
-                        $child_4_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_3, $date_gt, $date_lt);
+                    // Loop through each Child 3 subject
+                    foreach ($child_3_subjects as $child_3_subject)
+                    {
+                        // Build the subject_family for Child 3 subject
+                        $subject_family_3 = $main_subject['id'].'|'.$child_1_subject['id'].'|'.$child_2_subject['id'].'|'.$child_3_subject['id'].'|';
 
-                        if(count($child_4_count)>0){
-                            //echo $child_3_subject['title']."--".count($child_4_count)."<br>";
-                            $child_3_subject_title=$child_3_subject['title'].'('.count($child_4_count).')';
-                            fputcsv($handle, array('---', '---','---', $child_3_subject_title));
+                        // Calculate and display Child 4 amount
+                        $child_4_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_3, $date_gt, $date_lt);
+
+                        if (count($child_4_count) > 0)
+                        {
+                            $child_3_subject_title = $child_3_subject['title'] . '(' . count($child_4_count) . ')';
+                            $writer->writeSheetRow(lang('categories'), array('---', '---','---', $child_3_subject_title),$style2, $style3);
                         }
                     }
                 }
             }
         }
-
-        fclose($handle);
+        $writer->writeToStdOut();
+        exit(0);
     }
 
-    // Visualisation for testing
-    /*function category_show(){
-        $main_subjects=$this->Call_subjects_model->get_main_subjects();
-        //Main subjects
-        foreach ($main_subjects as $main_subject){
-            $subject_family=$main_subject['id'].'|';
+     //Visualisation for testing
+    // function category_show(){
+    //     $main_subjects=$this->Call_subjects_model->get_main_subjects();
+    //     //Main subjects
+    //     foreach ($main_subjects as $main_subject){
+    //         $subject_family=$main_subject['id'].'|';
 
-            //Calculate Child 1 amount
-            $child_1_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family);
-            if(count($child_1_count)>0){
-                echo $main_subject['title']."-".count($child_1_count)."=>";
-            }
+    //         //Calculate Child 1 amount
+    //         $child_1_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family);
+    //         if(count($child_1_count)>0){
+    //             echo $main_subject['title']."-".count($child_1_count)."=>";
+    //         }
 
-            //Child 1 subjects
-            $child_1_subjects=$this->Call_subjects_model->get_child_1_subject_all(array('parent_id'=>$main_subject['id']));
+    //         //Child 1 subjects
+    //         $child_1_subjects=$this->Call_subjects_model->get_child_1_subject_all(array('parent_id'=>$main_subject['id']));
 
-            foreach ($child_1_subjects as $child_1_subject){
-                $subject_family_1=$main_subject['id'].'|'.$child_1_subject['id'].'|';
+    //         foreach ($child_1_subjects as $child_1_subject){
+    //             $subject_family_1=$main_subject['id'].'|'.$child_1_subject['id'].'|';
 
-                //Calculate Child 2 amount
-                $child_2_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_1);
-                if(count($child_2_count)>0){
-                    echo $child_1_subject['title']."--".count($child_2_count)."=>";
-                }
+    //             //Calculate Child 2 amount
+    //             $child_2_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_1);
+    //             if(count($child_2_count)>0){
+    //                 echo $child_1_subject['title']."--".count($child_2_count)."=>";
+    //             }
 
-                //child 2 subjcets
-                $child_2_subjects=$this->Call_subjects_model->get_child_2_subject(array('parent_id'=>$child_1_subject['id']));
-                foreach ($child_2_subjects as $child_2_subject){
-                    $subject_family_2=$main_subject['id'].'|'.$child_1_subject['id'].'|'.$child_2_subject['id'].'|';
+    //             //child 2 subjcets
+    //             $child_2_subjects=$this->Call_subjects_model->get_child_2_subject(array('parent_id'=>$child_1_subject['id']));
+    //             foreach ($child_2_subjects as $child_2_subject){
+    //                 $subject_family_2=$main_subject['id'].'|'.$child_1_subject['id'].'|'.$child_2_subject['id'].'|';
 
-                    //Calculate Child 3 amount
-                    $child_3_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_2);
-                    if(count($child_3_count)>0){
-                        echo $child_2_subject['title']."---".count($child_3_count)."=>";
-                    }
+    //                 //Calculate Child 3 amount
+    //                 $child_3_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_2);
+    //                 if(count($child_3_count)>0){
+    //                     echo $child_2_subject['title']."---".count($child_3_count)."=>";
+    //                 }
 
-                    //child 3 subjcets
-                    $child_3_subjects=$this->Call_subjects_model->get_child_3_subject(array('parent_id'=>$child_2_subject['id']));
-                    foreach ($child_3_subjects as $child_3_subject){
-                        $subject_family_3=$main_subject['id'].'|'.$child_1_subject['id'].'|'.$child_2_subject['id'].'|'.$child_3_subject['id'].'|';
+    //                 //child 3 subjcets
+    //                 $child_3_subjects=$this->Call_subjects_model->get_child_3_subject(array('parent_id'=>$child_2_subject['id']));
+    //                 foreach ($child_3_subjects as $child_3_subject){
+    //                     $subject_family_3=$main_subject['id'].'|'.$child_1_subject['id'].'|'.$child_2_subject['id'].'|'.$child_3_subject['id'].'|';
 
-                        //Calculate Child 4 amount
-                        $child_4_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_3);
+    //                     //Calculate Child 4 amount
+    //                     $child_4_count=$this->Call_subjects_model->get_stat_parent_subjects($subject_family_3);
 
-                        if(count($child_4_count)>0){
-                            echo $child_3_subject['title']."--".count($child_4_count)."<br>";
-                        }
-                    }
-                }
-            }
-        }
-    }*/
+    //                     if(count($child_4_count)>0){
+    //                         echo $child_3_subject['title']."--".count($child_4_count)."<br>";
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
 }
