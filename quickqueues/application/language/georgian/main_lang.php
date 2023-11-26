@@ -700,7 +700,7 @@ $lang['out_answered']       = 'გამავალი ნაპასუხე
 $lang['out_unanswered']     = 'გამავალი უპასუხო';
 $lang['category_export']    = 'კატეგორიების ექსპორტი';
 $lang['category_refresh']   = 'კატეგორიების განახლება';
-$lang['category_stats']     = 'კატეგორიების სტატისტიკა';
+$lang['category_stats']     = 'ზარების სტატისტიკა კატეგორიების და ქვეკატეგორიების მიხედვით';
 
 
 $lang['can_listen']         = "ზარის მოსმენა";
