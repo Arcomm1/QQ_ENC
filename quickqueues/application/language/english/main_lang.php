@@ -667,7 +667,7 @@ $lang['category_refresh']       = 'Category Refresh';
 $lang['days']               = "Days";
 $lang['hours']              = "Hours";
 $lang['categories']         = "Categories";
-$lang['category_stats']     = "Category Stats";
+$lang['category_stats']     = "Call stats by categories and sub-categories";
 
 /* ----------- For System Overview --------- */
 
