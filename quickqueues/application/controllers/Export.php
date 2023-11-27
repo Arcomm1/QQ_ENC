@@ -3993,7 +3993,7 @@ class Export extends MY_Controller {
         $style3     = array(['border'=>'left','right','top','bottom'], ['border-style'=>'medium']);
 
         $row_header = array(lang('category_stats') . '-' . lang('period') . ':' . $date_gt . '-' . $date_lt);
-        $writer->initializeSheet(lang('categories'),[90,30,30,30,30]);
+        $writer->initializeSheet(lang('categories'),[120,30,30,30,30]);
         $writer->writeSheetRow(lang('categories'), $row_header, $style1, $style2, $style3);
         
  
@@ -4005,13 +4005,35 @@ class Export extends MY_Controller {
         {
             // Build the subject_family for the main subject
             $subject_family = $main_subject['id'] . '|';
-
+           
             // Calculate and display Child 1 amount
             $child_1_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family, $date_gt, $date_lt);
+
+            $child_1_counter = 0;
+
+            foreach($child_1_count as $child_count)
+            {
+                if($child_count['subject_family'] === $subject_family)
+                {
+                    $child_1_counter++;
+                }
+            }
+     
             if (count($child_1_count) > 0) 
             {
-                $main_subject_title = $main_subject['title'] . '(' . count($child_1_count) . ')';
-                $writer->writeSheetRow(lang('categories'), array($main_subject_title),$style2, $style3);
+                
+                $main_subject_with_child = count($child_1_count) - $child_1_counter;
+                if($main_subject_with_child > 0)
+                {
+
+                    $main_subject_title_1 = $main_subject['title'] . '(' . $child_1_counter  . ')';
+                    $writer->writeSheetRow(lang('categories'), array($main_subject_title_1),$style2, $style3);
+                    $main_subject_title_2 = $main_subject['title'] . '(' . $main_subject_with_child  . ')';
+                    $writer->writeSheetRow(lang('categories'), array($main_subject_title_2),$style2, $style3);
+                }
+                
+                $main_subject_title_2 = $main_subject['title'] . '(' . count($child_1_count)  . ')';
+                $writer->writeSheetRow(lang('categories'), array($main_subject_title_2),$style2, $style3);
             }
 
             // Get Child 1 subjects for the current main subject
@@ -4024,11 +4046,29 @@ class Export extends MY_Controller {
                 $subject_family_1 = $main_subject['id'] . '|' . $child_1_subject['id'] . '|';
 
                 // Calculate and display Child 2 amount
-                $child_2_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_1, $date_gt, $date_lt);
+                $child_2_count  = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_1, $date_gt, $date_lt);
+                $child_2_counter= 0;
+                foreach($child_2_count as $child_count)
+                {
+                    if($child_count['subject_family'] === $subject_family_1)
+                    {
+                        $child_2_counter++;
+                    }
+                }
+     
                 if (count($child_2_count) > 0) 
                 {
-                    $child_1_subject_title = $child_1_subject['title'] . '(' . count($child_2_count) . ')';
-                    $writer->writeSheetRow(lang('categories'), array('---', $child_1_subject_title),$style2, $style3);
+                    $child_1_subject_with_child = count($child_2_count) - $child_2_counter;
+                    if($child_1_subject_with_child > 0)
+                    {
+                        $child_1_subject_title_1    = $child_1_subject['title'] . '(' . $child_2_counter  . ')';
+                        $writer->writeSheetRow(lang('categories'), array('---', $child_1_subject_title_1),$style2, $style3);
+                        $child_1_subject_title_2  = $child_1_subject['title'] . '(' . $child_1_subject_with_child . ')';
+                        $writer->writeSheetRow(lang('categories'), array('---', $child_1_subject_title_2),$style2, $style3);
+
+                    }
+                    $child_1_subject_title_2  = $child_1_subject['title'] . '(' . count($child_2_count) . ')';
+                    $writer->writeSheetRow(lang('categories'), array('---', $child_1_subject_title_2),$style2, $style3);
                 }
 
                 // Get Child 2 subjects for the current Child 1 subject
@@ -4041,11 +4081,29 @@ class Export extends MY_Controller {
                     $subject_family_2 = $main_subject['id'] . '|' . $child_1_subject['id'] . '|' . $child_2_subject['id'] . '|';
 
                     // Calculate and display Child 3 amount
-                    $child_3_count = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_2, $date_gt, $date_lt);
+                    $child_3_count   = $this->Call_subjects_model->get_stat_parent_subjects($subject_family_2, $date_gt, $date_lt);
+                    $child_3_counter = 0;
+
+                    foreach($child_3_count as $child_count)
+                    {
+                        if($child_count['subject_family'] === $subject_family_2)
+                        {
+                            $child_3_counter++;
+                        }
+                    }
                     if (count($child_3_count) > 0) 
                     {
-                        $child_2_subject_title = $child_2_subject['title'] . '(' . count($child_3_count) . ')';
-                        $writer->writeSheetRow(lang('categories'), array('---', '---', $child_2_subject_title),$style2, $style3);   
+                        $child_2_subject_with_child = count($child_3_count) - $child_3_counter;
+                        if($child_2_subject_with_child > 0)
+                        {
+                            $child_2_subject_title_1 = $child_2_subject['title'] . '(' . $child_3_counter . ')';
+                            $writer->writeSheetRow(lang('categories'), array('---', '---', $child_2_subject_title_1),$style2, $style3);
+                            $child_2_subject_title_2 = $child_2_subject['title'] . '(' . $child_2_subject_with_child . ')';
+                            $writer->writeSheetRow(lang('categories'), array('---', '---', $child_2_subject_title_2),$style2, $style3);  
+
+                        }
+                        $child_2_subject_title_2 = $child_2_subject['title'] . '(' . count($child_3_count) . ')';
+                        $writer->writeSheetRow(lang('categories'), array('---', '---', $child_2_subject_title_2),$style2, $style3);   
                     }
 
                     // Get Child 3 subjects for the current Child 2 subject
