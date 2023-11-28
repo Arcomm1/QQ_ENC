@@ -38,7 +38,7 @@ var agent_overview = new Vue({
                         this.agents = response.data.data;
                        
                          /* DnD Status for Agents */
-                         agent_id = '';
+                         let agent_id = '';
                          for (const agentId in this.agents) {
  
                              agent_id = this.agents[agentId].agent_id;
