@@ -174,8 +174,9 @@ var agent_stats = new Vue({
 		{
 			let overallCalls = (parseInt(this.overall.calls_answered ) + parseInt(this.overall.calls_unanswered)) +
 							   (parseInt(this.overall.calls_outgoing_answered) + parseInt(this.overall.calls_outgoing_unanswered));
+            console.log(overallCalls);
 							   
-		    let agentCalls	 =  parseInt(this.total_stats.calls_answered) + parseInt(this.total_stats.calls_outgoing);
+		    let agentCalls	 =  parseInt(this.total_stats.calls_answered) + parseInt(this.total_stats.calls_outgoing) + parseInt(this.total_stats.calls_missed);
 			
 		    let percent = agentCalls > 0 && overallCalls > 0 ? ((agentCalls / overallCalls) * 100).toFixed(2)+'%' : '0%';
 						  
@@ -195,7 +196,7 @@ var agent_stats = new Vue({
 		{
 			let overallCalls = parseInt(this.overall.calls_unanswered );
 							   
-		    let agentCalls	 = parseInt(this.total_stats.calls_unanswered);
+		    let agentCalls	 = parseInt(this.total_stats.calls_missed);
 			
 		    let percent = agentCalls > 0 && overallCalls > 0 ? ((agentCalls / overallCalls) * 100).toFixed(2)+'%' : '0%';
 						  
