@@ -1442,6 +1442,7 @@ class Agent extends MY_Controller {
             $agent_stats[$s->agent_id]['total_ringtime'] = $s->total_ringtime;
             $agent_stats[$s->agent_id]['avg_calltime'] = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
             $agent_stats[$s->agent_id]['avg_ringtime'] = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
+            $agent_stats[$s->agent_id]['agent_id'] = $s->agent_id;
             $agent_stats[$s->agent_id]['total_data'] = $s;
             $agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
             $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
