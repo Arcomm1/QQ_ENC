@@ -90,6 +90,7 @@ $lang['app_track_ringnoanswer'] = "Collect missed calls for agents";
 $lang['desc_app_track_ringnoanswer'] = "Settings this to any other value then 'No' will result in agents having 'missed calls' value. Settings this to 'More then 10' will collect only events where phone rang for more then 10 seconds, setting this to 'Unique' will only collect one event per call, meaning multiple RINGNOANSWER events for agent for same calls will be counted as 1.";
 $lang['app_track_outgoing'] = "Collect outgoing calls";
 $lang['desc_app_track_outgoing'] = "If selected yes, Quickqueues will try to collect all outgoing made by agents. They will be associated with agents primary queue";
+$lang['ringnoanswer']            = "Agent-missed calls";
 
 $lang['save']               = "Save";
 $lang['restore']            = "Restore";
