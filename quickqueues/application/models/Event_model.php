@@ -114,7 +114,7 @@ class Event_model extends MY_Model {
             return false;
         }
         $this->db->select('agent_id');
-        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 1 THEN 1 END) AS calls_missed');
+        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 0 THEN 1 END) AS calls_missed');
         $this->db->where_in('queue_id', $queue_ids);
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
@@ -144,7 +144,7 @@ class Event_model extends MY_Model {
             return false;
         }
         $this->db->select('agent_id');
-        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 1 THEN 1 END) AS calls_missed');
+        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 0 THEN 1 END) AS calls_missed');
         $this->db->select('SUM(IF(event_type = "STOPPAUSE", pausetime, 0)) AS total_pausetime');
         $this->db->where_in('agent_id', $agent_id);
         $this->db->where('date >', $date_range['date_gt']);
