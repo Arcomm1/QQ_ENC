@@ -109,7 +109,7 @@
                                 <th scope="col"><?php echo lang('agent'); ?></th>
                                 <th scope="col"><?php echo lang('calls_answered'); ?></th>
                                 <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
-                                <th scope="col"><?php echo lang('calls_missed'); ?></th>
+                                <th scope="col"><?php echo lang('ringnoanswer'); ?></th>
                                 <th scope="col"><?php echo lang('calls_outgoing_answered'); ?></th>
                                 <th scope="col"><?php echo lang('outgoing_talk_time_sum'); ?></th>
                                 <th scope="col"><?php echo lang('calls_outgoing_failed'); ?></th>
