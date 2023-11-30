@@ -1450,15 +1450,16 @@ class Agent extends MY_Controller {
             $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
 
         }
-        foreach ($agent_event_stats as $s) {
-            if ($s->agent_id) {
+        foreach ($agent_event_stats as $s) 
+        {
+            if ($s->agent_id) 
+            {
                 $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
             }
         }
 
-        $this->r->data = $agent_stats;
-
-        $this->r->status = 'OK';
+        $this->r->data    = $agent_stats;
+        $this->r->status  = 'OK';
         $this->r->message = 'Total agent stats will follow';
         // echo "<pre>"; print_r($agent_call_stats); print_r($agent_event_stats); die(print_r($agent_stats));
         $this->_respond();
