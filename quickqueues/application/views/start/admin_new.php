@@ -309,7 +309,7 @@
                                         <th scope="col" style="width:60%">{{ lang['agent'] }}</th>
                                             <th scope="col">{{ lang['calls_answered'] }}</th>
                                             <th scope="col">{{ lang['incoming_talk_time_sum'] }}</th>
-                                            <th scope="col">{{ lang['calls_missed'] }}</th>
+                                            <th scope="col">{{ lang['ringnoanswer'] }}</th>
                                             <th scope="col">{{ lang['calls_outgoing_answered'] }}</th>
                                             <th scope="col">{{ lang['outgoing_talk_time_sum'] }}</th>
                                             <th scope="col">{{ lang['calls_outgoing_failed'] }}</th>
