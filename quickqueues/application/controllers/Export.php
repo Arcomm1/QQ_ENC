@@ -845,9 +845,6 @@ class Export extends MY_Controller {
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
         
-        // var_dump($total_stats);
-        // var_dump($agent_call_stats);
-        // var_dump($agent_event_stats);
         foreach ($this->data->user_agents as $a) 
         {
             $agent_stats[$a->id] = array(
@@ -866,7 +863,6 @@ class Export extends MY_Controller {
                 'avg_ringtime'                                           => 0,
                 'max_ringtime'                                           => 0,
                 'calls_missed'                                           => 0,
-                'calls_missed_perc'                                      => 0,
                 'incoming_talk_time_sum'                                 => 0,
                 'incoming_talk_time_avg'                                 => 0,
                 'incoming_talk_time_max'                                 => 0,
@@ -975,13 +971,7 @@ class Export extends MY_Controller {
             {
                 $agent_stats[$s->agent_id]['max_ringtime'] = sec_to_time(floor($s->max_ringtime_answered));   
             }
-
-            // Calls Missed
-            $calls_unanswered_percent                       = $s->calls_unanswered > 0 && ($s->calls_answered + $s->calls_unanswered) > 0 ? intval(($s->calls_unanswered / ($s->calls_answered + $s->calls_unanswered) * 100) * 100) / 100  : '0';
-            $agent_stats[$s->agent_id]['calls_missed']      = $s->calls_unanswered; 
-            $agent_stats[$s->agent_id]['calls_missed_perc'] = $calls_unanswered_percent; 
-
-            
+                  
             // Incoming Talk Time SUM(Total)
            $agent_stats[$s->agent_id]['incoming_talk_time_sum'] = $s->incoming_total_calltime_count > 0 ? sec_to_time($s->incoming_total_calltime) : 0;
 
@@ -1018,7 +1008,14 @@ class Export extends MY_Controller {
         }
         
        
-       
+        // Calls Missed
+        foreach ($agent_event_stats as $s) 
+        {
+            if ($s->agent_id) 
+            {
+                $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
+            }
+        }
         $rows_agents[] = array(
             lang('agent'),
             lang('last_call'),
@@ -1034,8 +1031,7 @@ class Export extends MY_Controller {
             '%',
             lang('ring_time').' ('.lang('avg').')',
             lang('ring_time').' ('.lang('max').')',
-            lang('start_menu_calls_unanswered'),
-            '%',
+            lang('ringnoanswer'),
             lang('incoming_talk_time_sum_overview'),
             lang('incoming_talk_time_avg'),
             lang('incoming_talk_time_max'),
@@ -1045,6 +1041,7 @@ class Export extends MY_Controller {
             lang('outgoing_talk_time_avg'),
             lang('outgoing_talk_time_max'),
         );  
+
     
         foreach($agent_stats as $id => $i)
         {
@@ -1065,7 +1062,6 @@ class Export extends MY_Controller {
             $i['avg_ringtime'],
             $i['max_ringtime'],
             $i['calls_missed'],
-            $i['calls_missed_perc'],
             $i['incoming_talk_time_sum'],
             $i['incoming_talk_time_avg'],
             $i['incoming_talk_time_max'],
@@ -1528,7 +1524,7 @@ class Export extends MY_Controller {
         // }
         ////////////////// End category sheet /////////////////////////////////////////////////////
 
-        $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
+        // $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
@@ -3255,11 +3251,7 @@ class Export extends MY_Controller {
         $agent_event_stats   = $this->Event_model->get_agent_stats_for_agent_stats_page($agent_id, $date_range);
         $agent               = $this->Agent_model->get($agent_id);
         $row_header           = array(lang('stats').' '.$date_gt.' > '.$date_lt.'('.lang('agent').': '.$agent->display_name.')');
-        // $agent_daily_stats   = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
-        // $agent_hourly_stats  = $this->Agent_model->get_hourly_stats_for_agents($agent_id);
-
-   
-
+      
         // Last Call 
         $rows_overview[] = array(lang('last_call'), $agent->last_call);
        
@@ -3369,10 +3361,9 @@ class Export extends MY_Controller {
         }
         
         // Calls Missed
-        $calls_unanswered_percent = $total_stats->calls_unanswered > 0 && ($total_stats->calls_answered + $total_stats->calls_unanswered) > 0 ?
-        intval(($total_stats->calls_unanswered / ($total_stats->calls_answered + $total_stats->calls_unanswered) * 100) * 100) / 100 : '0%';
 
-        $rows_overview[] = array(lang('start_menu_calls_unanswered'), $total_stats->calls_unanswered, $calls_unanswered_percent);
+        $rows_overview[] = array(lang('ringnoanswer'), $agent_event_stats->calls_missed);
+          
         
         // Incoming Talk Time SUM(Total)
         $rows_overview[] = array(lang('incoming_talk_time_sum_overview'), $total_stats->incoming_total_calltime_count > 0 ? sec_to_time($total_stats->incoming_total_calltime) : 0);
@@ -3411,6 +3402,7 @@ class Export extends MY_Controller {
             floor($total_stats->outgoing_max_calltime)) : 0
         );
         
+        var_dump($rows_overview);
         ////////////////// ----------- END OF OVERVIEW SHEET---------------/////////////////////////
 
       
@@ -3432,7 +3424,7 @@ class Export extends MY_Controller {
             lang('day'),
             lang('calls_answered'),
             lang('incoming_talk_time_sum_overview'),
-            lang('calls_missed'),
+            lang('ringnoanswer'),
             lang('calls_outgoing_answered'),
             lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
@@ -3536,7 +3528,7 @@ class Export extends MY_Controller {
             lang('hour'),
             lang('calls_answered'),
             lang('incoming_talk_time_sum_overview'),
-            lang('calls_missed'),
+            lang('ringnoanswer'),
             lang('calls_outgoing_answered'),
             lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
@@ -3571,7 +3563,7 @@ class Export extends MY_Controller {
             );
         }
          /////////////////// ---------- END OFTIME SHEET ----------------//////////////////////////
-        $this->_prepare_headers('agent_'.$agent->display_name.'_stats-'.date('Ymd-His').'.xlsx');
+        // $this->_prepare_headers('agent_'.$agent->display_name.'_stats-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
