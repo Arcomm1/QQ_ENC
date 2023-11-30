@@ -130,9 +130,9 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-warning mr-2"></i>
-                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['start_menu_calls_unanswered'] }}</a>
+                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['ringnoanswer'] }}</a>
                                         </span>
-                                        <span>{{ calls_missed }}</span>
+                                        <span>{{ total_stats.calls_missed }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
@@ -242,7 +242,7 @@
                                             <th scope="col" style="width:40%">{{ lang['hour'] }}</th>
                                             <th scope="col">{{ lang['calls_answered'] }}</th>
                                             <th scope="col">{{ lang['incoming_talk_time_sum'] }}</th>
-                                            <th scope="col">{{ lang['calls_missed'] }}</th>
+                                            <th scope="col">{{ lang['ringnoanswer'] }}</th>
                                             <th scope="col">{{ lang['calls_outgoing_answered'] }}</th>
                                             <th scope="col">{{ lang['outgoing_talk_time_sum'] }}</th>
                                             <th scope="col">{{ lang['calls_outgoing_failed'] }}</th>
@@ -277,7 +277,7 @@
                                             <th scope="col" style="width:40%">{{ lang['day'] }}</th>
                                             <th scope="col">{{ lang['calls_answered'] }}</th>
                                             <th scope="col">{{ lang['incoming_talk_time_sum'] }}</th>
-                                            <th scope="col">{{ lang['calls_missed'] }}</th>
+                                            <th scope="col">{{ lang['ringnoanswer'] }}</th>
                                             <th scope="col">{{ lang['calls_outgoing_answered'] }}</th>
                                             <th scope="col">{{ lang['outgoing_talk_time_sum'] }}</th>
                                             <th scope="col">{{ lang['calls_outgoing_failed'] }}</th>
