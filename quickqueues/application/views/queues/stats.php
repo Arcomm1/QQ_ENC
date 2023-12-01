@@ -340,7 +340,7 @@
                                             <td>{{ sec_to_time(h.incoming_total_calltime) }}</td>
                                             <td>{{ h.calls_missed }}</td>
                                             <td>{{ h.calls_outgoing_answered }}</td>
-                                            <td>{{ sec_to_time(h.outhoing_total_calltime) }}</td>
+                                            <td>{{ sec_to_time(h.outgoing_total_calltime) }}</td>
                                             <td>{{ h.calls_outgoing_unanswered }}</td>
                                             <td>{{ sec_to_time(h.avg_holdtime) }}</td>
                                         </tr>
@@ -375,7 +375,7 @@
                                             <td>{{ sec_to_time(d.incoming_total_calltime) }}</td>
                                             <td>{{ d.calls_missed }}</td>
                                             <td>{{ d.calls_outgoing_answered }}</td>
-                                            <td>{{ sec_to_time(d.outhoing_total_calltime) }}</td>
+                                            <td>{{ sec_to_time(d.outgoing_total_calltime) }}</td>
                                             <td>{{ d.calls_outgoing_unanswered }}</td>
                                             <td>{{ d.avg_holdtime }}</td>
                                         </tr>
