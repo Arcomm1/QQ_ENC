@@ -763,32 +763,34 @@ class Call_model extends MY_Model {
             return false;
         }
     
-        $this->db->select('DATE_FORMAT(date, "%H") AS hour');
+        $this->db->select('DATE_FORMAT(qq_calls.date, "%H") AS hour');
         $this->db->select('qq_agents.display_name');
         $this->db->select('qq_calls.queue_id');
         $this->db->select('COUNT(CASE WHEN qq_calls.event_type LIKE "OUT_%" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing');
         $this->db->select('COUNT(CASE WHEN qq_calls.event_type = "OUT_ANSWERED" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
 
-        $this->db->select('COUNT(DISTINCT(timestamp), CASE WHEN qq_calls.event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND qq_calls.agent_id > 0 THEN 1 END) AS calls_answered');
+        $this->db->select('COUNT(DISTINCT(qq_events.timestamp), CASE WHEN qq_calls.event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND qq_calls.agent_id > 0 THEN 1 END) AS calls_answered');
 
         $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN("ABANDON", "EXITEMPTY", "EXITWITHLKEY", "EXITWITHTIMEOUT", "IVRABANDON") THEN 1 END) AS calls_unanswered');
+        $this->db->select('COUNT(CASE WHEN qq_events.event_type = "RINGNOANSWER" AND qq_events.ringtime > 0 THEN 1 END) AS calls_missed');
         $this->db->select('SUM(IF(qq_calls.event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), qq_calls.calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
+        $this->db->select('SUM(IF(qq_calls.event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), qq_calls.holdtime, 0)) AS total_holdtime');
+        $this->db->select('SUM(IF(qq_calls.event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), qq_calls.waittime, 0)) AS total_waittime');
+        $this->db->select('AVG(IF(qq_calls.event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), qq_calls.origposition, 0)) AS origposition_avg');
+        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND qq_calls.waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
+        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
+        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
+        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND qq_calls.calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
+        $this->db->select('SUM(IF(qq_calls.event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), qq_calls.calltime, 0)) AS incoming_total_calltime');
     
 
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
+        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN ("OUT_ANSWERED") AND qq_calls.calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
+        $this->db->select('SUM(IF(qq_calls.event_type IN ("OUT_ANSWERED"), qq_calls.calltime, 0)) AS outgoing_total_calltime');
+        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
     
         $this->db->from('qq_calls');
         $this->db->join('qq_agents', 'qq_agents.id = qq_calls.agent_id');
+        $this->db->join('qq_events', 'qq_events.agent_id = qq_calls.agent_id');
         $this->db->join('qq_queues', 'qq_queues.id = qq_calls.queue_id');
     
         $this->db->where('qq_calls.agent_id', $agent_id);
