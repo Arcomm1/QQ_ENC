@@ -711,62 +711,59 @@ class Agent extends MY_Controller {
     {
         $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
-        $stats = $this->Call_model->get_hourly_stats_for_agent_page($id, $date_range);
-
-        //$stats = $stats[0];
-       // $stats->avg_holdtime = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
-       for ($i=0; $i < 24; $i++) 
-       {
-        $has = false;
-        foreach($stats as $s) 
+        $stats                 = $this->Call_model->get_hourly_stats_for_agent_page($id, $date_range);
+        $agent_event_stats     = $this->Event_model->get_agent_hourly_stats_for_agent_stats_page($id, $date_range);
+  
+      
+        for ($i=0; $i < 24; $i++) 
         {
-            $s->avg_holdtime = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
-
-            if(intval($s->hour) == $i)
+            $h = $i < 10 ? '0'.$i : $i;
+            $hourly_stats[$h] = array(
+                'calls_answered'           => 0,
+                'calls_missed'             => 0,
+                'calls_outgoing'           => 0,
+                'total_calltime'           => 0,
+                'total_holdtime'           => 0,
+                'avg_calltime'             => 0,
+                'avg_holdtime'             => 0,
+                'origposition_avg'         => 0,
+                'hour'                     => $h,
+                'incoming_total_calltime'  => 0,
+                'calls_outgoing_answered'  => 0,
+                'calls_outgoing_unanswered'=> 0,
+                'outgoing_total_calltime'  => 0,
+            );
+        }
+        foreach($agent_event_stats as $e)
+        {
+            if($e->hour)
             {
-                $has = true;
+                $hourly_stats[$e->hour]['calls_missed']= $e->calls_missed;
             }
         }
-        if(!$has)
-        {
-            $newTime = new stdClass();
-            $newTime->hour                      = str_pad($i,2,"0", STR_PAD_LEFT);
-            $newTime->calls_answered            = 0;
-            $newTime->calls_unanswered          = 0;
-            $newTime->incoming_total_calltime   = 0;
-            $newTime->calls_outgoing_answered   = 0;
-            $newTime->calls_outgoing_unanswered = 0;
-            $newTime->outgoing_total_calltime   = 0;
-            $newTime->total_holdtime            = 0;
-            $newTime->total_waittime            = 0;
-            $newTime->avg_holdtime              = 0;
 
-            array_push($stats,$newTime);
+        foreach($stats as $s) 
+        {
+            $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
+            $hourly_stats[$s->hour]['calls_outgoing']            = $s->calls_outgoing;
+            $hourly_stats[$s->hour]['total_calltime']            = $s->total_calltime;
+            $hourly_stats[$s->hour]['total_holdtime']            = $s->total_holdtime;
+            $hourly_stats[$s->hour]['avg_calltime']              = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
+            $hourly_stats[$s->hour]['avg_holdtime']              = ceil(($s->total_holdtime + $s->total_waittime) == 0 || $hourly_stats[$s->hour]['calls_missed'] == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) /  $hourly_stats[$s->hour]['calls_missed']);
+            $hourly_stats[$s->hour]['origposition_avg']          = ceil($s->origposition_avg);
+            $hourly_stats[$s->hour]['incoming_total_calltime']   = $s->incoming_total_calltime;
+            $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
+            $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+            $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
         }
-       }
-       
-       usort($stats, function($a, $b) {
-        // Define the sorting order
-        $sortingOrder = ["10", "11", "12"];
-        for ($i = 13; $i <= 23; $i++) {
-            $sortingOrder[] = str_pad($i, 2, "0", STR_PAD_LEFT);
-        }
-        for ($i = 0; $i <= 9; $i++) {
-            $sortingOrder[] = "0" . $i;
-        }
-    
-        // Get the position of the hour in the sorting order
-        $pos_a = array_search($a->hour, $sortingOrder);
-        $pos_b = array_search($b->hour, $sortingOrder);
-    
-        return $pos_a - $pos_b;
-    });
+
+        $this->r->data = $hourly_stats;
         $this->r->status = 'OK';
         $this->r->message = 'Call distribution data will follow';
-        $this->r->data = $stats;
 
         $this->_respond();
     }
+
     public function get_daily_stats_for_agents($id)
     {
         $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
@@ -778,68 +775,80 @@ class Agent extends MY_Controller {
         $interval = new DateInterval('P1D'); // 1 day interval
         $date_range_list = new DatePeriod($start_date, $interval, $end_date);
         $dates = [];
-        foreach ($date_range_list as $date) {
+        foreach ($date_range_list as $date) 
+        {
             $dates[] = $date->format('Y-m-d');
         }
     
-        $stats = $this->Call_model->get_daily_stats_for_agent_page($id, $date_range);
-    
-        $daily_stats = array(); // Initialize the array here
-        
+        $stats             = $this->Call_model->get_daily_stats_for_agent_page($id, $date_range);
+        $agent_event_stats = $this->Event_model->get_agent_daily_stats_for_agent_stats_page($id, $date_range);
+
         // Fill in missing dates with default values
-        foreach ($dates as $date) {
-            $found = false;
-            foreach ($stats as $i) {
-                if ($i->date == $date) {
-                    $found = true;
+        foreach ($dates as $date) 
+        {
+
+            $daily_stats[$date] = array(
+                'day'                       => $date,
+                'calls_total'               => 0,
+                'calls_answered'            => 0,
+                'calls_missed'              => 0,
+                'calls_outgoing'            => 0,
+                'total_calltime'            => 0,
+                'total_holdtime'            => 0,
+                'avg_holdtime'              => '00:00:00',
+                'origposition_avg'          => 0,
+                'calls_outgoing_answered'   => 0,
+                'calls_outgoing_unanswered' => 0,
+                'incoming_total_calltime'   => 0,
+                'outgoing_total_calltime'   => 0,
+            ); 
+
+            foreach($agent_event_stats as $e)
+            {
+                if($e->date)
+                {
+                    $daily_stats[$e->date]['calls_missed']= $e->calls_missed;
+                }
+            }
+            foreach ($stats as $i) 
+            {
+                if ($i->date == $date) 
+                { 
                     // Calculate values as before
-                    if (($i->calls_answered + $i->calls_outgoing) == 0) {
+                    if (($i->calls_answered + $i->calls_outgoing) == 0) 
+                    {
                         $avg_calltime = '00:00:00';
-                    } else {
+                    } 
+                    else 
+                    {
                         $avg_calltime = sec_to_time($i->total_calltime / ($i->calls_answered + $i->calls_outgoing));
                     }
     
-                    if ($i->calls_unanswered == 0) {
+                    if ($daily_stats[$i->date]['calls_missed'] == 0) 
+                    {
                         $avg_holdtime = '00:00:00';
-                    } else {
-                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+                    } 
+                    else 
+                    {
+                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $daily_stats[$i->date]['calls_missed']);
                     }
     
-                    $daily_stats[] = array(
-                        'day'                       => $i->date,
-                        'calls_total'               => $i->calls_answered + $i->calls_outgoing + $i->calls_unanswered,
-                        'calls_answered'            => $i->calls_answered,
-                        'calls_missed'              => $i->calls_unanswered,
-                        'calls_outgoing'            => $i->calls_outgoing,
-                        'total_calltime'            => sec_to_time($i->total_calltime),
-                        'total_holdtime'            => sec_to_time($i->total_holdtime),
-                        'avg_holdtime'              => $avg_holdtime,
-                        'origposition_avg'          => ceil($i->origposition_avg),
-                        'calls_outgoing_answered'   => $i->calls_outgoing_answered,
-                        'calls_outgoing_unanswered' => $i->calls_outgoing_answered,
-                        'incoming_total_calltime'    => $i->incoming_total_calltime,
-                        'outgoing_total_calltime'   => $i->outgoing_total_calltime,
-                    );
+                   
+                        
+                    $daily_stats[$i->date]['calls_total']              = $i->calls_answered + $i->calls_outgoing + $daily_stats[$i->date]['calls_missed'];
+                    $daily_stats[$i->date]['calls_answered']           = $i->calls_answered;
+                    $daily_stats[$i->date]['calls_outgoing']           = $i->calls_outgoing;
+                    $daily_stats[$i->date]['total_calltime']           = sec_to_time($i->total_calltime);
+                    $daily_stats[$i->date]['total_holdtime']           = sec_to_time($i->total_holdtime);
+                    $daily_stats[$i->date]['avg_holdtime']             = $avg_holdtime;
+                    $daily_stats[$i->date]['origposition_avg']         = ceil($i->origposition_avg);
+                    $daily_stats[$i->date]['calls_outgoing_answered']  = $i->calls_outgoing_answered;
+                    $daily_stats[$i->date]['calls_outgoing_unanswered']= $i->calls_outgoing_unanswered;
+                    $daily_stats[$i->date]['incoming_total_calltime']  = $i->incoming_total_calltime;
+                    $daily_stats[$i->date]['outgoing_total_calltime']  = $i->outgoing_total_calltime;
+                    
                     break;
                 }
-            }
-            if (!$found) {
-                // If the date is not found in $stats, set all parameters to 0
-                $daily_stats[] = array(
-                    'day'                       => $date,
-                    'calls_total'               => 0,
-                    'calls_answered'            => 0,
-                    'calls_missed'              => 0,
-                    'calls_outgoing'            => 0,
-                    'total_calltime'            => '00:00:00',
-                    'total_holdtime'            => '00:00:00',
-                    'avg_holdtime'              => '00:00:00',
-                    'origposition_avg'          => 0,
-                    'calls_outgoing_answered'   => 0,
-                    'calls_outgoing_unanswered' => 0,
-                    'incoming_total_calltime'    => 0,
-                    'outgoing_total_calltime'   => 0,
-                );
             }
         }
     
