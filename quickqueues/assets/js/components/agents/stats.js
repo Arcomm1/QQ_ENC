@@ -173,19 +173,19 @@ var agent_stats = new Vue({
         calls_total: function() 
 		{
 			let overallCalls = (parseInt(this.overall.calls_answered ) + parseInt(this.overall.calls_unanswered)) +
-							   (parseInt(this.overall.calls_outgoing_answered) + parseInt(this.overall.calls_outgoing_unanswered));
-            console.log(overallCalls);
-							   
-		    let agentCalls	 =  parseInt(this.total_stats.calls_answered) + parseInt(this.total_stats.calls_outgoing) + parseInt(this.total_stats.calls_missed);
+							   (parseInt(this.overall.calls_outgoing_answered) + parseInt(this.overall.calls_outgoing_unanswered));			   
+            
+            let agentCalls	 =  parseInt(this.total_stats.calls_answered) + parseInt(this.total_stats.calls_outgoing);               
+            
+            let percent      = agentCalls > 0 && overallCalls > 0 ? ((agentCalls / overallCalls) * 100).toFixed(2)+'%' : '0%';		  
 			
-		    let percent = agentCalls > 0 && overallCalls > 0 ? ((agentCalls / overallCalls) * 100).toFixed(2)+'%' : '0%';
-						  
-			return agentCalls + ' (' + percent + ')'; 
+            return agentCalls + ' (' + percent + ')'; 
         },
+
 		calls_answered: function()
 		{
 			let overallCalls = parseInt(this.overall.calls_answered );
-							   
+				   
 		    let agentCalls	 = parseInt(this.total_stats.calls_answered);
 			
 		    let percent = agentCalls > 0 && overallCalls > 0 ? ((agentCalls / overallCalls) * 100).toFixed(2)+'%' : '0%';
