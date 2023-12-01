@@ -254,9 +254,12 @@ var queue_stats = new Vue({
 
         /* --- ATA Hold Time --- */
         ata_time_avg: function() {
-            if (this.total_stats.ata_count_total > 0) {
+            if (this.total_stats.ata_count_total > 0) 
+            {
                 return sec_to_time(Math.floor(this.total_stats.ata_total_waittime / this.total_stats.ata_count_total));
-            } else {
+            } 
+            else 
+            {
                 return '0';
             }
         },
