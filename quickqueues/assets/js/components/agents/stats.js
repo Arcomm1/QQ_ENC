@@ -90,6 +90,7 @@ var agent_stats = new Vue({
                 .then(response => {
                     this.hourly_stats_loading = false;
                     this.hourly_stats = response.data.data;
+                    console.log('hourly stats:', this.hourly_stats);
                 });
         },
 
