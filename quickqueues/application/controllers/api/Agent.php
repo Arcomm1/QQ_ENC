@@ -741,7 +741,6 @@ class Agent extends MY_Controller {
                 $hourly_stats[$e->hour]['calls_missed']= $e->calls_missed;
             }
         }
-
         foreach($stats as $s) 
         {
             $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
