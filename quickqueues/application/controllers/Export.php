@@ -672,7 +672,8 @@ class Export extends MY_Controller {
         ////////////////// -------- OVERVIEW SHEET ------/////////////////////////
 
         $total_stats = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
-      
+        $total_event_stats = $this->Event_model->get_stats_for_start($queue_ids, $date_range);
+        var_dump($total_event_stats);
 
         // Total Calls
         $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
@@ -874,18 +875,28 @@ class Export extends MY_Controller {
             );
         }
     
-        foreach($agent_call_stats as $s) 
+        
+        // Calls Missed
+        foreach ($agent_event_stats as $s) 
         {
-
-          
+            if ($s->agent_id) 
+            {
+                $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
+            }
+            else
+            {
+                $agent_stats[$s->agent_id]['calls_missed'] = 0;
+            }
+        }
+        foreach($agent_call_stats as $s) 
+        {          
             
             // Total Calls
             $totalCalls = $total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered;
     
-            $agentCalls = $s->calls_answered + $s->calls_unanswered + $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
-
+            $agentCalls = $s->calls_answered + $agent_stats[$s->agent_id]['calls_missed'] + $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
          
-          
+
             if($agentCalls > 0 && $totalCalls > 0)
             {
                 $agent_stats[$s->agent_id]['calls_total_perc'] = intval((($agentCalls / $totalCalls) * 100) * 100) / 100;
@@ -1008,14 +1019,6 @@ class Export extends MY_Controller {
         }
         
        
-        // Calls Missed
-        foreach ($agent_event_stats as $s) 
-        {
-            if ($s->agent_id) 
-            {
-                $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
-            }
-        }
         $rows_agents[] = array(
             lang('agent'),
             lang('last_call'),
@@ -3258,8 +3261,8 @@ class Export extends MY_Controller {
         // Total Calls
         $calls_outgoing_unanswered = intval($total_stats->calls_outgoing) - intval($total_stats->calls_outgoing_answered);
         $overallCalls        = (intval($overall_stats->calls_answered ) + intval($overall_stats->calls_unanswered)) + (intval($overall_stats->calls_outgoing_answered) + intval($overall_stats->calls_outgoing_unanswered));
-        $agentCalls	         =  intval($total_stats->calls_answered) + intval($total_stats->calls_unanswered) + intval($total_stats->calls_outgoing_answered) + $calls_outgoing_unanswered;
-	    if ($agentCalls > 0 && $overallCalls > 0) 
+        $agentCalls	         =  intval($total_stats->calls_answered) + intval($agent_event_stats->calls_missed) + intval($total_stats->calls_outgoing_answered) + $calls_outgoing_unanswered;
+	    if ($agentCalls > 0 ) 
         {
             $agent_calls_percent =intval("%.2f%%",(($agentCalls / $overallCalls) * 100) * 100) / 100;
         } 
@@ -3402,7 +3405,6 @@ class Export extends MY_Controller {
             floor($total_stats->outgoing_max_calltime)) : 0
         );
         
-        var_dump($rows_overview);
         ////////////////// ----------- END OF OVERVIEW SHEET---------------/////////////////////////
 
       
@@ -3419,7 +3421,8 @@ class Export extends MY_Controller {
             $dates[] = $date->format('Y-m-d');
         }
 
-        $daily_call_stats = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
+        $daily_call_stats  = $this->Call_model->get_daily_stats_for_agent_page($agent_id, $date_range);
+        $daily_event_stats = $this->Event_model->get_agent_daily_stats_for_agent_stats_page($agent_id, $date_range);
         $rows_days[] = array(
             lang('day'),
             lang('calls_answered'),
@@ -3433,95 +3436,88 @@ class Export extends MY_Controller {
         
 
         // Fill in missing dates with default values
-        foreach ($dates as $date) {
-            $found = false;
+        foreach ($dates as $date) 
+        {
+             $rows_days[$date] = array(
+                'day'                       => $date,
+                'calls_answered'            => 0,
+                'incoming_total_calltime'   => 0,
+                'calls_missed'              => 0,
+                'calls_outgoing_answered'   => 0,
+                'outgoing_total_calltime'   => 0,
+                'calls_outgoing_unanswered' => 0,
+                'avg_holdtime'              => '00:00:00',
+            );
+
+            foreach($daily_event_stats as $e)
+            {
+                if($e->date)
+                {
+                    $rows_days[$e->date]['calls_missed']= $e->calls_missed;
+                }
+            }
             foreach ($daily_call_stats as $i) 
             {
                 if ($i->date == $date) 
-                {
-                    $found = true;
-                    // Calculate values as before
-                    if($i->calls_unanswered == 0)
+                { 
+                    if ($rows_days[$i->date]['calls_missed'] == 0) 
                     {
-
                         $avg_holdtime = '00:00:00';
-                    }
-                    else
+                    } 
+                    else 
                     {
-                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $rows_days[$i->date]['calls_missed']);
                     }
 
-                    $rows_days[] = array(
-                        'day'                       => $i->date,
-                        'calls_answered'            => $i->calls_answered,
-                        'incoming_total_calltime'   =>sec_to_time($i->incoming_total_calltime),
-                        'calls_missed'              => $i->calls_unanswered,
-                        'calls_outgoing_answered'   => $i->calls_outgoing_answered,
-                        'outgoing_total_calltime'   => sec_to_time($i->outgoing_total_calltime),
-                        'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
-                        'avg_holdtime'              => $avg_holdtime,
-                    );
-                    break;
+                    $rows_days[$i->date]['calls_answered']           = $i->calls_answered;
+                    $rows_days[$i->date]['incoming_total_calltime']  = $i->incoming_total_calltime;
+                    $rows_days[$i->date]['calls_outgoing_answered']  = $i->calls_outgoing_answered;
+                    $rows_days[$i->date]['outgoing_total_calltime']  = $i->outgoing_total_calltime;
+                    $rows_days[$i->date]['calls_outgoing_unanswered']= $i->calls_outgoing_unanswered;
+                    $rows_days[$i->date]['avg_holdtime']             = $avg_holdtime;
+  
                 }
             }
-            
-            if (!$found) {
-                // If the date is not found in $daily_call_stats, set all parameters to 0
-                $rows_days[] = array(
-                    'day'                       => $date,
-                    'calls_answered'            => 0,
-                    'incoming_total_calltime'   => sec_to_time(0),
-                    'calls_missed'              => 0,
-                    'calls_outgoing_answered'   => 0,
-                    'outgoing_total_calltime'   => sec_to_time(0),
-                    'calls_outgoing_unanswered' => 0,
-                    'avg_holdtime'              => '00:00:00',
-                    
-                );
-            }
+
         }
          ////////////////// ----------  END OF DAY SHEET --------------////////////////////
          /////////////////// ----------TIME SHEET ----------------//////////////////////////
         
-         $hourly_call_stats = $this->Call_model->get_hourly_stats_for_agent_page($agent_id, $date_range);
+        $hourly_call_stats = $this->Call_model->get_hourly_stats_for_agent_page($agent_id, $date_range);
+        $hourly_event_stats= $this->Event_model->get_agent_hourly_stats_for_agent_stats_page($agent_id, $date_range);
 
       
-        $hourly_stats = array();
-        for ($i = 10; $i < 24; $i++) {
-            $h = $i < 10 ? '0' . $i : $i;
-            $hourly_stats[$h] = array(
-                'calls_answered'            => 0,
-                'incoming_total_calltime'   => 0,
-                'calls_unanswered'          => 0,
-                'calls_outgoing_answered'   => 0,
-                'outgoing_total_calltime'   => 0,
-                'calls_outgoing_unanswered' => 0,
-                'hold_time_avg'             => 0,
+        for ($i=0; $i < 24; $i++) 
+        {
+            $h = $i < 10 ? '0'.$i : $i;
+            $rows_hours[$h] = array(
+                'hour'                     => $h,
+                'calls_answered'           => 0,
+                'incoming_total_calltime'  => 0,
+                'calls_missed'             => 0,
+                'calls_outgoing_answered'  => 0,
+                'outgoing_total_calltime'  => 0,
+                'calls_outgoing_unanswered'=> 0,
+                'avg_holdtime'             => 0,
             );
         }
 
-        for ($i = 0; $i < 10; $i++) {
-            $h = $i < 10 ? '0' . $i : $i;
-            $hourly_stats[$h] = array(
-                'calls_answered'            => 0,
-                'incoming_total_calltime'   => 0,
-                'calls_unanswered'          => 0,
-                'calls_outgoing_answered'   => 0,
-                'outgoing_total_calltime'   => 0,
-                'calls_outgoing_unanswered' => 0,
-                'hold_time_avg'             => 0,
-            );
+        foreach($hourly_event_stats as $e)
+        {
+            if($e->hour)
+            {
+                $rows_hours[$e->hour]['calls_missed']= $e->calls_missed;
+            }
         }
 
-
-        foreach ($hourly_call_stats as $s) {
+        foreach ($hourly_call_stats as $s) 
+        {
             $hourly_stats[$s->hour]['calls_answered']            = $s->calls_answered;
             $hourly_stats[$s->hour]['incoming_total_calltime']   = $s->incoming_total_calltime;
-            $hourly_stats[$s->hour]['calls_unanswered']          = $s->calls_unanswered;
             $hourly_stats[$s->hour]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
             $hourly_stats[$s->hour]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
             $hourly_stats[$s->hour]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $hourly_stats[$s->hour]['hold_time_avg']             = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
+            $hourly_stats[$s->hour]['hold_time_avg']             = ceil(($s->total_holdtime + $s->total_waittime) == 0 || $rows_hours[$s->hour]['calls_missed'] == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $rows_hours[$s->hour]['calls_missed']));
         }
 
         $rows_hours[] = array(
@@ -3535,35 +3531,9 @@ class Export extends MY_Controller {
             lang('hold_time')
         );
 
-        for ($i = 10; $i < 24; $i++) {
-            $h = $i < 10 ? '0' . $i : $i;
-            $rows_hours[] = array(
-                $h . ":00",
-                $hourly_stats[$h]['calls_answered'],
-                sec_to_time($hourly_stats[$h]['incoming_total_calltime']),
-                $hourly_stats[$h]['calls_unanswered'],
-                $hourly_stats[$h]['calls_outgoing_answered'],
-                sec_to_time($hourly_stats[$h]['outgoing_total_calltime']),
-                $hourly_stats[$h]['calls_outgoing_unanswered'],
-                sec_to_time($hourly_stats[$h]['hold_time_avg']),
-            );
-        }
 
-        for ($i = 0; $i < 10; $i++) {
-            $h = $i < 10 ? '0' . $i : $i;
-            $rows_hours[] = array(
-                $h . ":00",
-                $hourly_stats[$h]['calls_answered'],
-                sec_to_time($hourly_stats[$h]['incoming_total_calltime']),
-                $hourly_stats[$h]['calls_unanswered'],
-                $hourly_stats[$h]['calls_outgoing_answered'],
-                sec_to_time($hourly_stats[$h]['outgoing_total_calltime']),
-                $hourly_stats[$h]['calls_outgoing_unanswered'],
-                sec_to_time($hourly_stats[$h]['hold_time_avg']),
-            );
-        }
          /////////////////// ---------- END OFTIME SHEET ----------------//////////////////////////
-        // $this->_prepare_headers('agent_'.$agent->display_name.'_stats-'.date('Ymd-His').'.xlsx');
+        $this->_prepare_headers('agent_'.$agent->display_name.'_stats-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
