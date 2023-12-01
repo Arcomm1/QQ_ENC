@@ -1376,15 +1376,13 @@ class Export extends MY_Controller {
                 
                     if($i->calls_unanswered == 0)
                     {
-
-                        $avg_holdtme = sec_to_time(0);
+    
+                        $avg_holdtme = '00:00:00';
                     }
                     else
                     {
                         $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
                     }
-
-                  
                     $rows_days[] = array(
                         'day'                       => $i->date,
                         'calls_answered'            => $i->calls_answered,
@@ -1393,7 +1391,9 @@ class Export extends MY_Controller {
                         'calls_outgoing_answered'   => $i->calls_outgoing_answered,
                         'outgoing_total_calltime'   => sec_to_time($i->outgoing_total_calltime),
                         'calls_outgoing_unanswered' => $i->calls_outgoing_unanswered,
+                        'avg_holdtime'              => $avg_holdtime,
                     );
+
                     break;
                 }
             }
@@ -2821,7 +2821,9 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('calls_unique_users'), $total_stats->unique_incoming_calls_answered);
         
         // Incoming Answered
-        $rows_overview[] = array(lang('start_menu_calls_answered'), $total_stats->calls_answered);
+        $calls_answered_percent        = $total_stats->calls_answered > 0 && ($total_stats->calls_answered + $total_stats->calls_unanswered) > 0 ? (($total_stats->calls_answered / ($total_stats->calls_answered + $total_stats->calls_unanswered)) * 100) : 0;
+        $calls_answered_formatted_perc = intval($calls_answered_percent * 100) / 100;
+        $rows_overview[] = array(lang('start_menu_calls_answered'), $total_stats->calls_answered, $calls_answered_formatted_perc);
 
         // SLA Less Then Or Equal To 10 Sec
         if ($total_stats->sla_count_less_than_or_equal_to_10 > 0 && $total_stats->calls_answered > 0) 
@@ -3003,7 +3005,7 @@ class Export extends MY_Controller {
             lang('agent'),
             lang('calls_answered'),
             lang('incoming_talk_time_sum_overview'),
-            lang('calls_missed'),
+            lang('ringnoanswer'),
             lang('calls_outgoing_answered'),
             lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed')
