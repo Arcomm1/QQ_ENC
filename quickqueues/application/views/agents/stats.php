@@ -254,7 +254,7 @@
                                             <td>{{ h.hour }}</td>
                                             <td>{{ h.calls_answered }}</td>
                                             <td>{{ sec_to_time(h.incoming_total_calltime) }}</td>
-                                            <td>{{ h.calls_unanswered }}</td>
+                                            <td>{{ h.calls_missed }}</td>
                                             <td>{{ h.calls_outgoing_answered }}</td>
                                             <td>{{ sec_to_time(h.outgoing_total_calltime) }}</td>
                                             <td>{{ h.calls_outgoing_unanswered }}</td>
