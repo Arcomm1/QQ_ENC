@@ -649,14 +649,13 @@ class Export extends MY_Controller {
 
     public function overview_new()
     {
-        $date_gt = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
-        $date_lt = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+        $date_gt    = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
+        $date_lt    = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
         $date_range = array('date_gt' => $date_gt, 'date_lt' => $date_lt);
-        $precision = $this->data->config->app_round_to_hundredth == 'yes' ? 2 : false;
+        $precision  = $this->data->config->app_round_to_hundredth == 'yes' ? 2 : false;
 
         $row_header = array(lang('overall').' '.lang('stats'). ' '.$date_gt.' > '.$date_lt);
-
-        $queue_ids = array();
+        $queue_ids  = array();
 
         foreach ($this->data->user_queues as $q) {
             array_push($queue_ids, $q->id);
@@ -672,8 +671,6 @@ class Export extends MY_Controller {
         ////////////////// -------- OVERVIEW SHEET ------/////////////////////////
 
         $total_stats = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
-        $total_event_stats = $this->Event_model->get_stats_for_start($queue_ids, $date_range);
-        var_dump($total_event_stats);
 
         // Total Calls
         $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
@@ -754,8 +751,6 @@ class Export extends MY_Controller {
         }
 
         // Hold Time AVG
-
-       // თუ  $total_stats->incoming_total_calltime_count 0-ია
         
         if($total_hold_wait_time > 0 && $total_answered_unanswered > 0 && $total_stats->incoming_total_calltime_count > 0)
         {
@@ -894,7 +889,7 @@ class Export extends MY_Controller {
             // Total Calls
             $totalCalls = $total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered;
     
-            $agentCalls = $s->calls_answered + $agent_stats[$s->agent_id]['calls_missed'] + $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
+            $agentCalls = $s->calls_answered + $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
          
 
             if($agentCalls > 0 && $totalCalls > 0)
@@ -905,6 +900,7 @@ class Export extends MY_Controller {
             {
                 $agent_stats[$s->agent_id]['calls_total_perc'] = '0';
             }
+
             $agent_stats[$s->agent_id]['calls_total']          = $agentCalls;
 
             //Calls Answered 
@@ -1208,7 +1204,7 @@ class Export extends MY_Controller {
           $queue_stats[$s->queue_id]['calls_unanswered_perc'] = $calls_unanswered_percent;
   
           // ATA AVG
-          $queue_stats[$s->queue_id]['ata_time_avg']          = $s->ata_count_total > 0 ? sec_to_time(floor($total_stats-> ata_total_waittime / $s->ata_count_total)) : 0;
+          $queue_stats[$s->queue_id]['ata_time_avg']          = $s->ata_count_total > 0 ? sec_to_time(floor($s->ata_total_waittime / $s->ata_count_total)) : 0;
           
           // Without Service
           $queue_stats[$s->queue_id]['calls_without_service'] = $s->calls_without_service;
@@ -1361,7 +1357,7 @@ class Export extends MY_Controller {
             lang('day'),
             lang('calls_answered'),
             lang('incoming_talk_time_sum_overview'),
-            lang('calls_missed'),
+            lang('start_menu_calls_unanswered'),
             lang('calls_outgoing_answered'),
             lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
@@ -1464,7 +1460,7 @@ class Export extends MY_Controller {
             lang('hour'),
             lang('calls_answered'),
             lang('incoming_talk_time_sum_overview'),
-            lang('calls_missed'),
+            lang('start_menu_calls_unanswered'),
             lang('calls_outgoing_answered'),
             lang('outgoing_talk_time_sum_overview'),
             lang('calls_outgoing_failed'),
@@ -1527,7 +1523,7 @@ class Export extends MY_Controller {
         // }
         ////////////////// End category sheet /////////////////////////////////////////////////////
 
-        // $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
+        $this->_prepare_headers('overview-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
@@ -1537,10 +1533,6 @@ class Export extends MY_Controller {
         $style1     = array('font-style'=>'bold');
         $style2     = array('halign'=>'left', 'valign'=>'left');
         $style3     = array('border'=>'left,right,top,bottom', 'border-style'=>'medium');
-
-
-       
-
         $writer->initializeSheet(lang('overview'),[70,10,10]);
         $writer->writeSheetRow(lang('overview'), $row_header, $style1, $style2, $style3);
         foreach($rows_overview as $row) 
@@ -1548,14 +1540,14 @@ class Export extends MY_Controller {
             $writer->writeSheetRow(lang('overview'), $row, $style2, $style3);
         }
 
-        $writer->initializeSheet(lang('agents'),[70,15,15,5,30,5,15,5,30,5,20,5,30,30,30,5,40,40,40,30,20,40,40,40]);
+        $writer->initializeSheet(lang('agents'),[70,15,15,5,30,5,15,5,30,5,20,5,30,30,30,40,40,40,40,30,20,40,40,40]);
         $writer->writeSheetRow(lang('agents'), $row_header,  $style1, $style2, $style3 );
         foreach($rows_agents as $row) 
         {
             $writer->writeSheetRow(lang('agents'), $row, $style2, $style3  );
         }
 
-        $writer->initializeSheet(lang('queues'),[70,20,30,30,30,5,15,5,30,5,25,5,30,30,20,5,20,20,30,30,25,20,30,30,40,40,40,40,40,40,30,30]);
+        $writer->initializeSheet(lang('queues'),[70,20,30,30,30,5,15,5,30,5,25,5,30,30,30,5,20,20,30,30,25,20,30,30,40,40,40,40,40,40,30,30]);
         $writer->writeSheetRow(lang('queues'), $row_header, $style1, $style2, $style3 );
         foreach($rows_queues as $row)
         {
