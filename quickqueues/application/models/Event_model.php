@@ -93,28 +93,31 @@ class Event_model extends MY_Model {
         if (count($queue_ids) == 0 || count($date_range) == 0) {
             return false;
         }
+    
+        $this->db->select('queue_id');
         $this->db->select('COUNT(CASE WHEN event_type = "DID" THEN 1 END) AS calls_unique');
         $this->db->select('COUNT(CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS calls_answered');
         $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS calls_outgoing_answered');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS calls_unanswered');
-        // $this->db->select('COUNT(CASE WHEN (event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND holdtime < 5) THEN 1 END) AS calls_unanswered_ignored');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
         $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-
+    
         $this->db->where_in('queue_id', $queue_ids);
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
-        return $this->db->get($this->_table)->row();
+        $this->db->group_by('queue_id'); // Group by queue_id to get results for each queue
+    
+        return $this->db->get($this->_table)->result();
     }
-
+    
     public function get_agent_stats_for_start_page($queue_ids = array(), $date_range = array())
     {
         if (count($queue_ids) == 0 || count($date_range) == 0) {
             return false;
         }
         $this->db->select('agent_id');
-        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 0 THEN 1 END) AS calls_missed');
+        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 1 THEN 1 END) AS calls_missed');
         $this->db->where_in('queue_id', $queue_ids);
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
@@ -144,12 +147,45 @@ class Event_model extends MY_Model {
             return false;
         }
         $this->db->select('agent_id');
-        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 0 THEN 1 END) AS calls_missed');
+        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 1 THEN 1 END) AS calls_missed');
         $this->db->select('SUM(IF(event_type = "STOPPAUSE", pausetime, 0)) AS total_pausetime');
         $this->db->where_in('agent_id', $agent_id);
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
         return $this->db->get($this->_table)->row();
+    }
+
+    public function get_agent_hourly_stats_for_agent_stats_page($agent_id = array(), $date_range = array())
+    {
+        if (!$agent_id || count($date_range) == 0) 
+        {
+            return false;
+        }
+
+        $this->db->select('DATE_FORMAT(date, "%H") AS hour');
+        $this->db->select('agent_id');
+        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 1 THEN 1 END) AS calls_missed');
+        $this->db->where_in('agent_id', $agent_id);
+        $this->db->where('date >', $date_range['date_gt']);
+        $this->db->where('date <', $date_range['date_lt']);
+        $this->db->group_by('DATE_FORMAT(date, "%H")');
+        return $this->db->get($this->_table)->result();
+    }
+    public function get_agent_daily_stats_for_agent_stats_page($agent_id = array(), $date_range = array())
+    {
+        if (!$agent_id || count($date_range) == 0) 
+        {
+            return false;
+        }
+
+        $this->db->select('DATE_FORMAT(date, "%Y-%m-%d") AS date');
+        $this->db->select('agent_id');
+        $this->db->select('COUNT(CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 1 THEN 1 END) AS calls_missed');
+        $this->db->where_in('agent_id', $agent_id);
+        $this->db->where('date >', $date_range['date_gt']);
+        $this->db->where('date <', $date_range['date_lt']);
+        $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
+        return $this->db->get($this->_table)->result();
     }
 
 
