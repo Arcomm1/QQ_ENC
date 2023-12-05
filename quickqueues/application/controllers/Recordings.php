@@ -10,8 +10,10 @@ class Recordings extends MY_Controller {
         parent::__construct();
         $this->data->page_title = lang('recordings');
 
-        if ($this->data->config->app_contacts == 'yes') {
-            foreach ($this->Contact_model->get_all() as $c) {
+        if ($this->data->config->app_contacts == 'yes') 
+        {
+            foreach ($this->Contact_model->get_all() as $c) 
+            {
                 $this->data->contacts[$c->number] = $c->name;
             }
         }
@@ -30,8 +32,6 @@ class Recordings extends MY_Controller {
             'OUTGOING'       => 'outgoing',
             'OUT_ANSWERED'   => 'out_answered',
             'OUT_UNANSWERED' => 'out_unanswered',
-            "RINGNOANSWER"   => 'ringnoanswer'
-
         );
 
         
@@ -39,12 +39,14 @@ class Recordings extends MY_Controller {
     
         $this->data->called_back_styles = qq_get_called_back_styles();
         
-        foreach ($this->data->user_queues as $q) {
+        foreach ($this->data->user_queues as $q) 
+        {
             $this->data->queues[$q->id] = $q->display_name;
-            $this->data->queue_ids[] = $q->id;
+            $this->data->queue_ids[]    = $q->id;
         }
         
-        foreach ($this->data->user_agents as $a) {
+        foreach ($this->data->user_agents as $a) 
+        {
             $this->data->agents[$a->id] = $a->display_name;
         }
         
@@ -64,6 +66,14 @@ class Recordings extends MY_Controller {
             $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
         }
 
+        if ($this->input->get('event_type') == 'RINGNOANSWER') 
+        {
+            $where['agent_id'] = array($agentId, 0); 
+        } 
+        else 
+        {
+           $where['agent_id'] = $this->input->get('agent_id');
+        }
         $where['called_back'] = $this->input->get('called_back');
         $where['transferred'] = $this->input->get('transferred');
         $where['duplicate']   = $this->input->get('duplicate');
@@ -78,24 +88,29 @@ class Recordings extends MY_Controller {
             $where['answered_elsewhere >'] = 1;
         }
 
-        if ($this->input->get('calls_without_service')) {
+        if ($this->input->get('calls_without_service')) 
+        {
             $where['called_back'] = 'no';
             $where['answered_elsewhere'] = 'isnull';
             $where['waittime >='] = $this->data->config->app_ignore_abandon;
             $this->data->calls_without_service = 'yes';
         }
-        else {
+        else 
+        {
             $this->data->calls_without_service = false;
         }
 
-        if (strpos($this->input->get('uniqueid'), ',') !== false) {
+        if (strpos($this->input->get('uniqueid'), ',') !== false) 
+        {
             $where['uniqueid'] = explode(',', $this->input->get('uniqueid'));
         }
-        else {
+        else 
+        {
             $where['uniqueid'] = $this->input->get('uniqueid');
         }
 
-        if ($this->input->get('event_type') == 'ANSWERED') {
+        if ($this->input->get('event_type') == 'ANSWERED') 
+        {
             $where['event_type'] = array('COMPLETECALLER', 'COMPLETEAGENT');
         }
         elseif ($this->input->get('event_type') == 'RINGNOANSWER') 
@@ -108,57 +123,70 @@ class Recordings extends MY_Controller {
                 );
                 
                 $ring_no_answer_calls = $this->Event_model->get_ring_no_answer_calls($agentId, $date_range);
-        
+                
                 foreach ($ring_no_answer_calls as $call) 
                 {
                     $unique_Ids[] = $call->uniqueid;
                 }
                 $uniqueIds = array_unique($unique_Ids);
 
-                // Check if there are unique IDs before querying the database
                 if (!empty($uniqueIds)) 
                 {
-                    // Retrieve calls from Call_model
+                    
                     $where['uniqueid'] = $uniqueIds;
-                }
-
-               
+                } 
             }
         } 
-        elseif ($this->input->get('event_type') == 'UNANSWERED') {
-            if ($this->data->config->app_track_ivrabandon == 'yes') {
+        elseif ($this->input->get('event_type') == 'UNANSWERED') 
+        {
+            if ($this->data->config->app_track_ivrabandon == 'yes') 
+            {
                 $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
-            } else {
+            } 
+            else 
+            {
                 $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
             }
         }
-        elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL') {
-            $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
+        elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL')
+        {
+            $where['event_type']     = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
             $where['LENGTH(dst) <='] = 4;
         }
-        elseif ($this->input->get('event_type') == 'OUTGOING_EXTERNAL') {
+        elseif ($this->input->get('event_type') == 'OUTGOING_EXTERNAL') 
+        {
             $where['event_type'] = array('OUT_FAILED', 'OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY');
             $where['LENGTH(dst) >'] = 4;
         }
-        elseif ($this->input->get('event_type') == 'INCOMING') {
+        elseif ($this->input->get('event_type') == 'INCOMING') 
+        {
             $where['event_type'] = array('INC_FAILED', 'INC_ANSWERED', 'INC_NOANSWER', 'INC_BUSY');
-        } elseif ($this->input->get('event_type') == 'INCOMINGOFFWORK') {
+        } 
+        elseif ($this->input->get('event_type') == 'INCOMINGOFFWORK') 
+        {
             $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
-        } elseif ($this->input->get('event_type') == 'OUTGOING') {
+        } 
+        elseif ($this->input->get('event_type') == 'OUTGOING') 
+        {
             $where['event_type'] = array('OUT_ANSWERED', 'OUT_BUSY', 'OUT_FAILED', 'OUT_NOANSWER');
-        } elseif ($this->input->get('event_type') == 'OUT_ANSWERED') {
+        } 
+        elseif ($this->input->get('event_type') == 'OUT_ANSWERED') 
+        {
             $where['event_type'] = 'OUT_ANSWERED';
-        } elseif ($this->input->get('event_type') == 'OUT_UNANSWERED') {
+        } 
+        elseif ($this->input->get('event_type') == 'OUT_UNANSWERED') 
+        {
             $where['event_type'] = array('OUT_BUSY', 'OUT_FAILED', 'OUT_NOANSWER');
-        } else {
+        } 
+        else 
+        {
             $where['event_type'] = $this->input->get('event_type');
         }
 
-        $like['src'] = $this->input->get('src');
-        $like['dst'] = $this->input->get('dst');
-        $like['transferdst'] = $this->input->get('transferred_to');
-        $like['comment'] = $this->input->get('comment');
-        //zura
+        $like['src']            = $this->input->get('src');
+        $like['dst']            = $this->input->get('dst');
+        $like['transferdst']    = $this->input->get('transferred_to');
+        $like['comment']        = $this->input->get('comment');
         $like['subject_family'] = $this->input->get('subject_search_array');
         //echo $like['subject_family'];
         //die();
@@ -168,7 +196,8 @@ class Recordings extends MY_Controller {
         if ($this->input->get('random') == 'true') {
             $this->data->num_calls = 20;
         }
-        else{
+        else
+        {
             $this->data->num_calls  = $this->Call_model->count($where, $like);
         }
         // die(print_r($like));
@@ -206,9 +235,7 @@ class Recordings extends MY_Controller {
         {
             $this->data->call_tags = $this->Call_tag_model->get_all();
         }
-       
         load_views('recordings/index', $this->data, true);
     }
-
 
 }
