@@ -23,32 +23,40 @@ class Recordings extends MY_Controller {
         $this->data->js_include = base_url('assets/js/components/recordings/index.js');
 
         $this->data->interesting_events = array(
-            'ANSWERED' => 'answered',
-            'UNANSWERED' => 'unanswered',
-            'COMPLETEAGENT' => 'COMPLETEAGENT',
+            'ANSWERED'       => 'answered',
+            'UNANSWERED'     => 'unanswered',
+            'COMPLETEAGENT'  => 'COMPLETEAGENT',
             'COMPLETECALLER' => 'COMPLETECALLER',
-            'OUTGOING' => 'outgoing',
-            'OUT_ANSWERED' => 'out_answered',
+            'OUTGOING'       => 'outgoing',
+            'OUT_ANSWERED'   => 'out_answered',
             'OUT_UNANSWERED' => 'out_unanswered',
+            "RINGNOANSWER"   => 'ringnoanswer'
 
         );
 
+        
+        $agentId = $this->input->get('agent_id'); //Added agent id
+    
         $this->data->called_back_styles = qq_get_called_back_styles();
-
+        
         foreach ($this->data->user_queues as $q) {
             $this->data->queues[$q->id] = $q->display_name;
             $this->data->queue_ids[] = $q->id;
         }
-
+        
         foreach ($this->data->user_agents as $a) {
             $this->data->agents[$a->id] = $a->display_name;
         }
-
+        
         $where = array();
         $like = array();
-
+        
         $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
         $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
+        
+       
+        $ring_no_answer_calls = array(); // Initialize an empty array
+
 
         if ($this->data->logged_in_user->role == 'admin') {
             $where['queue_id'] = $this->input->get('queue_id');
@@ -56,7 +64,6 @@ class Recordings extends MY_Controller {
             $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
         }
 
-        $where['agent_id']    = $this->input->get('agent_id');
         $where['called_back'] = $this->input->get('called_back');
         $where['transferred'] = $this->input->get('transferred');
         $where['duplicate']   = $this->input->get('duplicate');
@@ -91,6 +98,33 @@ class Recordings extends MY_Controller {
         if ($this->input->get('event_type') == 'ANSWERED') {
             $where['event_type'] = array('COMPLETECALLER', 'COMPLETEAGENT');
         }
+        elseif ($this->input->get('event_type') == 'RINGNOANSWER') 
+        {
+            if ($this->data->config->app_track_ringnoanswer == 'yes') 
+            {
+                $date_range = array(
+                    'date_gt' => $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START,
+                    'date_lt' => $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END
+                );
+                
+                $ring_no_answer_calls = $this->Event_model->get_ring_no_answer_calls($agentId, $date_range);
+        
+                foreach ($ring_no_answer_calls as $call) 
+                {
+                    $unique_Ids[] = $call->uniqueid;
+                }
+                $uniqueIds = array_unique($unique_Ids);
+
+                // Check if there are unique IDs before querying the database
+                if (!empty($uniqueIds)) 
+                {
+                    // Retrieve calls from Call_model
+                    $where['uniqueid'] = $uniqueIds;
+                }
+
+               
+            }
+        } 
         elseif ($this->input->get('event_type') == 'UNANSWERED') {
             if ($this->data->config->app_track_ivrabandon == 'yes') {
                 $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
@@ -172,7 +206,7 @@ class Recordings extends MY_Controller {
         {
             $this->data->call_tags = $this->Call_tag_model->get_all();
         }
-
+       
         load_views('recordings/index', $this->data, true);
     }
 
