@@ -188,5 +188,24 @@ class Event_model extends MY_Model {
         return $this->db->get($this->_table)->result();
     }
 
+    public function get_ring_no_answer_calls($agent_id = array(), $date_range = array())
+    {
+        if (count($agent_id) == 0 || count($date_range) == 0) {
+            return false;
+        }
+    
+        $this->db->select('*');
+        $this->db->where_in('agent_id', $agent_id);
+        $this->db->where('date >', $date_range['date_gt']);
+        $this->db->where('date <', $date_range['date_lt']);
+        $this->db->where('event_type', 'RINGNOANSWER');
+        $this->db->where('ringtime >', 1); // Adjust the condition based on your requirements
+    
+        $result = $this->db->get($this->_table)->result();
+    
+    
+        return $result;
+    }
+    
 
 }
