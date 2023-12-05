@@ -77,14 +77,14 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-list-rich text-primary mr-2"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['calls_total'] }}</a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>">{{ lang['calls_total'] }}</a>
                                         </span>
                                         <span>{{ calls_total }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-check text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['start_menu_calls_answered'] }}</a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>">{{ lang['start_menu_calls_answered'] }}</a>
                                         </span>
                                         <span>{{ calls_answered }}</span>
                                     </li>
@@ -130,7 +130,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-warning mr-2"></i>
-                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['ringnoanswer'] }}</a>
+                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=RINGNOANSWER&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>">{{ lang['ringnoanswer'] }}</a>
                                         </span>
                                         <span>{{ total_stats.calls_missed }}</span>
                                     </li>
@@ -160,7 +160,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-arrow-thick-right text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('calls_outgoing_answered'); ?></a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>"><?php echo lang('calls_outgoing_answered'); ?></a>
                                         </span>
                                         <span>{{ total_stats.calls_outgoing_answered }}</span>
                                     </li>
