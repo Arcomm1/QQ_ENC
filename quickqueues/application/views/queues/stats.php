@@ -74,7 +74,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-list-rich text-primary mr-2"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['calls_total'] }}</a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>">{{ lang['calls_total'] }}</a>
                                         </span>
                                         <span>{{ calls_total }}</span>
                                     </li>
@@ -95,7 +95,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-check text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['start_menu_calls_answered'] }}</a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>">{{ lang['start_menu_calls_answered'] }}</a>
                                         </span>
                                         <span>{{ calls_answered_percent }}</span>
                                     </li>
@@ -139,7 +139,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-warning mr-2"></i>
-                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['start_menu_calls_unanswered'] }}</a>
+                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>">{{ lang['start_menu_calls_unanswered'] }}</a>
                                         </span>
                                         <span>{{ calls_unanswered_percent }}</span>
                                     </li>
@@ -153,14 +153,14 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-danger mr-2"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/AdditionalRecordings?event_type=UNANSWERED&calls_without_service=yes&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('calls_without_service'); ?></a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/AdditionalRecordings?event_type=UNANSWERED&calls_without_service=yes&date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>"><?php echo lang('calls_without_service'); ?></a>
                                         </span>
                                         <span>{{ total_stats.calls_without_service }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-check text-warning mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?answered_elsewhere=yes&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('answered_elsewhere'); ?></a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?answered_elsewhere=yes&date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>"><?php echo lang('answered_elsewhere'); ?></a>
 
                                         </span>
                                         <span>{{ total_stats.answered_elsewhere }}</span>
@@ -168,14 +168,14 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-reload text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?called_back=yes&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('answered_aoutcall'); ?></a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?called_back=yes&date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>"><?php echo lang('answered_aoutcall'); ?></a>
                                         </span>
                                         <span>{{ total_stats.called_back }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-arrow-thick-right text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('calls_outgoing_answered'); ?></a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>"><?php echo lang('calls_outgoing_answered'); ?></a>
                                         </span>
                                         <span>{{ total_stats.calls_outgoing_answered }}</span>
                                     </li>
@@ -196,7 +196,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-lock-locked text-danger mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=INCOMINGOFFWORK &date_gt='+date_gt+'&date_lt='+date_lt"><?php echo lang('start_menu_calls_offwork'); ?></a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=INCOMINGOFFWORK &date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>"><?php echo lang('start_menu_calls_offwork'); ?></a>
                                             <!-- {{ lang['calls_offwork'] }} -->
                                         </span>
                                         <!-- total -->
