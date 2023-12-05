@@ -103,7 +103,7 @@ var queue_stats = new Vue({
                                     data: dataset_outgoing,
                                 },
                                 {
-                                    label: lang['calls_missed'],
+                                    label: lang['ringnoanswer'],
                                     backgroundColor: get_colors('red'),
                                     data: dataset_missed,
                                 },
