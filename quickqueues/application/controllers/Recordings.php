@@ -66,13 +66,10 @@ class Recordings extends MY_Controller {
             $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
         }
 
-        if ($this->input->get('event_type') == 'RINGNOANSWER') 
+        if($this->input->get('event_type') != 'RINGNOANSWER')
         {
-            $where['agent_id'] = array($agentId, 0); 
-        } 
-        else 
-        {
-           $where['agent_id'] = $this->input->get('agent_id');
+
+            $where['agent_id']    = $this->input->get('agent_id');
         }
         $where['called_back'] = $this->input->get('called_back');
         $where['transferred'] = $this->input->get('transferred');
@@ -123,6 +120,11 @@ class Recordings extends MY_Controller {
                 );
                 
                 $ring_no_answer_calls = $this->Event_model->get_ring_no_answer_calls($agentId, $date_range);
+
+                if (empty($ring_no_answer_calls)) 
+                {
+                    return;
+                }
                 
                 foreach ($ring_no_answer_calls as $call) 
                 {
@@ -135,6 +137,7 @@ class Recordings extends MY_Controller {
                     
                     $where['uniqueid'] = $uniqueIds;
                 } 
+                
             }
         } 
         elseif ($this->input->get('event_type') == 'UNANSWERED') 
