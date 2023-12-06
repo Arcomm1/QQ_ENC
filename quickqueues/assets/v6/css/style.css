@@ -15174,3 +15174,7 @@ select option {
 {
  display: none;
 }
+.additionalRecordings
+{
+  flex-direction: column;
+}
