@@ -6,7 +6,7 @@
                     <div class="row">
                         <div class="col">
                             <?php echo form_open(false,array('method' => 'get')); ?>
-                            <div class="row">
+                            <div class="row additionalRecordings">
                                 <div class="col-md-3 col-sm-12" style="width:100%">
                                     <div class="form-floating mb-3">
                                         <input class="form-control" autocomplete="off" tupe="text" id="date_gt" name="date_gt" placeholder="date_gt" value="<?php echo $this->input->get('date_gt'); ?>">
