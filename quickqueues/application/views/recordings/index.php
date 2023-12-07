@@ -331,7 +331,7 @@
                             <th><?php echo lang('call_time'); ?></th>
                             <th><?php echo lang('hold_time'); ?></th>
                             <th><?php echo lang('ring_time'); ?></th>
-                            <tr v-for="e in call_events">
+                            <tr v-for="e in call_events" v-if="e.event_type !== 'DID'">
                                 <td>{{ e.date }}</td>
                                 <td>{{ e.event_type }}</td>
                                 <td v-if="e.agent_id > 0">{{ agents[e.agent_id].display_name }}</td>
