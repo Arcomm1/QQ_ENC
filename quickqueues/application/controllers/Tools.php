@@ -16,7 +16,10 @@ class Tools extends CI_Controller {
         $this->_config_ctl_allowed_actions = array(
             'create', 'edit', 'reset'
         );
+
         parent::__construct();
+
+
         $this->load->model('./../models/Settings_model', 'globalSettings');
         //$this->parse_queue_log();
     }
@@ -122,8 +125,9 @@ class Tools extends CI_Controller {
     /** Parse queue log file */
     public function parse_queue_log()
     {
-         log_to_file('NOTICE', 'Running parser');
+        log_to_file('NOTICE', 'Running parser');
 
+        parser_unlock();
 
         $lock = parser_read_lock();
         if ($lock) {
@@ -177,24 +181,26 @@ class Tools extends CI_Controller {
             $agents[$a->name] = $a;
         }
 
-        $parsed_events = 0;
-        $last_event = false;
-        $track_ringnoanswer = $this->Config_model->get_item('app_track_ringnoanswer');
-        $track_transfers = $this->Config_model->get_item('app_track_transfers');
+        $parsed_events           = 0;
+        $last_event              = false;
+        $track_ringnoanswer      = $this->Config_model->get_item('app_track_ringnoanswer');
+        $track_transfers         = $this->Config_model->get_item('app_track_transfers');
         $mark_answered_elsewhere = $this->Config_model->get_item('app_mark_answered_elsewhere');
-        $track_duplicate_calls = $this->Config_model->get_item('app_track_duplicate_calls');
-
-
+        $track_duplicate_calls   = $this->Config_model->get_item('app_track_duplicate_calls');
+       
         // Begin parsing
-        while (($line = fgets($queue_log)) !== FALSE) {
+        while (($line = fgets($queue_log)) !== FALSE) 
+        {
+
             /**
             * Event structure
             * 1366720340  |1366720340.303267  |MYQUEUE     |SIP/8007    |RINGNOANSWER |1000|x|y|z
             * Timestamp   |Unique ID          |Queue name  |Agent name  |Event name   |Variable event data
             * $ev_data[0] |$ev_data[1]        |$ev_data[2] |$ev_data[3] |$ev_data[4]  |$ev_data[n]
             */
-
-            if (!$line or strlen($line) == 0) {
+            
+            if (!$line or strlen($line) == 0) 
+            {
                 log_to_file("NOTICE", "Skipping empty line");
                 continue;
             }
@@ -205,35 +211,45 @@ class Tools extends CI_Controller {
              * Some broken Asterisk instances log crooked timestamps
              * For some events. This should fix it
              */
-            if (strlen($ev_data[0]) == 13) {
+            if (strlen($ev_data[0]) == 13) 
+            {
                 continue;
             }
 
             // Skip already parsed events
-            if ($last_parsed_event >= $ev_data[0]) {
-                continue;
+            if ($last_parsed_event >= $ev_data[0]) 
+            {
+                //continue;
             }
 
             // Do not parse unknown events
-            if (!array_key_exists($ev_data[4], $event_types)) {
+            if (!array_key_exists($ev_data[4], $event_types)) 
+            {
                 log_to_file('WARNING', "Skipping unknown event ".$ev_data[4]);
                 continue;
             }
 
-            if ($ev_data[4] == 'CONFIGRELOAD') {
+          
+            if ($ev_data[4] === 'CONFIGRELOAD') 
+            {
                 continue;
             }
 
-            if ($track_ringnoanswer == 'no' and $ev_data[4] == 'RINGNOANSWER') {
+            if ($track_ringnoanswer == 'no' and $ev_data[4] == 'RINGNOANSWER') 
+            {
                 continue;
             }
 
+            $queue_id = null;
 
             if ($ev_data[2] == 'NONE')
 			{
                 $queue_id = false;
-            } else {
-                if (!array_key_exists($ev_data[2], $queues)) {
+            } 
+            else 
+            {
+                if (!array_key_exists($ev_data[2], $queues)) 
+                {
                     $new_queue_id = $this->Queue_model->create(array('name' => $ev_data[2], 'display_name' => $ev_data[2]));
                     if (!$new_queue_id) {
                         log_to_file('ERROR', 'Could not create new queue, event timestamp and uniqueid are '.$ev_data[0]."|".$ev_data['1']);
@@ -241,15 +257,20 @@ class Tools extends CI_Controller {
                     }
                     $queues[$ev_data[2]] = $this->Queue_model->get($new_queue_id);
                     $queue_id = $new_queue_id;
-                } else {
+                } 
+                else 
+                {
                     $queue_id = $queues[$ev_data[2]]->id;
                 }
             }
+            
+            $agent_id = null;
 
-
-            if ($ev_data[3] == 'NONE') {
+            if ($ev_data[3] == 'NONE') 
+            {
                 $agent_id = false;
-            } else {
+            } else 
+            {
                 if (!array_key_exists($ev_data[3], $agents)) {
                     if (in_array($ev_data[4], array('STARTPAUSE', 'STARTSESSION', 'STOPSESSION', 'STOPPAUSE'))) {
                         log_to_file('NOTICE', 'Not creating new agent since they have no calls yet');
@@ -286,7 +307,8 @@ class Tools extends CI_Controller {
             /**
              * ENTERQUEUE - call entered queue, new Call row should be created
              */
-            if ($ev_data[4] == 'ENTERQUEUE') {
+            if ($ev_data[4] == 'ENTERQUEUE') 
+            {
                 // $ev_data[5] is holding "url" param, which we do not use
                 $event['src'] = $ev_data[6];
                 $this->Call_model->create($event);
@@ -296,7 +318,8 @@ class Tools extends CI_Controller {
              * CONNECT - call that entered queue (ENTERQUEUE event) was connected to agents,
              * update call entry matching ENTERQUEUE and current unique ID
              */
-            if ($ev_data[4] == 'CONNECT') {
+            if ($ev_data[4] == 'CONNECT') 
+            {
                 // This event has holdtime, in $ev_data[5], but we do not need to
                 // store this since same value will be processed through COMPLETECALLER
                 // or COMPLETEAGENT event
@@ -308,12 +331,14 @@ class Tools extends CI_Controller {
                 $this->Queue_model->add_agent($queue_id, $agent_id);
                 $this->Agent_model->add_primary_queue($agent_id, $queue_id);
             }
-
+            
             /**
              * COMPLETE - call that was CONNECTed to agent was completed.
              * Update call entry matching CONNECT event and current unique ID
              */
-            if ($ev_data[4] == 'COMPLETEAGENT' || $ev_data[4] == 'COMPLETECALLER') {
+
+            if ($ev_data[4] == 'COMPLETEAGENT' || $ev_data[4] == 'COMPLETECALLER') 
+            {
                 $event['holdtime'] = $ev_data[5];
                 $event['calltime'] = $ev_data[6];
                 $event['origposition'] = $ev_data[7];
@@ -389,28 +414,28 @@ class Tools extends CI_Controller {
                  * We need to update corresponding DID event with new timestamp and date, so that
                  * call completion date matches DId event
                  */
-                $this->Event_model->update_by_complex(
-                    array(
-                        'uniqueid' => $ev_data[1],
-                        'event_type' => 'DID_FUTURE',
-                    ),
-                    array(
-                        'timestamp' => $event['timestamp'],
-                        'date' => $event['date'],
-                        'event_type' => 'DID'
-                    )
-                );
+                    $this->Event_model->update_by_complex(
+                        array(
+                            'uniqueid' => $ev_data[1],
+                            'event_type' => 'DID_FUTURE',
+                        ),
+                        array(
+                            'timestamp' => $event['timestamp'],
+                            'date' => $event['date'],
+                            'event_type' => 'DID'
+                        )
+                    );
 
-                if ($track_transfers == 'yes') {
-                    $transfer = $this->check_transfer($ev_data[1]);
-                    if (is_array($transfer)) {
-                        log_to_file('NOTICE', "$uniqueid was transferred, updating call information");
-                        $this->Call_model->update_by_complex(
-                            array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
-                            array('transferred' => $transfer[0], 'transferdst' => $transfer[1])
-                        );
+                    if ($track_transfers == 'yes') {
+                        $transfer = $this->check_transfer($ev_data[1]);
+                        if (is_array($transfer)) {
+                            log_to_file('NOTICE', "$uniqueid was transferred, updating call information");
+                            $this->Call_model->update_by_complex(
+                                array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
+                                array('transferred' => $transfer[0], 'transferdst' => $transfer[1])
+                            );
+                        }
                     }
-                }
                 /**
                  * If someone set some fields for this call from agent_crm,
                  * it should be stored in as Future Event.
@@ -453,61 +478,65 @@ class Tools extends CI_Controller {
 
                 $this->Call_model->mark_for_survey($ev_data[1]);
             }
-
             /**
              * ABANDON, EXIT* - call was terminated in some way.
              * Call entry matching ENTERQUEUE and currect unique ID should updated
              */
 
-            //var_dump($ev_data);
+      
             //echo "<br><br>";
             //var_dump($globalConfig);
             /*
             $globalConfig['sms_type'] == 
             1 abandon. exitempty. exittimeout - rodesac zari ar/ver shedga
             2 completecaller, completeagent   - rodesac zari carmatebit shedga da dasrulda
-            */
+            */  
+
+       
             if (($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
                 ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
             {
-                $event['position'] = $ev_data[5];
+                $event['position']     = $ev_data[5];
                 $event['origposition'] = $ev_data[6];
-                $event['waittime'] = $ev_data[7];
-                $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-				
-				$number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
-				$sms_number = $number_for_sms['src'];
-               
-            
+                $event['waittime']     = $ev_data[7];
 
-                /*----CURL SEND SMS---*/
-                // if($send_sms_on_exit_event=='yes') 
-                // {
-                    // if($ev_data[4] == 'ABANDON')
-                    // {
-                        $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                        log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
-                //     // }
-                // }
-                /* ------- End Of CURL*/
+                $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
+
+                $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]); # am eventis shesabamisi chanaweri qq_calls tskhrilshi
+                var_dump($number_for_sms['queue_id']);
+                
+                if($globalConfig['queue_id'] === $queue_id and $globalConfig['queue_id'] === $number_for_sms['queue_id'])
+                {
+                    $sms_number     = $number_for_sms['src'];
+                    $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                    
+                }
+                elseif($globalConfig['queue_id'] === '')
+                {
+                    $sms_number     = $number_for_sms['src'];
+                    $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                    // log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
+                }
 
                 $this->Event_model->update_by_complex(
-                    array(
-                        'uniqueid' => $ev_data[1],
-                        'event_type' => 'DID_FUTURE',
-                    ),
-                    array(
-                        'timestamp' => $event['timestamp'],
-                        'date' => $event['date'],
-                        'event_type' => 'DID'
-                    )
+                array(
+                    'uniqueid' => $ev_data[1],
+                    'event_type' => 'DID_FUTURE',
+                ),
+                array(
+                    'timestamp' => $event['timestamp'],
+                    'date' => $event['date'],
+                    'event_type' => 'DID'
+                )
                 );
 
-
-                if (!$this->Call_model->get_recording($event['uniqueid'])) {
+                if (!$this->Call_model->get_recording($event['uniqueid'])) 
+                {
                     log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
-                }
+                }    
             }
+
+            
 
             /**
              * EXITWITHKEY - caller left queue by pressing specific key.
