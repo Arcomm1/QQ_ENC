@@ -5,12 +5,13 @@ class Settings_model extends MY_Model
     {
         parent::__construct();
         $this->load->database();
+        
     }
 
     public function getSettings() 
     {
-        $settingsToRetrieve = array('call_overload', 'sms_content', 'sms_token', 'sms_type');
-        $finalSettings = array();
+        $settingsToRetrieve = array('call_overload', 'sms_content', 'sms_token', 'sms_type', 'queue_id');
+        $finalSettings      = array();
 
         foreach ($settingsToRetrieve as $settingName) 
         {
