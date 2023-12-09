@@ -72,13 +72,14 @@ function parser_read_lock() {
  */
 function parser_unlock() {
     $ci =& get_instance();
-    if (unlink(QQ_PARSER_LOCK_PATH)) {
+    $lockFilePath = QQ_PARSER_LOCK_PATH;
+
+    if (file_exists($lockFilePath) && unlink($lockFilePath)) {
         return true;
     } else {
         return false;
     }
 }
-
 
 /**
  * Get available roles in application
