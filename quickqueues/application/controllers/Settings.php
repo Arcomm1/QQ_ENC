@@ -1,6 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+
 class Settings extends CI_Controller
 {
 
@@ -19,23 +20,20 @@ class Settings extends CI_Controller
         }
 
         $this->data = new stdClass();
-        $this->data->page_title = lang('settings');
-
-        
+        $this->data->page_title = lang('settings');   
     }
     
     public function index()
     {
         $this->load->model('Settings_model');
 
-        // Get settings data from the model
-        $settings_data = $this->Settings_model->getSettings();
+ 
+        $settings_data           = $this->Settings_model->getSettings();
+        $queues                  = $this->Queue_model->get_queue_entries();
+        $settings_data['queues'] = $queues;
+        $this->data->settings    = $settings_data;
        
-
-        // Pass the settings data to the view
-        $this->data->settings = $settings_data;
-
-        // Load the view
+ 
         load_views('settings/index', $this->data, true);
     }
 
@@ -49,11 +47,13 @@ class Settings extends CI_Controller
             $newSmsContent = $this->input->post('sms_text');
             $smsKey        = $this->input->post('sms_key');
             $smsType       = $this->input->post('sms_type');
+            $queueId       = $this->input->post('queue_id');
 
             $this->Settings_model->updateSettings('call_overload', $newOverload);
             $this->Settings_model->updateSettings('sms_content', $newSmsContent);
             $this->Settings_model->updateSettings('sms_token', $smsKey);
             $this->Settings_model->updateSettings('sms_type', $smsType);
+            $this->Settings_model->updateSettings('queue_id', $queueId);
 
             redirect('settings/index');
         }
