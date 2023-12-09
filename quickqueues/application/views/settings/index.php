@@ -9,7 +9,7 @@
         <hr>
         <div class="row sms-row">
             <div class="col-sm-12 d-flex flex-row align-items-center justify-content-between">
-                <p class="sms-label">SMS<p>
+                <p class="sms-label">SMS</p>
                 <div class="toggle-icon" id="toggle-icon">&#9660;</div>
             </div>
         </div>
@@ -38,6 +38,24 @@
                         </select>
                     </div>
                 </div>
+                <hr>
+                <div class="form-group row">
+                    <label for="sms_type" class="col-sm-2 col-form-label" ><?php echo lang('queue'); ?></label>
+                    <div class="col-sm-10">
+                        <select name="queue_id" class="form-control" id="queue-select">
+                        <option value="" <?php echo empty($this->data->settings['queue_id']) ? "selected" : ""; ?>>
+                            <?php echo lang('select_queue'); ?>
+                            <?php foreach ($this->data->settings['queues'] as $queue): ?>
+                            <option value="<?php echo $queue['id']; ?>" <?php echo ($this->data->settings['queue_id'] == $queue['id']) ? "selected" : ""; ?>>
+                                <?php echo $queue['display_name']; ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <!-- Hidden input to store the selected queue_id -->
+                        <input type="hidden" name="selected_queue_id" id="selected-queue-id" value="<?php echo $this->data->settings['queue_id']; ?>">
+                    </div>
+                </div>
+
             </section>
         </div>
         <hr>
@@ -54,5 +72,16 @@
             const toggleIcon = document.getElementById("toggle-icon");
             toggleIcon.classList.toggle("up-arrow");
         });
+
+        $("#queue-select").change(function () {
+            const selectedQueueId = $(this).val();
+           
+            // Update the hidden input value
+
+           $("#selected-queue-id").val(selectedQueueId);
+           console.log("selected queue id:", selectedQueueId);
+          
+        });
     });
 </script>
+
