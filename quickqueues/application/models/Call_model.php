@@ -122,7 +122,20 @@ class Call_model extends MY_Model {
         return $this->db->count_all_results();
     }
 
+    public function get_last_event_timestamp($uniqueId) 
+    {
+        $this->db->select('timestamp');
+        $this->db->where('uniqueid', $uniqueId);
+        $this->db->order_by('timestamp', 'desc');
+        $this->db->limit(1);
 
+        $query = $this->db->get($this->_table);
+
+        if ($query->num_rows() > 0) {
+            $result = $query->row_array();
+            return $result['timestamp'];
+        }
+    }
     public function get_recording($uniqueid = false)
     {
         if (!$uniqueid) {
