@@ -130,26 +130,28 @@ class Tools extends CI_Controller {
         parser_unlock();
 
         $lock = parser_read_lock();
-        if ($lock) {
+        if ($lock) 
+        {
             log_to_file('NOTICE', 'Parser is locked by procces '.$lock.', Exitting');
             exit;
         }
-
 
         log_to_file('NOTICE', 'Locking parser');
         parser_lock();
 
 
-        $globalConfig = $this->globalSettings->getSettings();
+        $globalConfig   = $this->globalSettings->getSettings();
         $queue_log_path = $this->Config_model->get_item('ast_queue_log_path');
-        if (!$queue_log_path) {
+        if (!$queue_log_path) 
+        {
             log_to_file('ERROR', 'Quickqueues is not configured properly, ast_queue_log_path not specified, Exitting');
             parser_unlock();
             exit();
         }
 
         $last_parsed_event = $this->Config_model->get_item('app_last_parsed_event');
-        if ($last_parsed_event === false) {
+        if ($last_parsed_event === false) 
+        {
             log_to_file('ERROR', 'Quickqueues is not configured properly, app_last_parsed_event not specified, Exitting');
             parser_unlock();
             exit();
@@ -158,26 +160,30 @@ class Tools extends CI_Controller {
         $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
         $queue_log = @fopen($queue_log_path, 'r');
-        if (!$queue_log) {
+        if (!$queue_log) 
+        {
             log_to_file("ERROR", "Can not open log file, Exitting");
             parser_unlock();
             exit();
         }
 
         // Event types
-        foreach ($this->Event_type_model->get_all() as $et) {
+        foreach ($this->Event_type_model->get_all() as $et) 
+        {
             $event_types[$et->name] = $et->id;
         }
 
         // Queues
         $queues = array();
-        foreach ($this->Queue_model->get_all() as $q) {
+        foreach ($this->Queue_model->get_all() as $q) 
+        {
             $queues[$q->name] = $q;
         }
 
         // Agents
         $agents = array();
-        foreach ($this->Agent_model->get_all() as $a) {
+        foreach ($this->Agent_model->get_all() as $a) 
+        {
             $agents[$a->name] = $a;
         }
 
@@ -219,7 +225,7 @@ class Tools extends CI_Controller {
             // Skip already parsed events
             if ($last_parsed_event >= $ev_data[0]) 
             {
-                //continue;
+                continue;
             }
 
             // Do not parse unknown events
@@ -251,7 +257,8 @@ class Tools extends CI_Controller {
                 if (!array_key_exists($ev_data[2], $queues)) 
                 {
                     $new_queue_id = $this->Queue_model->create(array('name' => $ev_data[2], 'display_name' => $ev_data[2]));
-                    if (!$new_queue_id) {
+                    if (!$new_queue_id) 
+                    {
                         log_to_file('ERROR', 'Could not create new queue, event timestamp and uniqueid are '.$ev_data[0]."|".$ev_data['1']);
                         continue;
                     }
@@ -269,22 +276,28 @@ class Tools extends CI_Controller {
             if ($ev_data[3] == 'NONE') 
             {
                 $agent_id = false;
-            } else 
+            } 
+            else 
             {
-                if (!array_key_exists($ev_data[3], $agents)) {
-                    if (in_array($ev_data[4], array('STARTPAUSE', 'STARTSESSION', 'STOPSESSION', 'STOPPAUSE'))) {
+                if (!array_key_exists($ev_data[3], $agents)) 
+                {
+                    if (in_array($ev_data[4], array('STARTPAUSE', 'STARTSESSION', 'STOPSESSION', 'STOPPAUSE'))) 
+                    {
                         log_to_file('NOTICE', 'Not creating new agent since they have no calls yet');
                         continue;
                     }
                     $new_agent_id = $this->Agent_model->create(array('name' => $ev_data[3], 'display_name' => $ev_data[3]));
-                    if (!$new_agent_id) {
+                    if (!$new_agent_id) 
+                    {
                         log_to_file('ERROR', 'Could not create new agent, event timestamp and uniqueid are '.$ev_data[0]."|".$ev_data['1']);
                         continue;
                     }
                     $agent_id = $new_agent_id;
                     $this->Agent_model->set_extension($agent_id);
                     $agents[$ev_data[3]] = $this->Agent_model->get($new_agent_id);
-                } else {
+                } 
+                else 
+                {
                     $agent_id = $agents[$ev_data[3]]->id;
                 }
             }
@@ -366,117 +379,121 @@ class Tools extends CI_Controller {
                             $this->Call_model->update($ctm->id, array('answered_elsewhere' => $this_call->id));
                         }
 
-                        unset($calls_to_mark);
-                        unset($from);
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong, not searching for calls to mark as answered elsewhere, uniqueid '.$ev_data[1]);
+                    if ($track_duplicate_calls > 0) 
+                    {
+                        log_to_file('DEBUG', 'Marking calls as duplicate since config is set to '.$track_duplicate_calls);
+                        log_to_file('DEBUG', 'Searching for all calls from '.$this_call->src.', current call ID is '.$this_call->id);
+
+                        $from = date('Y-m-d H:i:s', (time() - $track_duplicate_calls * 60));
+
+                        if (strlen($this_call->src) > 1) 
+                        {
+                            $calls_to_mark = $this->Call_model->get_many_by_complex(
+                                array(
+                                    'src' => $this_call->src,
+                                    'date >' => $from,
+                                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT'),
+                                )
+                            );
+
+                            log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as duplicate');
+
+                            foreach ($calls_to_mark as $ctm) 
+                            {
+                                log_to_file('DEBUG', 'Marking '.$ctm->id.' as duplicate');
+                                $this->Call_model->update($ctm->id, array('duplicate' => 'yes'));
+                            }
+
+                            unset($calls_to_mark);
+                            unset($from);
+                        } 
+                        else 
+                        {
+                            log_to_file('DEBUG', 'Something went wrong, not search for calls to mark as duplicate, uniqueid '.$ev_data[1]);
+                        }
                     }
-                }
 
-                if ($track_duplicate_calls > 0) {
-                    log_to_file('DEBUG', 'Marking calls as duplicate since config is set to '.$track_duplicate_calls);
-                    log_to_file('DEBUG', 'Searching for all calls from '.$this_call->src.', current call ID is '.$this_call->id);
+                    unset($this_call);
 
-                    $from = date('Y-m-d H:i:s', (time() - $track_duplicate_calls * 60));
+                    $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1], 'event_type' => 'CONNECT'), $event);
+                    $this->Agent_model->update($agent_id, array('last_call' => date('Y-m-d H:i:s')));
+                    if (!$this->Call_model->get_recording($event['uniqueid'])) {
+                        log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
+                    }
 
-                    if (strlen($this_call->src) > 1) {
-                        $calls_to_mark = $this->Call_model->get_many_by_complex(
+                    /**
+                     * We need to update corresponding DID event with new timestamp and date, so that
+                     * call completion date matches DId event
+                     */
+                        $this->Event_model->update_by_complex(
                             array(
-                                'src' => $this_call->src,
-                                'date >' => $from,
-                                'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT'),
+                                'uniqueid' => $ev_data[1],
+                                'event_type' => 'DID_FUTURE',
+                            ),
+                            array(
+                                'timestamp' => $event['timestamp'],
+                                'date' => $event['date'],
+                                'event_type' => 'DID'
                             )
                         );
 
-                        log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as duplicate');
-
-                        foreach ($calls_to_mark as $ctm) {
-                            log_to_file('DEBUG', 'Marking '.$ctm->id.' as duplicate');
-                            $this->Call_model->update($ctm->id, array('duplicate' => 'yes'));
+                        if ($track_transfers == 'yes') 
+                        {
+                            $transfer = $this->check_transfer($ev_data[1]);
+                            if (is_array($transfer)) 
+                            {
+                                log_to_file('NOTICE', "$uniqueid was transferred, updating call information");
+                                $this->Call_model->update_by_complex(
+                                    array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
+                                    array('transferred' => $transfer[0], 'transferdst' => $transfer[1])
+                                );
+                            }
                         }
+                    /**
+                     * If someone set some fields for this call from agent_crm,
+                     * it should be stored in as Future Event.
+                     */
+                    $future_event = $this->Future_event_model->get_by('uniqueid', $ev_data[1]);
+                    if (!$future_event) 
+                    {
+                        log_to_file('DEBUG', 'No future event found for call with uniqueid '.$ev_data[1]);
+                    } 
+                    else {
+                        log_to_file('DEBUG', 'Future event found for call with uniqueid '.$ev_data[1].', updating call');
 
-                        unset($calls_to_mark);
-                        unset($from);
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong, not search for calls to mark as duplicate, uniqueid '.$ev_data[1]);
+                        $this->Call_model->update_by_complex(
+                            array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
+                            array(
+                                'comment'       => $future_event->comment,
+                                'status'        => $future_event->status,
+                                'priority'      => $future_event->priority,
+                                'curator_id'    => $future_event->curator_id,
+                                'category_id'   => $future_event->category_id,
+                                'service_id'    => $future_event->service_id,
+                                'service_product_id' => $future_event->service_product_id,
+                                'service_product_type_id' => $future_event->service_product_type_id,
+                                'service_product_subtype_id' => $future_event->service_product_subtype_id,
+                                'subject_family' => $future_event->subject_family,
+                                /*'custom_1'      => $future_event->custom_1,
+                                'custom_2'      => $future_event->custom_2,
+                                'custom_3'      => $future_event->custom_3,
+                                'custom_4'      => $future_event->custom_4,
+                                'ticket_id'     => $future_event->ticket_id,
+                                'ticket_department_id' => $future_event->ticket_department_id,
+                                'ticket_category_id' => $future_event->ticket_category_id,
+                                'ticket_subcategory_id' => $future_event->ticket_subcategory_id,
+                                'subject_comment' => $future_event->subject_comment,*/
+                            )
+                        );
+                        log_to_file('DEBUG', 'Deleting Future event with uniqueid '.$ev_data[1]);
+
+                        // $this->Future_event_model->delete_by('uniqueid', $ev_data[1]);
+
                     }
+
+                    $this->Call_model->mark_for_survey($ev_data[1]);
+                    $callProcessed = true;
                 }
-
-                unset($this_call);
-
-                $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1], 'event_type' => 'CONNECT'), $event);
-                $this->Agent_model->update($agent_id, array('last_call' => date('Y-m-d H:i:s')));
-                if (!$this->Call_model->get_recording($event['uniqueid'])) {
-                    log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
-                }
-
-                /**
-                 * We need to update corresponding DID event with new timestamp and date, so that
-                 * call completion date matches DId event
-                 */
-                    $this->Event_model->update_by_complex(
-                        array(
-                            'uniqueid' => $ev_data[1],
-                            'event_type' => 'DID_FUTURE',
-                        ),
-                        array(
-                            'timestamp' => $event['timestamp'],
-                            'date' => $event['date'],
-                            'event_type' => 'DID'
-                        )
-                    );
-
-                    if ($track_transfers == 'yes') {
-                        $transfer = $this->check_transfer($ev_data[1]);
-                        if (is_array($transfer)) {
-                            log_to_file('NOTICE', "$uniqueid was transferred, updating call information");
-                            $this->Call_model->update_by_complex(
-                                array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
-                                array('transferred' => $transfer[0], 'transferdst' => $transfer[1])
-                            );
-                        }
-                    }
-                /**
-                 * If someone set some fields for this call from agent_crm,
-                 * it should be stored in as Future Event.
-                 */
-                $future_event = $this->Future_event_model->get_by('uniqueid', $ev_data[1]);
-                if (!$future_event) {
-                    log_to_file('DEBUG', 'No future event found for call with uniqueid '.$ev_data[1]);
-                } else {
-                    log_to_file('DEBUG', 'Future event found for call with uniqueid '.$ev_data[1].', updating call');
-
-                    $this->Call_model->update_by_complex(
-                        array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
-                        array(
-                            'comment'       => $future_event->comment,
-                            'status'        => $future_event->status,
-                            'priority'      => $future_event->priority,
-                            'curator_id'    => $future_event->curator_id,
-                            'category_id'   => $future_event->category_id,
-                            'service_id'    => $future_event->service_id,
-                            'service_product_id' => $future_event->service_product_id,
-                            'service_product_type_id' => $future_event->service_product_type_id,
-                            'service_product_subtype_id' => $future_event->service_product_subtype_id,
-                            'subject_family' => $future_event->subject_family,
-                            /*'custom_1'      => $future_event->custom_1,
-                            'custom_2'      => $future_event->custom_2,
-                            'custom_3'      => $future_event->custom_3,
-                            'custom_4'      => $future_event->custom_4,
-                            'ticket_id'     => $future_event->ticket_id,
-                            'ticket_department_id' => $future_event->ticket_department_id,
-                            'ticket_category_id' => $future_event->ticket_category_id,
-                            'ticket_subcategory_id' => $future_event->ticket_subcategory_id,
-                            'subject_comment' => $future_event->subject_comment,*/
-                        )
-                    );
-                    log_to_file('DEBUG', 'Deleting Future event with uniqueid '.$ev_data[1]);
-
-                    // $this->Future_event_model->delete_by('uniqueid', $ev_data[1]);
-
-                }
-
-                $this->Call_model->mark_for_survey($ev_data[1]);
             }
             /**
              * ABANDON, EXIT* - call was terminated in some way.
@@ -498,56 +515,62 @@ class Tools extends CI_Controller {
             if ($event['timestamp'] > $lastEventTimestamp)
             {
                 // Check if the SMS has not been sent yet
-
-                if (!$smsSent && ($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
-                    ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
-                { 
-                    $event['position']     = $ev_data[5];
-                    $event['origposition'] = $ev_data[6];
-                    $event['waittime']     = $ev_data[7];
-
-                    $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-    
-                    $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
-                    
-                    if($globalConfig['queue_id'] === $queue_id and $globalConfig['queue_id'] === $number_for_sms['queue_id'])
-                    {
+                echo 'პირობა შესრულდა';
+                if(!$smsSent)
+                {
+                    echo 'sms არ არის განაგზავნი';
+                    echo $ev_data[4];
+                    if ( ($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
+                        ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
+                    { 
                         
-                        $sms_number     = $number_for_sms['src'];
-                        $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                        $smsSent        = true;
-                    }
-                    elseif($globalConfig['queue_id'] === 'all')
-                    {
-                        echo $globalConfig['queue_id'];
-                        $sms_number     = $number_for_sms['src'];
-                        $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                        $smsSent        = true;
-                        // log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
-                    }
+                        $event['position']     = $ev_data[5];
+                        $event['origposition'] = $ev_data[6];
+                        $event['waittime']     = $ev_data[7];
 
-                    $this->Event_model->update_by_complex(
-                    array(
-                        'uniqueid' => $ev_data[1],
-                        'event_type' => 'DID_FUTURE',
-                    ),
-                    array(
-                        'timestamp' => $event['timestamp'],
-                        'date' => $event['date'],
-                        'event_type' => 'DID'
-                    )
-                    );
-    
-                    if (!$this->Call_model->get_recording($event['uniqueid'])) 
-                    {
-                        log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
+                        $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
+
+                        $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
+                        
+                        if($globalConfig['queue_id'] === $queue_id and $globalConfig['queue_id'] === $number_for_sms['queue_id'])
+                        {
+                            
+                            $sms_number     = $number_for_sms['src'];
+                            $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                            $smsSent        = true;
+                        }
+                        elseif($globalConfig['queue_id'] === 'all')
+                        {
+                            $sms_number     = $number_for_sms['src'];
+                            $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                            $smsSent        = true;
+                            // log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
+                        }
+
                     } 
-                }   
+                }  
             }
+            $this->Event_model->update_by_complex(
+                array(
+                    'uniqueid' => $ev_data[1],
+                    'event_type' => 'DID_FUTURE',
+                ),
+                array(
+                    'timestamp' => $event['timestamp'],
+                    'date' => $event['date'],
+                    'event_type' => 'DID'
+                )
+                );
+
+                if (!$this->Call_model->get_recording($event['uniqueid'])) 
+                {
+                    log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
+                } 
             /**
              * EXITWITHKEY - caller left queue by pressing specific key.
              * Update call entry matching ENTERQUEUE and current unique ID
              */
+
             if ($ev_data[4] == 'EXITWITHKEY') {
                 $event['position'] = $ev_data[6];
                 $event['origposition'] = $ev_data[7];
