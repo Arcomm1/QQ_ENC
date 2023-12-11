@@ -350,34 +350,50 @@ class Tools extends CI_Controller {
              * Update call entry matching CONNECT event and current unique ID
              */
 
+            $callProcessed = false;
+
             if ($ev_data[4] == 'COMPLETEAGENT' || $ev_data[4] == 'COMPLETECALLER') 
             {
-                $event['holdtime'] = $ev_data[5];
-                $event['calltime'] = $ev_data[6];
-                $event['origposition'] = $ev_data[7];
+                if(!$callProcessed)
+                {
+                    $event['holdtime'] = $ev_data[5];
+                    $event['calltime'] = $ev_data[6];
+                    $event['origposition'] = $ev_data[7];
 
-                $this_call = $this->Call_model->get_one_by_complex(array('uniqueid' => $ev_data[1], 'event_type' => 'CONNECT'));
+                    $this_call = $this->Call_model->get_one_by_complex(array('uniqueid' => $ev_data[1], 'event_type' => 'CONNECT'));
 
-                if ($mark_answered_elsewhere > 0) {
-                    log_to_file('DEBUG', 'Marking Unanswered calls as answered_elsewhere since config is set to '.$mark_answered_elsewhere);
+                    if ($mark_answered_elsewhere > 0) 
+                    {
+                        log_to_file('DEBUG', 'Marking Unanswered calls as answered_elsewhere since config is set to '.$mark_answered_elsewhere);
 
-                    log_to_file('DEBUG', 'Searching for unanswered calls from '.$this_call->src.', current call ID is '.$this_call->id);
-                    $from = date('Y-m-d H:i:s', (time() - $mark_answered_elsewhere * 60));
+                        log_to_file('DEBUG', 'Searching for unanswered calls from '.$this_call->src.', current call ID is '.$this_call->id);
+                        $from = date('Y-m-d H:i:s', (time() - $mark_answered_elsewhere * 60));
 
-                    if (strlen($this_call->src) > 1) {
-                        $calls_to_mark = $this->Call_model->get_many_by_complex(
-                            array(
-                                'src' => $this_call->src,
-                                'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT'),
-                                'date >' => $from,
-                            )
-                        );
+                        if (strlen($this_call->src) > 1) 
+                        {
+                            $calls_to_mark = $this->Call_model->get_many_by_complex(
+                                array(
+                                    'src' => $this_call->src,
+                                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT'),
+                                    'date >' => $from,
+                                )
+                            );
 
-                        log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as answered elsewhere');
-                        foreach ($calls_to_mark as $ctm) {
-                            log_to_file('DEBUG', 'Marking '.$ctm->id.' as answered elsewhere');
-                            $this->Call_model->update($ctm->id, array('answered_elsewhere' => $this_call->id));
+                            log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as answered elsewhere');
+                            foreach ($calls_to_mark as $ctm) 
+                            {
+                                log_to_file('DEBUG', 'Marking '.$ctm->id.' as answered elsewhere');
+                                $this->Call_model->update($ctm->id, array('answered_elsewhere' => $this_call->id));
+                            }
+
+                            unset($calls_to_mark);
+                            unset($from);
                         }
+                        else 
+                        {
+                            log_to_file('DEBUG', 'Something went wrong, not searching for calls to mark as answered elsewhere, uniqueid '.$ev_data[1]);
+                        }
+                    }
 
                     if ($track_duplicate_calls > 0) 
                     {
