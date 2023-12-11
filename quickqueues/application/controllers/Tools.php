@@ -519,7 +519,6 @@ class Tools extends CI_Controller {
                     }
                     elseif($globalConfig['queue_id'] === 'all')
                     {
-                        echo $globalConfig['queue_id'];
                         $sms_number     = $number_for_sms['src'];
                         $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
                         $smsSent        = true;
