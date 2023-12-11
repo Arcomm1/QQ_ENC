@@ -499,57 +499,51 @@ class Tools extends CI_Controller {
             {
                 // Check if the SMS has not been sent yet
 
-                echo 'პირობა შესრულდა <br>';
-
                 if (!$smsSent && ($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
                     ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
-                {
-                        echo 'ეს პირობაც შესრულდა <br>';
-                        $event['position']     = $ev_data[5];
-                        $event['origposition'] = $ev_data[6];
-                        $event['waittime']     = $ev_data[7];
+                { 
+                    $event['position']     = $ev_data[5];
+                    $event['origposition'] = $ev_data[6];
+                    $event['waittime']     = $ev_data[7];
 
-                        $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-        
-                        $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
+                    $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
+    
+                    $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
+                    
+                    if($globalConfig['queue_id'] === $queue_id and $globalConfig['queue_id'] === $number_for_sms['queue_id'])
+                    {
                         
-                        if($globalConfig['queue_id'] === $queue_id and $globalConfig['queue_id'] === $number_for_sms['queue_id'])
-                        {
-                            echo 'ამორჩეული რიგიდან სმს იგზავნება...<br>';
-                            $sms_number     = $number_for_sms['src'];
-                            $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                            $smsSent        = true;
-                        }
-                        elseif($globalConfig['queue_id'] === '')
-                        {
-                            $sms_number     = $number_for_sms['src'];
-                            $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                            $smsSent        = true;
-                            // log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
-                        }
+                        $sms_number     = $number_for_sms['src'];
+                        $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                        $smsSent        = true;
+                    }
+                    elseif($globalConfig['queue_id'] === 'all')
+                    {
+                        echo $globalConfig['queue_id'];
+                        $sms_number     = $number_for_sms['src'];
+                        $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
+                        $smsSent        = true;
+                        // log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
+                    }
 
-                        $this->Event_model->update_by_complex(
-                        array(
-                            'uniqueid' => $ev_data[1],
-                            'event_type' => 'DID_FUTURE',
-                        ),
-                        array(
-                            'timestamp' => $event['timestamp'],
-                            'date' => $event['date'],
-                            'event_type' => 'DID'
-                        )
-                        );
-        
-                        if (!$this->Call_model->get_recording($event['uniqueid'])) 
-                        {
-                            log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
-                        }  
-            
-                }
-                
+                    $this->Event_model->update_by_complex(
+                    array(
+                        'uniqueid' => $ev_data[1],
+                        'event_type' => 'DID_FUTURE',
+                    ),
+                    array(
+                        'timestamp' => $event['timestamp'],
+                        'date' => $event['date'],
+                        'event_type' => 'DID'
+                    )
+                    );
+    
+                    if (!$this->Call_model->get_recording($event['uniqueid'])) 
+                    {
+                        log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
+                    } 
+                }   
             }
-            
-
             /**
              * EXITWITHKEY - caller left queue by pressing specific key.
              * Update call entry matching ENTERQUEUE and current unique ID
