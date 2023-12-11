@@ -40,25 +40,25 @@
                 </div>
                 <hr>
                 <div class="form-group row">
-                    <label for="sms_type" class="col-sm-2 col-form-label"><?php echo lang('queue'); ?></label>
-                    <div class="col-sm-10">
-                    <select name="queue_id" class="form-control" id="queue-select">
-                        <option value="" <?php echo empty($this->data->settings['queue_id']) ? "selected" : ""; ?>>
-                            <?php echo lang('select_queue'); ?>
-                        </option>
-                        <option value="all" <?php echo ($this->data->settings['queue_id'] == 'all') ? "selected" : ""; ?>>
-                            <?php echo lang('all_queues'); ?>
-                        </option>
-                        <?php foreach ($this->data->settings['queues'] as $queue): ?>
-                            <option value="<?php echo $queue['id']; ?>" <?php echo ($this->data->settings['queue_id'] == $queue['id']) ? "selected" : ""; ?>>
-                                <?php echo $queue['display_name']; ?>
-                            </option>
-                        <?php endforeach; ?>
-        </select>
-        <!-- Hidden input to store the selected queue_id -->
-        <input type="hidden" name="selected_queue_id" id="selected-queue-id" value="<?php echo $this->data->settings['queue_id']; ?>">
-    </div>
-</div>
+                <label for="sms_type" class="col-sm-2 col-form-label"><?php echo lang('queue'); ?></label>
+                <div class="col-sm-10">
+                <select name="queue_id[]" class="form-control" id="queue-select" multiple>
+                <option value="" <?php echo empty($this->data->settings['queue_id']) ? "selected" : ""; ?>>
+                    <?php echo lang('select_queue'); ?>
+                </option>
+                <option value="all" <?php echo (in_array('all', (array)$this->data->settings['queue_id'])) ? "selected" : ""; ?>>
+                    <?php echo lang('all_queues'); ?>
+                </option>
+                <?php foreach ($this->data->settings['queues'] as $queue): ?>
+                    <option value="<?php echo $queue['id']; ?>" <?php echo (in_array($queue['id'], (array)$this->data->settings['queue_id'])) ? "selected" : ""; ?>>
+                        <?php echo $queue['display_name']; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <!-- Hidden input to store the selected queue_id -->
+            <input type="hidden" name="selected_queue_id" id="selected-queue-id" value="<?php echo implode(',', (array)$this->data->settings['queue_id']); ?>">
+                </div>
+            </div>
 
             </section>
         </div>
