@@ -33,6 +33,7 @@ $lang['calls_total']        = "ზარები ჯამში";
 $lang['calls_unique']       = "უნიკალური ზარები";
 $lang['calls_outgoing']     = "გამავალი ზარები";
 $lang['calls']              = "ზარები";
+$lang['call']               = "ზარი";
 
 $lang['calls_unique_in']    = "უნიკალური შემომავალი ზარები";
 $lang['calls_unique_users'] = "უნიკალური მომხმარებლები";

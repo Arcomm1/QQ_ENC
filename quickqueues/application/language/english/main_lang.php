@@ -48,6 +48,7 @@ $lang['calls_total']        = "Total calls";
 $lang['calls_unique']       = "Unique calls";
 $lang['calls_outgoing']     = "Outgoing calls";
 $lang['calls']              = "Calls";
+$lang['call']               = "Calls";
 
 $lang['calls_unique_in']    = "Unique incoming calls";
 $lang['calls_unique_users'] = "Unique Users";
