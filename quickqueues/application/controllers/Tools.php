@@ -528,18 +528,20 @@ class Tools extends CI_Controller {
             $smsSent = false;
             $lastEventTimestamp = $this->Call_model->get_last_event_timestamp($ev_data[1]);
             // Check if the current event or queue change occurred after the last event for the call
-            if ($event['timestamp'] > $lastEventTimestamp)
+            echo $event['timestamp'] . "LAST:".$lastEventTimestamp.'<br>';
+            if ($event['timestamp'] >= $lastEventTimestamp)
             {
                 // Check if the SMS has not been sent yet
-                echo 'პირობა შესრულდა';
+                echo 'პირობა შესრულდა<br>';
                 if(!$smsSent)
                 {
-                    echo 'sms არ არის განაგზავნი';
-                    echo $ev_data[4];
-                    if ( ($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
+                  
+                    echo $ev_data[4].' '.$globalConfig['sms_type'].'<br>';
+                    if (($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
                         ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
                     { 
                         
+                        echo 'should send<br>';
                         $event['position']     = $ev_data[5];
                         $event['origposition'] = $ev_data[6];
                         $event['waittime']     = $ev_data[7];
