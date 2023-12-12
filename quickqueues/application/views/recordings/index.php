@@ -151,7 +151,7 @@
                                         <a class="btn btn-danger" href="<?php echo site_url('recordings');?>"><?php echo lang('reset'); ?></a>
                                         <a class="btn btn-success" href="<?php echo site_url('export/recordings?'.$this->input->server('QUERY_STRING'));?>"><?php echo lang('export'); ?></a>
                                         <button type="submit" class="btn btn-primary"><?php echo lang('search'); ?></button>
-                                        <span class="btn btn-ghost"><?php echo lang('found')." $num_calls ".lang('calls'); ?></span>
+                                        <span class="btn btn-ghost"><?php echo lang('found')." $num_calls ".lang('call'); ?></span>
                                     </div>
                                 </div>
                                 <div class="col">
