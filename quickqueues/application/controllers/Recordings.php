@@ -123,7 +123,7 @@ class Recordings extends MY_Controller {
 
                 if (empty($ring_no_answer_calls)) 
                 {
-                    return;
+                    $unique_Ids[] = 0;
                 }
                 
                 foreach ($ring_no_answer_calls as $call) 
