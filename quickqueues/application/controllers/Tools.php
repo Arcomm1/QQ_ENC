@@ -536,11 +536,13 @@ class Tools extends CI_Controller {
                 if(!$smsSent)
                 {
                   
+                    $queue_ids    = $globalConfig['queue_id'];
+                    $queue_id_arr = explode(',', $queue_ids);
+
                     echo $ev_data[4].' '.$globalConfig['sms_type'].'<br>';
                     if (($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
-                        ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
+                    ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
                     { 
-                        
                         echo 'should send<br>';
                         $event['position']     = $ev_data[5];
                         $event['origposition'] = $ev_data[6];
@@ -550,19 +552,13 @@ class Tools extends CI_Controller {
 
                         $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
                         
-                        if($globalConfig['queue_id'] === $queue_id and $globalConfig['queue_id'] === $number_for_sms['queue_id'])
+                        
+                        if(in_array($queue_id, $queue_id_arr) and $queue_id  === $number_for_sms['queue_id'])
                         {
-                            
+                            echo $queue_id . "rigis aidi";
                             $sms_number     = $number_for_sms['src'];
                             $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
                             $smsSent        = true;
-                        }
-                        elseif($globalConfig['queue_id'] === 'all')
-                        {
-                            $sms_number     = $number_for_sms['src'];
-                            $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                            $smsSent        = true;
-                            // log_to_file('NOTICE', "Tried to send SMS for for unique ID ".$event['uniqueid']);
                         }
 
                     } 
