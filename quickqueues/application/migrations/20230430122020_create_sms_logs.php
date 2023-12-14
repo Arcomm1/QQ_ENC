@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Migration_Create_qq_sms_logs extends CI_Migration {
+class Migration_create_qq_sms_logs extends CI_Migration {
 
     public function up()
     {
@@ -39,12 +39,14 @@ class Migration_Create_qq_sms_logs extends CI_Migration {
         $this->dbforge->add_key('id', TRUE);
         $this->dbforge->create_table('qq_sms_logs');
 
-        $data[] = array(
-            'sms_content' => '',
-            'sms_token'   => '',
-            'sms_type'    => '',
-            'queue_id'    => '',
-            'status'      => '',
+        $data = array(
+            array(
+                'sms_content' => '',
+                'sms_token'   => '',
+                'sms_type'    => '',
+                'queue_id'    => '',
+                'status'      => '',
+            )  
         );
 
         $this->db->insert_batch('qq_sms_logs', $data);
