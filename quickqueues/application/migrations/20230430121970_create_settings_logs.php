@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Migration_Create_sms_logs extends CI_Migration 
+class Migration_Create_settings_logs extends CI_Migration 
 {
 
     public function up()
@@ -34,15 +34,21 @@ class Migration_Create_sms_logs extends CI_Migration
                     'type' => 'VARCHAR',
                     'constraint' => 200,
                 ),
+                'call_overload'=> array(
+                    'type'           => 'INT',
+                    'constraint'     => 11,
+                    'unsigned'       => TRUE,
+                    'default'        => 0,
+                ),
             )
         );
 
         $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->create_table('qq_sms_logs');
+        $this->dbforge->create_table('qq_settings_logs');
     }
 
     public function down()
     {
-        $this->dbforge->drop_table('qq_sms_logs');
+        $this->dbforge->drop_table('qq_settings_logs');
     }
 }

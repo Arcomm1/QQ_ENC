@@ -11,7 +11,7 @@ class Settings extends CI_Controller
         $this->load->model('Queue_model');
         
         $this->app_language = $this->Config_model->get_item('app_language');
-        
+
         if ($this->app_language) 
         {
             $this->lang->load(array('main', 'help'), $this->app_language);
@@ -44,12 +44,14 @@ class Settings extends CI_Controller
             $smsKey        = $this->input->post('sms_key');
             $smsType       = $this->input->post('sms_type');
             $queueId       = $this->input->post('selected_queue_id'); // Updated from 'queue_id'
+            $status        = $this->input->post('status');
 
             $this->Settings_model->updateSettings('call_overload', $newOverload);
             $this->Settings_model->updateSettings('sms_content', $newSmsContent);
             $this->Settings_model->updateSettings('sms_token', $smsKey);
             $this->Settings_model->updateSettings('sms_type', $smsType);
             $this->Settings_model->updateSettings('queue_id', $queueId);
+            $this->Settings_model->updateSettings('status', $status);
 
             redirect('settings/index');
         }

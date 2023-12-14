@@ -40,29 +40,35 @@
                 </div>
                 <hr>
                 <div class="form-group row">
-                <label for="sms_type" class="col-sm-2 col-form-label"><?php echo lang('queue'); ?></label>
-                <div class="col-sm-10">
-                    
-                <?php foreach ($this->data->settings['queues'] as $queue): ?>
-                    <div style="display:flex; width:100%; justify-content:space-between;">
-                        <div class="title"><?php echo $queue['display_name']; ?></div>
-                        <div class="value">
-                            <input type="checkbox"
-                                    value="<?php echo $queue['id']; ?>" 
-                                    onchange="updateQueueID(event,<?php echo $queue['id']; ?>)" 
-                                    name="selected_queues[]"
-                                    <?php
-           $selectedQueueIds = explode(',', $this->data->settings['queue_id']);
-           echo in_array($queue['id'], $selectedQueueIds) ? 'checked' : '';
-       ?>>
-                        </div>
+                    <label for="queue_id" class="col-sm-2 col-form-label" ><?php echo lang('queue'); ?></label>
+                    <div class="col-sm-10">
+                        <select name="queue_id" class="form-control" id="queue-select">
+                        <option value="" <?php echo empty($this->data->settings['queue_id']) ? "selected" : ""; ?>>
+                            <?php echo lang('select_queue'); ?>
+                            <?php foreach ($this->data->settings['queues'] as $queue): ?>
+                            <option value="<?php echo $queue['id']; ?>" <?php echo ($this->data->settings['queue_id'] == $queue['id']) ? "selected" : ""; ?>>
+                                <?php echo $queue['display_name']; ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <!-- Hidden input to store the selected queue_id -->
+                        <input type="hidden" name="selected_queue_id" id="selected-queue-id" value="<?php echo $this->data->settings['queue_id']; ?>">
                     </div>
-                <?php endforeach; ?>
-  
-            <!-- Hidden input to store the selected queue_id -->
-            <input type="hidden" name="selected_queue_id" id="selected-queue-id" value="<?php echo implode(',', (array)$this->data->settings['queue_id']); ?>">
                 </div>
-            </div>
+                <hr>
+                <div class="form-group row">
+                    <label for="status" class="col-sm-2 col-form-label" ><?php echo lang('status'); ?></label>
+                    <div class="col-sm-10">
+                        <select name="status" class="form-control" id="queue-status">
+                            <option>
+                                <?php echo lang('active'); ?>
+                            </option>
+                            <option>
+                                <?php echo lang('inactive'); ?>
+                            </option>
+                        </select>
+                    </div>
+                </div>
 
             </section>
         </div>
@@ -104,19 +110,15 @@ $(document).ready(function () {
     });
 
     $("#queue-select").change(function () {
-        const selectedQueueIdArr = $(this).val();
+            const selectedQueueId = $(this).val();
+           
+            // Update the hidden input value
 
-        // Update the hidden input value
-        $("#selected-queue-id").val(selectedQueueIdArr);
-        console.log("selected queue id:", selectedQueueIdArr);
-
-        // Update the initial checked state
-        $('input[name="selected_queues[]"]').each(function () {
-            const queueId = $(this).val();
-            $(this).prop('checked', selectedQueueIdArr.includes(queueId));
+           $("#selected-queue-id").val(selectedQueueId);
+           console.log("selected queue id:", selectedQueueId);
+          
         });
     });
-});
 
 </script>
 
