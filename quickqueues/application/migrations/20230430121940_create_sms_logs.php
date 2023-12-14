@@ -41,6 +41,7 @@ class Migration_Create_sms_logs extends CI_Migration
         $this->dbforge->create_table('qq_sms_logs');
 
         $data[] = array(
+            'id'          => NULL,
             'sms_content' => '',
             'sms_token'   => '',
             'sms_type'    => '',
