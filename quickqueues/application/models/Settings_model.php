@@ -7,29 +7,50 @@ class Settings_model extends MY_Model
         $this->load->database();
     }
 
-    public function getSettings() 
+    public function getSettings($queue_id = null) 
     {
-        $settingsToRetrieve = array('queue_id', 'sms_content', 'sms_token', 'sms_type', 'status');
-        $finalSettings = array();
-    
-        // Assuming there's only one row or you want to fetch the first row
-        $query = $this->db->get('qq_sms_logs');
+        $settingsToRetrieve = array('queue_id', 'sms_content', 'sms_token', 'sms_type', 'status', 'call_overload');
+        $finalSettings      = array();
+        if ($queue_id !== null) 
+        {
+            $this->db->where('queue_id', $queue_id);
+        }
+        $query   = $this->db->get('qq_settings_logs');
         $setting = $query->row_array();
-    
         foreach ($settingsToRetrieve as $settingName) 
         {
-            // Use the ternary conditional operator to provide a default value of ''
             $finalSettings[$settingName] = isset($setting[$settingName]) ? $setting[$settingName] : '';
         }
-    
         return $finalSettings;
     }
 
-
-    public function updateSettings($name, $value)
+    public function getAllSettings()
     {
-        $this->db->set($name, isset($value) ? $value : null);
-        $this->db->update('qq_sms_logs');
+        $this->db->select('*');
+        $query = $this->db->get('qq_settings_logs');
+
+        return $query->result_array();
+    }
+
+    public function updateSettings($data)
+    {
+        if (!empty($data)) 
+        {
+            $existingData = $this->db->get_where('qq_settings_logs', array('queue_id' => $data['queue_id']))->row_array();
+    
+            if ($existingData) 
+            {
+                $this->db->where('queue_id', $data['queue_id']);
+                $this->db->update('qq_settings_logs', $data);
+            } 
+            else 
+            {
+                $this->db->insert('qq_settings_logs', $data);
+            }
+            return true; 
+        }
+    
+        return false; 
     }
 }
 ?>
