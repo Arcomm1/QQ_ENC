@@ -1,5 +1,5 @@
 <div class="settings-page-container">
-    <form action="<?php echo site_url('settings/update_settings'); ?>" method="post">
+    <form action="<?php echo site_url('settings/update_settings'); ?>" method="post" id="settings-form">
         <div class="form-group row">
             <label for="overload" class="col-sm-2 col-form-label"><?php echo lang('overload'); ?></label>
             <div class="col-sm-10">
@@ -60,10 +60,10 @@
                     <label for="status" class="col-sm-2 col-form-label" ><?php echo lang('status'); ?></label>
                     <div class="col-sm-10">
                         <select name="status" class="form-control" id="queue-status">
-                            <option>
+                            <option value="active">
                                 <?php echo lang('active'); ?>
                             </option>
-                            <option>
+                            <option value="inactive">
                                 <?php echo lang('inactive'); ?>
                             </option>
                         </select>
@@ -78,47 +78,76 @@
 </div>
 
 <script>
-function updateQueueID(event, id) {
-    let checkboxes = $('input[name="selected_queues[]"]:checked');
-    let arr = checkboxes.map(function () {
-        return this.value;
-    }).get();
+    $(document).ready(function () {
+        $(".sms-row").click(function () {
+            $("#sms-settings").slideToggle();
+            const toggleIcon = document.getElementById("toggle-icon");
+            toggleIcon.classList.toggle("up-arrow");
+        });
 
-    let checked = event.target.checked;
-    let index = arr.indexOf(id.toString());
-
-    if (checked) {
-        if (index === -1) {
-            arr.push(id.toString());
-        }
-    } else {
-        if (index > -1) {
-            arr.splice(index, 1);
-        }
-    }
-
-    // Update the hidden input value
-    $('#selected-queue-id').val(arr.join(','));
-    console.log("Selected queues:", arr);
-}
-
-$(document).ready(function () {
-    $(".sms-row").click(function () {
-        $("#sms-settings").slideToggle();
-        const toggleIcon = document.getElementById("toggle-icon");
-        toggleIcon.classList.toggle("up-arrow");
-    });
-
-    $("#queue-select").change(function () {
+        $("#queue-select").change(function () {
             const selectedQueueId = $(this).val();
-           
-            // Update the hidden input value
+            $("#selected-queue-id").val(selectedQueueId);
+            console.log("selected queue id:", selectedQueueId);
+        });
 
-           $("#selected-queue-id").val(selectedQueueId);
-           console.log("selected queue id:", selectedQueueId);
-          
+        $("#queue-select").change(function () {
+            const selectedQueueId = $(this).val();
+            $("#selected-queue-id").val(selectedQueueId);
+
+            // Make an AJAX request to fetch settings for the selected queue
+            $.ajax({
+                type: "GET",
+                url: "<?php echo site_url('settings/get_settings'); ?>",
+                data: { queue_id: selectedQueueId },
+                dataType: 'json',
+                success: function (response) {
+                    console.log("Settings for the selected queue:", response);
+
+                    // Update input fields with the fetched settings
+                    $("input[name='overload']").val(response.call_overload);
+                    $("input[name='sms_text']").val(response.sms_content);
+                    $("input[name='sms_key']").val(response.sms_token);
+                    $("select[name='sms_type']").val(response.sms_type);
+                    $("select[name='status']").val(response.status);
+
+                    // Optionally, update other UI elements based on the settings
+
+                },
+                error: function (error) {
+                    console.error("Error fetching settings", error);
+
+                    // Optionally, handle errors or show an error message
+
+                }
+            });
+        });
+        // Handle form submission
+        $("#settings-form").submit(function (e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            // Serialize form data
+            const formData = $(this).serialize();
+
+            // Perform an AJAX request to submit the form data
+            $.ajax({
+                type: "POST",
+                url: $(this).attr("action"),
+                data: formData,
+                dataType: 'json', // Expect JSON response
+                success: function (response) {
+                    console.log("Form submitted successfully", response);
+
+                    // Optionally, update the UI or show a success message
+
+                },
+                error: function (error) {
+                    console.error("Error submitting form", error);
+
+                    // Optionally, handle errors or show an error message
+
+                }
+            });
         });
     });
-
 </script>
-
