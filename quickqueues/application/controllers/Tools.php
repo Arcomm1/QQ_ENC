@@ -141,6 +141,7 @@ class Tools extends CI_Controller {
 
 
         $globalConfig   = $this->globalSettings->getSettings();
+        $allSettings    = $this->globalSettings->getAllSettings();
         $queue_log_path = $this->Config_model->get_item('ast_queue_log_path');
         if (!$queue_log_path) 
         {
@@ -525,44 +526,41 @@ class Tools extends CI_Controller {
             2 completecaller, completeagent   - rodesac zari carmatebit shedga da dasrulda
             */  
 
-            $smsSent = false;
+            $smsSent            = false;
             $lastEventTimestamp = $this->Call_model->get_last_event_timestamp($ev_data[1]);
-            // Check if the current event or queue change occurred after the last event for the call
-            echo $event['timestamp'] . "LAST:".$lastEventTimestamp.'<br>';
-            if ($event['timestamp'] >= $lastEventTimestamp)
+            
+            foreach ($allSettings as $setting) 
             {
-                // Check if the SMS has not been sent yet
-                echo 'პირობა შესრულდა<br>';
-                if(!$smsSent)
+                // Check if the current event or queue change occurred after the last event for the call
+                echo $event['timestamp'] . "LAST:" . $lastEventTimestamp . '<br>';
+                if ($event['timestamp'] >= $lastEventTimestamp) 
                 {
-                  
-                    $queue_ids    = $globalConfig['queue_id'];
-                    $queue_id_arr = explode(',', $queue_ids);
-
-                    echo $ev_data[4].' '.$globalConfig['sms_type'].'<br>';
-                    if (($globalConfig['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
-                    ($globalConfig['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT')))
-                    { 
-                        echo 'should send<br>';
-                        $event['position']     = $ev_data[5];
-                        $event['origposition'] = $ev_data[6];
-                        $event['waittime']     = $ev_data[7];
-
-                        $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-
-                        $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
-                        
-                        
-                        if(in_array($queue_id, $queue_id_arr) and $queue_id  === $number_for_sms['queue_id'])
+                    // Check if the SMS has not been sent yet
+                    echo 'პირობა შესრულდა<br>';
+                    if (!$smsSent) 
+                    {
+                        $queue_id_arr = explode(',', $setting['queue_id']);
+                        echo $ev_data[4] . ' ' . $setting['sms_type'] . '<br>';
+                        if (($setting['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
+                            ($setting['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT'))) 
                         {
-                            echo $queue_id . "rigis aidi";
-                            $sms_number     = $number_for_sms['src'];
-                            $this->send_sms($sms_number,$globalConfig['sms_content'],$globalConfig['sms_token']);
-                            $smsSent        = true;
+                            echo 'should send<br>';
+                            $event['position']     = $ev_data[5];
+                            $event['origposition'] = $ev_data[6];
+                            $event['waittime']     = $ev_data[7];
+                            $this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' => 'ENTERQUEUE'], $event);
+                            $number_for_sms        = $this->Call_model->get_number_for_sms($ev_data[1]);
+            
+                            if (in_array($number_for_sms['queue_id'], $queue_id_arr) && $setting['queue_id'] === $number_for_sms['queue_id'] && $setting['status'] === 'active') 
+                            {
+                                echo $setting['queue_id'] . "rigis aidi";
+                                $sms_number = $number_for_sms['src'];
+                                $this->send_sms($sms_number, $setting['sms_content'], $setting['sms_token']);
+                                $smsSent    = true;
+                            }
                         }
-
-                    } 
-                }  
+                    }
+                }
             }
             $this->Event_model->update_by_complex(
                 array(
