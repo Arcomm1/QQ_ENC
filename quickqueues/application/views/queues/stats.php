@@ -155,7 +155,7 @@
                                             <i class="cil-delete text-danger mr-2"></i>
                                             <a class="text-decoration-none link-dark" :href="app_url+'/AdditionalRecordings?event_type=UNANSWERED&calls_without_service=yes&date_gt='+date_gt+'&date_lt='+date_lt+'&queue_id='+<?php echo $queue->id; ?>"><?php echo lang('calls_without_service'); ?></a>
                                         </span>
-                                        <span>{{ total_stats.calls_without_service }}</span>
+                                        <span>{{ total_stats.users_without_service + ' (' + total_stats.calls_without_service + ')' }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
