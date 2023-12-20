@@ -35,6 +35,7 @@ var start = new Vue({
                 .then(response => {
                     this.total_stats_loading = false;
                     this.total_stats = response.data.data;
+                    console.log(this.total_stats);
                     console.log(this.total_stats, 'Total stats for start');
                     if (this.total_stats.origposition_max === null) 
                     {
