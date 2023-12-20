@@ -476,6 +476,7 @@ class Call_model extends MY_Model {
         $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS max_holdtime');
         $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
+        $this->db->select('COUNT(DISTINCT CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN src END) AS users_without_service');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "no" THEN 1 END) AS called_back_no');
