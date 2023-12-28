@@ -35,11 +35,14 @@ class AdditionalRecordings extends MY_Controller {
 
         $this->data->called_back_styles = qq_get_called_back_styles();
 
-        foreach ($this->data->user_queues as $q) {
-            $this->data->queues[$q->id] = $q->display_name;
-            $this->data->queue_ids[] = $q->id;
+        foreach ($this->data->user_queues as $q) 
+        {
+            if (stripos($q->display_name, 'Callback') === false) 
+            {
+                $this->data->queues[$q->id] = $q->display_name;
+                $this->data->queue_ids[]    = $q->id;
+            }
         }
-
         foreach ($this->data->user_agents as $a) {
             $this->data->agents[$a->id] = $a->display_name;
         }
@@ -49,13 +52,7 @@ class AdditionalRecordings extends MY_Controller {
 
         $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
         $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
-
-        if ($this->data->logged_in_user->role == 'admin') {
-            $where['queue_id'] = $this->input->get('queue_id');
-        } else {
-            $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
-        }
-
+        $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
         $where['agent_id']    = $this->input->get('agent_id');
         $where['called_back'] = $this->input->get('called_back');
         $where['transferred'] = $this->input->get('transferred');

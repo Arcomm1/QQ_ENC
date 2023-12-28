@@ -6,6 +6,10 @@ var queue_stats = new Vue({
             total_stats_loading: true,
             total_stats_error: false,
 
+            total_stats_for_all_queues        : {},
+            total_stats_for_all_queues_loading: true,
+            totak_stats_error                 : false,
+
             agent_stats: {},
             agent_stats_loading: true,
             agent_stats_error: false,
@@ -69,6 +73,16 @@ var queue_stats = new Vue({
                 });
         },
 
+        get_total_stats_for_all_queues : function() 
+        {
+            axios.post(api_url+'queue/get_total_stats_for_all_queues/',this.form_data)
+                .then(response => 
+                {
+                    this.total_stats_for_all_queues_loading = false;
+                    this.total_stats_for_all_queues         = response.data.data;
+
+                });
+        },
         get_agent_stats: function() {
             axios.post(api_url+'agent/get_stats_by_queue_id/'+queue_id,this.form_data)
                 .then(response => {
@@ -161,6 +175,7 @@ var queue_stats = new Vue({
 
         load_data: function() {
             this.get_total_stats();
+            this.get_total_stats_for_all_queues();
             this.get_agent_stats();
             this.get_hourly_stats();
             this.get_daily_stats();
@@ -183,6 +198,7 @@ var queue_stats = new Vue({
 
     created () {
         this.get_total_stats();
+        this.get_total_stats_for_all_queues();
         this.get_agent_stats();
         this.get_hourly_stats();
         this.get_daily_stats();
@@ -210,6 +226,15 @@ var queue_stats = new Vue({
 						  ((this.total_stats.calls_unanswered / this.all_incoming_calls) * 100).toFixed(2)+'%' : '0%';
 						  
 			return this.total_stats.calls_unanswered + ' (' + percent + ')'; 
+        },
+        callback_request: function()
+        {
+            return this.total_stats.callback_request;
+        },
+        callback_request_percent: function()
+        {
+            let percent = this.total_stats.callback_request > 0 ? ((this.total_stats.callback_request / this.all_incoming_calls) * 100).toFixed(2)+ '%' : '0%';
+            return this.total_stats.callback_request + ' (' + percent + ')';
         },
         unique_incoming_calls: function() {
             return parseInt(this.total_stats.unique_incoming_calls_answered) + parseInt(this.total_stats.unique_incoming_calls_unanswered)
@@ -266,7 +291,7 @@ var queue_stats = new Vue({
         /* --- End Of ATA Hold Time --- */
 
         all_incoming_calls: function() {
-            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered)
+            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered) +  parseInt(this.total_stats.callback_request);
         },
 
         call_time_avg:  function() {

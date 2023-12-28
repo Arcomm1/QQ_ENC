@@ -99,6 +99,7 @@
                                         </span>
                                         <span>{{ parseInt(total_stats.calls_answered) + parseInt(total_stats.calls_unanswered) }}</span>
                                     </li>
+                                    
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-list-rich text-primary mr-2"></i>
@@ -160,6 +161,13 @@
                                             <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=UNANSWERED&date_gt='+date_gt+'&date_lt='+date_lt">{{ lang['start_menu_calls_unanswered'] }}</a>
                                         </span>
                                         <span>{{ calls_unanswered_percent }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="cil-phone text-warning mr-2"></i>
+                                            {{ lang['callback_request'] }}
+                                        </span>
+                                        <span>{{ callback_request_percent }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>

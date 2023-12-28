@@ -195,6 +195,11 @@ var monitoring_dashboard = new Vue({
             }
             return false;
         },
+
+        queueIdContainsCallback(queueId) 
+        {
+            return queueId.toLowerCase().includes('callback');
+        },
         
     },
 
@@ -208,25 +213,30 @@ var monitoring_dashboard = new Vue({
     
             const queuesArray = sortedQueueIds.map(queueId => 
             {
-              let realtimeData = {};
-              for (const key in this.realtime_data) 
-              {
-                if (this.realtime_data.hasOwnProperty(key) && this.realtime_data[key].data.displayName === queueId) 
+                if (this.queueIdContainsCallback(queueId)) 
                 {
-                  realtimeData = this.realtime_data[key];
+                    return null; // Skip this queue
                 }
-              }
-              const queueName = realtimeData.data ? realtimeData.data.Queue : "";
-        
-              return {
-                queueId: queueId,
-                totalCalls: this.totalCallsByQueue[queueId],
-                callers: realtimeData.callers || {},
-                queue: queueName,
-              };
+                let realtimeData = {};
+                for (const key in this.realtime_data) 
+                {
+                    if (this.realtime_data.hasOwnProperty(key) && this.realtime_data[key].data.displayName === queueId) 
+                    {
+                    realtimeData = this.realtime_data[key];
+                    }
+                }
+                const queueName = realtimeData.data ? realtimeData.data.Queue : "";
+            
+            
+                return {
+                    queueId: queueId,
+                    totalCalls: this.totalCallsByQueue[queueId],
+                    callers: realtimeData.callers || {},
+                    queue: queueName,
+                };
             });
-        
-            return queuesArray;
+            const filteredQueuesArray = queuesArray.filter(queue => queue !== null);
+            return filteredQueuesArray;
           },
           
 

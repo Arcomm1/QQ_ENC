@@ -14,6 +14,12 @@
                         </thead>
                         <tbody>
                             <?php foreach ($user_queues as $q) { ?>
+                                <?php 
+                                // Skip rows where $q->name contains "Callback" or "callback"
+                                if (stripos($q->display_name, 'Callback') !== false || stripos($q->display_name, 'callback') !== false) {
+                                    continue;
+                                }
+                            ?>
                             <tr>
                                 <td scope="row"><?php echo $q->name; ?></td>
                                 <td><?php echo $q->display_name; ?></td>

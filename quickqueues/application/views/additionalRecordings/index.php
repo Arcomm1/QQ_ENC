@@ -9,7 +9,7 @@
                             <div class="row additionalRecordings">
                                 <div class="col-md-3 col-sm-12" style="width:100%">
                                     <div class="form-floating mb-3">
-                                        <input class="form-control" autocomplete="off" tupe="text" id="date_gt" name="date_gt" placeholder="date_gt" value="<?php echo $this->input->get('date_gt'); ?>">
+                                        <input class="form-control" autocomplete="off" type="text" id="date_gt" name="date_gt" placeholder="date_gt" value="<?php echo $this->input->get('date_gt'); ?>">
                                         <label for="date_gt"><?php echo lang('date_gt'); ?></label>
                                     </div>
                                 </div>
@@ -41,8 +41,11 @@
                                         <a class="btn btn-danger" href="<?php echo site_url('recordings');?>"><?php echo lang('reset'); ?></a>
                                         <a class="btn btn-success" href="<?php echo site_url('export/recordings?'.$this->input->server('QUERY_STRING'));?>"><?php echo lang('export'); ?></a>
                                         <button type="submit" class="btn btn-primary"><?php echo lang('search'); ?></button>
-                                        <span class="btn btn-ghost"><?php echo lang('found')." $num_calls ".lang('calls'); ?></span>
+                                        <span class="btn btn-ghost"><?php echo lang('found')." $num_calls ".lang('call'); ?></span>
                                     </div>
+                                </div>
+                                <div class="col">
+                                    <a class="btn btn-ghost text-success" href="<?php echo site_url('recordings?event_type=UNANSWERED&calls_without_service=yes&date_gt=&date_lt='); ?>">{{ lang['callback_queue'] }}</a>
                                 </div>
                             </div>
 
@@ -74,8 +77,11 @@
                                     {
                                         $rowNumber = 1;
                                     }
-                                    foreach ($calls as $c) {
+                                    foreach ($calls as $c) 
+                                    {
                                         //print_r($c);
+                                        if (in_array($c->queue_id, $this->data->queue_ids)) 
+                                      {
                                         ?>
                                     <tr class="table-row">
                                         <td scope="row"><?php echo $rowNumber; ?></td> <!-- Display row number -->
@@ -153,16 +159,16 @@
                                             <?php } ?>
                                             <i class="cil-comment-bubble text-warning modal_clear get_id" style="cursor:pointer; position:relative;" id="<?php echo $c->id ?>" data-toggle="modal" data-target="#call_subjects">
                                                 <?php 
-                                                        $comment = $this->Call_subjects_model->get_call_params($c->id);
-                                                        $commentText   = $comment['comment'];
-                                                        $subjectFamily = $comment['subject_family'];
+                                                        $comment      = $this->Call_subjects_model->get_call_params($c->id);
+                                                        $commentText  = $comment['comment'];
+                                                        $subjectFamily= $comment['subject_family'];
                                                         
                                                         if(strlen($commentText) > 0)
                                                         {
                                                             $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:-3px; left:6px; font-weight: bold;";
                                                             echo '<i class="cil-check-alt text-success" style="'.$inlineStyle.'" ></i>';
                                                         }
-                                                        if(strlen($subjectFamily) > 0)
+                                                        if(strlen($subjectFamily) > 0 )
                                                         {
                                                             $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:5px; left:6px; font-weight: bold;";
                                                             echo '<i class="cil-check-alt text-info" style="'.$inlineStyle.'" ></i>';
@@ -186,6 +192,7 @@
                                     <?php 
 
                                     $rowNumber++; // Increment row number counter
+                                 }
                                 } ?>
                                     <tbody>
                                 </table>

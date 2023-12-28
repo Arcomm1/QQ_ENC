@@ -2,64 +2,73 @@ var start = new Vue({
     el: '#start',
     data () {
         return {
-            total_stats: {},
-            total_stats_loading: true,
-            total_stats_error: false,
+            total_stats                       : {},
+            total_stats_loading               : true,
+            total_stats_error                 : false,
+            
+            total_stats_for_all_queues        : {},
+            total_stats_for_all_queues_loading: true,
+            totak_stats_error                 : false,
 
-            agent_stats: {},
-            agent_stats_loading: true,
-            agent_stats_error: false,
+            agent_stats                       : {},
+            agent_stats_loading               : true,
+            agent_stats_error                 : false,
 
-            queue_stats: {},
-            queue_stats_loading: true,
-            queue_stats_error: false,
+            queue_stats                       : {},
+            queue_stats_loading               : true,
+            queue_stats_error                 : false,
 
-            hourly_stats: {},
-            hourly_stats_loading: true,
-            hourly_stats_error: false,
+            hourly_stats                      : {},
+            hourly_stats_loading              : true,
+            hourly_stats_error                : false,
 
-            daily_stats: {},
-            daily_stats_loading: true,
-            daily_stats_error: false,
+            daily_stats                       : {},
+            daily_stats_loading               : true,
+            daily_stats_error                 : false,
 
-            date_gt: "",
-            date_lt: "",
+            date_gt                           : "",
+            date_lt                           : "",
 
-            form_data: new FormData,
+            form_data                         : new FormData,
         }
     },
 
     methods: {
-        get_total_stats: function() {
+        get_total_stats: function() 
+        {
             axios.post(api_url+'queue/get_total_stats_for_start/',this.form_data)
-                .then(response => {
+                .then(response => 
+                    {
                     this.total_stats_loading = false;
-                    this.total_stats = response.data.data;
-                    console.log(this.total_stats);
-                    console.log(this.total_stats, 'Total stats for start');
+                    this.total_stats         = response.data.data;
                     if (this.total_stats.origposition_max === null) 
                     {
                         this.total_stats.origposition_max = 0;
                     }
-                    ctx_event_distrib = document.getElementById("canvas_event_distrib").getContext('2d');
-                    this.chart_event_distrib = new Chart(ctx_event_distrib, {
+                    ctx_event_distrib        = document.getElementById("canvas_event_distrib").getContext('2d');
+                    this.chart_event_distrib = new Chart(ctx_event_distrib, 
+                        {
                         type: 'bar',
-                        data: {
+                        data: 
+                        {
                             labels: [
                                 lang['calls_answered'],
                                 lang['calls_unanswered'],
                                 lang['calls_outgoing']+' ('+lang['answered']+')',
                                 lang['calls_outgoing']+' ('+lang['unanswered']+')'
                             ],
-                            datasets: [{
+                            datasets: 
+                            [{
                                 label: lang['calls'],
-                                backgroundColor: [
+                                backgroundColor: 
+                                [
                                     get_colors('teal'),
                                     get_colors('red'),
                                     get_colors('teal'),
                                     get_colors('red'),
                                 ],
-                                data: [
+                                data: 
+                                [
                                     response.data.data.calls_answered,
                                     response.data.data.calls_unanswered,
                                     response.data.data.calls_outgoing_answered,
@@ -67,12 +76,23 @@ var start = new Vue({
                                 ]
                             }]
                         },
-                        options: {
+                        options: 
+                        {
                         }
                     });
                 });
         },
 
+        get_total_stats_for_all_queues : function() 
+        {
+            axios.post(api_url+'queue/get_total_stats_for_all_queues/',this.form_data)
+                .then(response => 
+                {
+                    this.total_stats_for_all_queues_loading = false;
+                    this.total_stats_for_all_queues         = response.data.data;
+
+                });
+        },
 
         get_agent_stats: function() 
         {
@@ -130,7 +150,8 @@ var start = new Vue({
         },
 
 
-        get_queue_stats: function() {
+        get_queue_stats: function() 
+        {
             axios.post(api_url+'queue/get_stats_for_start/',this.form_data)
                 .then(response => {
                     this.queue_stats_loading = false;
@@ -138,8 +159,8 @@ var start = new Vue({
                 });
         },
 
-
-        get_hourly_stats: function() {
+        get_hourly_stats: function() 
+        {
             axios.post(api_url+'queue/get_hourly_stats_for_start/',this.form_data)
                 .then(response => {
                     this.hourly_stats_loading = false;
@@ -148,7 +169,8 @@ var start = new Vue({
         },
 
 
-        get_daily_stats: function() {
+        get_daily_stats: function() 
+        {
             axios.post(api_url+'queue/get_daily_stats_for_start/',this.form_data)
                 .then(response => {
                     this.daily_stats_loading = false;
@@ -157,7 +179,8 @@ var start = new Vue({
         },
 
 
-        update_form_data: function() {
+        update_form_data: function() 
+        {
             f = new FormData();
             f.append('date_gt', $('#date_gt').val());
             f.append('date_lt', $('#date_lt').val());
@@ -169,6 +192,7 @@ var start = new Vue({
 
 
         refresh: function() {
+
             this.chart_event_distrib.destroy();
             this.chart_agent_distrib.destroy();
 
@@ -177,8 +201,10 @@ var start = new Vue({
         },
 
 
-        load_data: function() {
+        load_data: function() 
+        {
             this.get_total_stats();
+            this.get_total_stats_for_all_queues();
             this.get_agent_stats();
             this.get_queue_stats();
             this.get_hourly_stats();
@@ -186,11 +212,13 @@ var start = new Vue({
         },
 
 
-        export_stats: function() {
+        export_stats: function() 
+        {
             location.href = app_url+'/export/overview_new?date_gt='+$('#date_gt').val()+'&date_lt='+$('#date_lt').val();
         },
 
-        export_category: function() {
+        export_category: function() 
+        {
             location.href = app_url+'/export/category_export?date_gt='+$('#date_gt').val()+'&date_lt='+$('#date_lt').val();;
         },
 
@@ -200,12 +228,15 @@ var start = new Vue({
     },
 
 
-    mounted () {
+    mounted () 
+    {
 
     },
 
-    created () {
+    created () 
+    {
         this.get_total_stats();
+        this.get_total_stats_for_all_queues();
         this.get_agent_stats();
         this.get_queue_stats();
         this.get_hourly_stats();
@@ -232,6 +263,15 @@ var start = new Vue({
 			return this.total_stats.calls_unanswered + ' (' + percent + ')'; 
         },
 
+        callback_request: function()
+        {
+            return this.total_stats.callback_request;
+        },
+        callback_request_percent: function()
+        {
+            let percent = this.total_stats.callback_request > 0 ? ((this.total_stats.callback_request / this.all_incoming_calls) * 100).toFixed(2)+ '%' : '0%';
+            return this.total_stats.callback_request + ' (' + percent + ')';
+        },
         unique_incoming_calls: function() {
             return parseInt(this.total_stats.unique_incoming_calls_answered) + parseInt(this.total_stats.unique_incoming_calls_unanswered)
         },
@@ -245,7 +285,7 @@ var start = new Vue({
         },
 
         all_incoming_calls: function() {
-            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered)
+            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered) + parseInt(this.total_stats.callback_request)
         },
 
         call_time_avg:  function() {
@@ -371,9 +411,12 @@ var start = new Vue({
         /* --- End Of Outgoing Total And AVG Calltime --- */
 
         without_service_share: function() {
-            if (this.all_incoming_calls > 0) {
+            if (this.all_incoming_calls > 0) 
+            {
                 return Math.floor((this.total_stats.calls_without_service / this.all_incoming_calls) * 100);
-            } else {
+            } 
+            else 
+            {
                 return '0%';
             }
         }

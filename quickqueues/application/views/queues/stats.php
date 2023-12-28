@@ -145,6 +145,13 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
+                                            <i class="cil-phone text-warning mr-2"></i>
+                                            {{ lang['callback_request'] }}
+                                        </span>
+                                        <span>{{ callback_request_percent }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
                                             <i class="cil-av-timer text-warning mr-4"></i>
                                             {{ lang['ata'] }}
                                         </span>

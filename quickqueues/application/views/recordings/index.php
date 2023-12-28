@@ -25,10 +25,12 @@
                                         <select class="form-select" id="queue_id" name="queue_id">
                                         <option selected value="0"><?php echo lang('select_queue'); ?></option>
                                         <?php foreach ($user_queues as $q) { ?>
-                                            <?php if ($this->input->get('queue_id') == $q->id) { ?>
-                                                <option selected value="<?php echo $q->id; ?>"><?php echo $q->display_name; ?></option>
-                                            <?php } else { ?>
-                                                <option value="<?php echo $q->id; ?>"><?php echo $q->display_name; ?></option>
+                                           <?php if (!stripos($q->display_name, 'Callback')) { ?>
+                                                <?php if ($this->input->get('queue_id') == $q->id) { ?>
+                                                    <option selected value="<?php echo $q->id; ?>"><?php echo $q->display_name; ?></option>
+                                                <?php } else { ?>
+                                                    <option value="<?php echo $q->id; ?>"><?php echo $q->display_name; ?></option>
+                                                <?php } ?>
                                             <?php } ?>
                                         <?php } ?>
                                         </select>
@@ -187,8 +189,11 @@
                                     {
                                         $rowNumber = 1;
                                     }
-                                    foreach ($calls as $c) {
-                                        //print_r($c);
+                                    foreach ($calls as $c) 
+                                    {
+                                        // print_r($c);
+                                      if (in_array($c->queue_id, $this->data->queue_ids)) 
+                                      {
                                         ?>
                                     <tr class="table-row">
                                         <td scope="row"><?php echo $rowNumber; ?></td> <!-- Display row number -->
@@ -270,9 +275,9 @@
                                             <?php } ?>
                                             <i class="cil-comment-bubble text-warning modal_clear get_id" style="cursor:pointer; position:relative;" id="<?php echo $c->id ?>" data-toggle="modal" data-target="#call_subjects">
                                                 <?php 
-                                                        $comment        = $this->Call_subjects_model->get_call_params($c->id);
-                                                        $commentText    = $comment['comment'];
-                                                        $subjectFamily  = $comment['subject_family'];
+                                                        $comment      = $this->Call_subjects_model->get_call_params($c->id);
+                                                        $commentText  = $comment['comment'];
+                                                        $subjectFamily= $comment['subject_family'];
                                                         
                                                         if(strlen($commentText) > 0)
                                                         {
@@ -301,8 +306,8 @@
                                         </td>
                                     </tr>
                                     <?php 
-
                                     $rowNumber++; // Increment row number counter
+                                }
                                 } ?>
                                     <tbody>
                                 </table>

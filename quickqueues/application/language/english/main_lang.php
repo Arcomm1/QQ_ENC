@@ -11,6 +11,7 @@ $lang['start_menu_sla_less_than_or_equal_to_10']                 = "SLA < 10 sec
 $lang['start_menu_sla_greater_than_10_less_then_or_equal_to_20'] = "SLA > 10 and SLA < 20 seconds";
 $lang['start_menu_sla_greater_than_20']                          = "SLA > 20 seconds";
 $lang['start_menu_calls_unanswered']                             = "Unanswered calls";
+$lang['callback_request']                                        = "Callback requests";
 $lang['ata']                                                     = "ATA (average)";
 $lang['answered_aoutcall']                                       = "Answered (outcall)";
 $lang['incoming_talk_time_sum']                                  = "Incoming talk time (sum)";

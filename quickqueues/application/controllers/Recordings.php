@@ -41,8 +41,11 @@ class Recordings extends MY_Controller {
         
         foreach ($this->data->user_queues as $q) 
         {
-            $this->data->queues[$q->id] = $q->display_name;
-            $this->data->queue_ids[]    = $q->id;
+            if (stripos($q->display_name, 'Callback') === false) 
+            {
+                $this->data->queues[$q->id] = $q->display_name;
+                $this->data->queue_ids[]    = $q->id;
+            }
         }
         
         foreach ($this->data->user_agents as $a) 
@@ -55,17 +58,9 @@ class Recordings extends MY_Controller {
         
         $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
         $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
-        
-       
         $ring_no_answer_calls = array(); // Initialize an empty array
-
-
-        if ($this->data->logged_in_user->role == 'admin') {
-            $where['queue_id'] = $this->input->get('queue_id');
-        } else {
-            $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
-        }
-
+        $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
+        $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
         if($this->input->get('event_type') != 'RINGNOANSWER')
         {
 
@@ -140,15 +135,16 @@ class Recordings extends MY_Controller {
                 
             }
         } 
+        
         elseif ($this->input->get('event_type') == 'UNANSWERED') 
         {
             if ($this->data->config->app_track_ivrabandon == 'yes') 
             {
-                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
+                $where['event_type'] = array('ABANDON', 'EXITWITHTIMEOUT', 'EXITEMPTY', 'IVRABANDON');
             } 
             else 
             {
-                $where['event_type'] = array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY');
+                $where['event_type'] = array('ABANDON', 'EXITWITHTIMEOUT', 'EXITEMPTY');
             }
         }
         elseif ($this->input->get('event_type') == 'OUTGOING_INTERNAL')

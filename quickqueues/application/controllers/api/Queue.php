@@ -1632,13 +1632,34 @@ class Queue extends MY_Controller {
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
         $queue_ids = array();
 
-        foreach ($this->data->user_queues as $q) {
-            array_push($queue_ids, $q->id);
+        foreach ($this->data->user_queues as $q) 
+        {
+            if (stripos($q->display_name, 'callback') === false) 
+            {
+                array_push($queue_ids, $q->id);
+            }
         }
 
         $this->r->data = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
-
         $this->r->status = 'OK';
+        $this->r->message = 'Total queue stats will follow';
+        $this->_respond();
+    }
+
+    public function get_total_stats_for_all_queues()
+    {
+        $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
+        $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
+        $queue_ids = array();
+
+        foreach ($this->data->user_queues as $q) 
+        {
+            array_push($queue_ids, $q->id);
+
+        }
+
+        $this->r->data    = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
+        $this->r->status  = 'OK';
         $this->r->message = 'Total queue stats will follow';
         $this->_respond();
     }
@@ -1668,26 +1689,37 @@ class Queue extends MY_Controller {
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
         $queue_ids = array();
 
-        foreach ($this->data->user_queues as $q) {
+        foreach ($this->data->user_queues as $q) 
+        {
+            if (stripos($q->display_name, 'Callback') !== false || stripos($q->display_name, 'callback') !== false) 
+            {
+                continue;
+            }
             array_push($queue_ids, $q->id);
         }
 
         $queue_call_stats = $this->Call_model->get_queue_stats_for_start_page($queue_ids, $date_range);
-        foreach ($this->data->user_queues as $q) {
+        foreach ($this->data->user_queues as $q) 
+        {
+            if (stripos($q->display_name, 'Callback') !== false || stripos($q->display_name, 'callback') !== false) 
+            {
+                continue;
+            }
+
             $queue_stats[$q->id] = array(
-                'display_name'           => $q->display_name,
-                'calls_total'            => 0,
-                'calls_answered'         => 0,
-                'calls_outgoing'         => 0,
-                'calls_missed'           => 0,
-                'total_calltime'         => 0,
-                'total_holdtime'         => 0,
-                'avg_calltime'           => 0,
-                'avg_holdtime'           => 0,
-                'origposition_avg'       => 0,
-                'calls_outgoing_answered'=> 0,
+                'display_name'             => $q->display_name,
+                'calls_total'              => 0,
+                'calls_answered'           => 0,
+                'calls_outgoing'           => 0,
+                'calls_missed'             => 0,
+                'total_calltime'           => 0,
+                'total_holdtime'           => 0,
+                'avg_calltime'             => 0,
+                'avg_holdtime'             => 0,
+                'origposition_avg'         => 0,
+                'calls_outgoing_answered'  => 0,
                 'calls_outgoing_unanswered'=> 0,
-                'calls_missed'           => 0,
+                'calls_missed'             => 0,
             );
         }
 
@@ -1697,12 +1729,12 @@ class Queue extends MY_Controller {
             $queue_stats[$s->queue_id]['calls_missed']             = $s->calls_unanswered;
             $queue_stats[$s->queue_id]['total_calltime']           = $s->total_calltime;
             $queue_stats[$s->queue_id]['total_holdtime']           = $s->total_holdtime;
-            $queue_stats[$s->queue_id]['avg_calltime']             = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
-            $queue_stats[$s->queue_id]['avg_holdtime']             = ceil(($s->total_holdtime + $s->total_waittime) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
+            $queue_stats[$s->queue_id]['avg_calltime']             = ceil($s->total_calltime == 0 || ($s->calls_answered + $s->calls_outgoing) == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
+            $queue_stats[$s->queue_id]['avg_holdtime']             = ceil(($s->total_holdtime + $s->total_waittime) == 0 || ($s->calls_answered + $s->calls_unanswered) == 0 ? 0 : ($s->total_holdtime + $s->total_waittime) / ($s->calls_answered + $s->calls_unanswered));
             $queue_stats[$s->queue_id]['origposition_avg']         = ceil($s->origposition_avg);
             $queue_stats[$s->queue_id]['calls_outgoing_answered']  = $s->calls_outgoing_answered;
             $queue_stats[$s->queue_id]['calls_outgoing_unanswered']= $s->calls_outgoing_unanswered;
-            $queue_stats[$s->queue_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
+            $queue_stats[$s->queue_id]['incoming_total_calltime']  = $s->incoming_total_calltime;
             $queue_stats[$s->queue_id]['outgoing_total_calltime']  = $s->outgoing_total_calltime;
         }
 
@@ -1719,8 +1751,12 @@ class Queue extends MY_Controller {
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
         $queue_ids = array();
 
-        foreach ($this->data->user_queues as $q) {
-            array_push($queue_ids, $q->id);
+        foreach ($this->data->user_queues as $q) 
+        {
+            if (stripos($q->display_name, 'callback') === false) 
+            {
+                array_push($queue_ids, $q->id);
+            }
         }
 
         $hourly_call_stats = $this->Call_model->get_hourly_stats_for_start_page($queue_ids, $date_range);
@@ -1811,8 +1847,12 @@ class Queue extends MY_Controller {
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
         $queue_ids = array();
 
-        foreach ($this->data->user_queues as $q) {
-            array_push($queue_ids, $q->id);
+        foreach ($this->data->user_queues as $q) 
+        {
+            if (stripos($q->display_name, 'callback') === false) 
+            {
+                array_push($queue_ids, $q->id);
+            }
         }
 
         // Generate the list of dates within the specified date range
@@ -1978,7 +2018,9 @@ class Queue extends MY_Controller {
     {
         if (!$id) {
             foreach ($this->data->user_queues as $q) {
-                $id[] = $q->id;
+                if (stripos($q->display_name, 'Callback') === false) {
+                    $id[] = $q->id;
+                }
             }
         }
 
@@ -1994,7 +2036,7 @@ class Queue extends MY_Controller {
             array(
                 'date >' => QQ_TODAY_START,
                 'queue_id' => $id,
-                'event_type' => array('ABANDON', 'EXITWITHKEY', 'EXITEMPTY', 'EXITWITHTIMEOUT')
+                'event_type' => array('ABANDON','EXITEMPTY', 'EXITWITHTIMEOUT')
             )
         );
 
