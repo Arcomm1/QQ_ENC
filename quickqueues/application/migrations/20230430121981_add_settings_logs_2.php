@@ -6,12 +6,12 @@ class Migration_add_settings_logs_2 extends CI_Migration
 
     public function up()
     {
-        $this->dbforge->drop_column('qq_settings_logs','calls_without_service_queue_id');
-        $this->dbforge->drop_column('qq_settings_logs','sla_callbacks');
-        $this->dbforge->drop_column('qq_settings_logs','timeout_callbacks');
-        $this->dbforge->drop_column('qq_settings_logs','sla_calls');
-        $this->dbforge->drop_column('qq_settings_logs','timeout_calls');
-        return;
+        // $this->dbforge->drop_column('qq_settings_logs','calls_without_service_queue_id');
+        // $this->dbforge->drop_column('qq_settings_logs','sla_callbacks');
+        // $this->dbforge->drop_column('qq_settings_logs','timeout_callbacks');
+        // $this->dbforge->drop_column('qq_settings_logs','sla_calls');
+        // $this->dbforge->drop_column('qq_settings_logs','timeout_calls');
+        // return;
         $fields = array (
             'calls_without_service_queue_id' => array(
                 'type' => 'INT',
@@ -59,7 +59,7 @@ class Migration_add_settings_logs_2 extends CI_Migration
          $fields = array (
             'date' => array(
                 'type' => 'DATETIME',
-                'default' => 'CURRENT_TIMESTAMP(6)',
+                'default' => 'CURRENT_TIMESTAMP()',
             ),
         );
 
