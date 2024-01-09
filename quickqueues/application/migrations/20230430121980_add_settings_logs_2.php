@@ -6,6 +6,8 @@ class Migration_add_settings_logs_2 extends CI_Migration
 
     public function up()
     {
+        $this->down();
+
         $fields = array (
             'calls_without_service_queue_id' => array(
                 'type' => 'INT',
