@@ -1,33 +1,56 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Migration_add_settings_logs_1 extends CI_Migration 
+class Migration_add_settings_logs_2 extends CI_Migration 
 {
 
     public function up()
     {
-        $fields = array(
+        $fields = array (
             'calls_without_service_queue_id' => array(
                 'type' => 'INT',
                 'constraint' => 11,
                 'unsigned' => TRUE,
             ),
+        );
+
+        $this->dbforge->add_column('qq_settings_logs', $fields);
+
+        $fields = array (
             'sla_callbacks' => array(
                 'type' => 'VARCHAR',
                 'constraint' => 10,
             ),
+        );
+            
+        $this->dbforge->add_column('qq_settings_logs', $fields);
+
+        $fields = array (
             'timeout_callbacks' => array(
                 'type' => 'VARCHAR',
                 'constraint' => 10,
             ),
+        );  
+        $this->dbforge->add_column('qq_settings_logs', $fields);
+
+        $fields = array (
             'sla_calls' => array(
                 'type' => 'VARCHAR',
                 'constraint' => 10,
             ),
+        );  
+        
+        $this->dbforge->add_column('qq_settings_logs', $fields);
+
+        $fields = array (
             'timeout_calls' => array(
                 'type' => 'VARCHAR',
                 'constraint' => 10,
             ),
+        );  
+            
+         $this->dbforge->add_column('qq_settings_logs', $fields);
+         $fields = array (
             'date' => array(
                 'type' => 'DATETIME',
                 'default' => 'CURRENT_TIMESTAMP',
