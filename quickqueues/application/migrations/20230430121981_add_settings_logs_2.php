@@ -59,7 +59,7 @@ class Migration_add_settings_logs_2 extends CI_Migration
          $fields = array (
             'date' => array(
                 'type' => 'DATETIME',
-                'default' => 'CURRENT_TIMESTAMP()',
+                'default' => new RawSql('CURRENT_TIMESTAMP'),
             ),
         );
 
