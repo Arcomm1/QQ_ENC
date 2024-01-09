@@ -142,6 +142,17 @@ echo "* * * * * root php $DEST/index.php tools parse_queue_log" > /etc/cron.d/qu
 
 echo "================================================================================"
 
+# QQ version File path
+qq_version_file="/home/qq_version.sh"
+
+# Check if the file exists
+if [ -f "$qq_version_file" ]; then
+    echo "$qq_version_file exists. Running the script..."
+    # Run the script
+    bash "$qq_version_file"
+else
+    echo "$qq_version_file does not exist."
+fi
 
 echo "====== INSTALLATION SUMMARY ===================================================="
 
