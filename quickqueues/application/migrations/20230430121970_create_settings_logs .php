@@ -52,3 +52,6 @@ class Migration_Create_settings_logs extends CI_Migration
         $this->dbforge->drop_table('qq_settings_logs');
     }
 }
+
+
+

@@ -69,15 +69,16 @@ $config['migration_auto_latest'] = FALSE;
 | be upgraded / downgraded to.
 |
 */
-//$config['migration_version'] = 20221229141400;
+//$config['migration_version']  = 20221229141400;
 // $config['migration_version'] = 20230430121000;
-//$config['migration_version'] = 20230430121800;
+//$config['migration_version']  = 20230430121800;
 // $config['migration_version'] = 20230430121900;
 // $config['migration_version'] = 20230430121910;
 // $config['migration_version'] = 20230430121940;
 // $config['migration_version'] = 20230430121960;
-   // $config['migration_version'] = 20230430121970;
-   $config['migration_version'] = 202404010921970;
+// $config['migration_version'] = 20230430121970;
+// $config['migration_version'] = 202404010921970;
+$config['migration_version'] = 202404010922970;
 
 /*
 |--------------------------------------------------------------------------
