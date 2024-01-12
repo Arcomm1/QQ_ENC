@@ -8,7 +8,8 @@ class Migration_add_settings_logs_3 extends CI_Migration
     {
         $fields = array (
             'resolution' => array(
-                'type'       => 'VARCHAR',
+                'type'=> 'VARCHAR',
+                'constraint' => 255,
             ),
         );
 
