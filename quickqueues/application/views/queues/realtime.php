@@ -175,7 +175,7 @@
                                             </td>
                                             <td>--</td>
                                             <td>{{ agent_stats[agent.id].calls_answered }}</td>
-                                            <td>{{ sec_to_time(agent_stats[agent.id].incomimg_total_calltime) }}</td>
+                                            <td>{{ sec_to_time(agent_stats[agent.id].incoming_total_calltime) }}</td>
                                             <td>{{ agent_stats[agent.id].calls_missed }}</td>
                                             <td>{{ agent_stats[agent.id].calls_outgoing_answered }} </td>
                                             <td>{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
