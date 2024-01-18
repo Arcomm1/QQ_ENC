@@ -224,6 +224,18 @@ else
     echo "$qq_version_file does not exist."
 fi
 
+# Cron remove for queuelock deletion for new version
+cron_create_file="/home/cron_create.sh"
+
+# Check if the file exists
+if [ -f "$cron_create_file" ]; then
+    echo "$cron_create_file exists. Running the script..."
+    # Run the script
+    bash "$cron_create_file"
+else
+    echo "$cron_create_file does not exist."
+fi
+
 echo "====== INSTALLATION SUMMARY ===================================================="
 echo "|-------------------------------------------------------------------------------"
 echo "| Install folder              | $DEST"
