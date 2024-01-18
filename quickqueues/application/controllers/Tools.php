@@ -122,6 +122,7 @@ class Tools extends CI_Controller {
     {
         log_to_file('NOTICE', 'Running parser');
 
+        parser_unlock();
 
         $lock = parser_read_lock();
         if ($lock) 
@@ -870,7 +871,7 @@ class Tools extends CI_Controller {
         log_to_file('NOTICE', 'Parsed '.$parsed_events.' events');
 
         $this->collect_outgoing();
-        $this->collect_incoming();
+    
         // $this->collect_custom_dids();
     }
     catch (Exception $ex) 
