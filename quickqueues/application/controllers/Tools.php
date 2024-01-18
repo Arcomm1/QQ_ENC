@@ -844,7 +844,7 @@ class Tools extends CI_Controller {
              * Custom DIALOUTFAILED event
              *
              * This event should be generated when generated call fails for some reason
-             */lock
+             */
             if ($ev_data[4] == 'DIALOUTFAILED') {
                 $event['custom_uniqueid'] = trim(preg_replace('/\s+/', '', $ev_data[5]));
                 $event['dialout_fail_reason'] = $ev_data[6];
