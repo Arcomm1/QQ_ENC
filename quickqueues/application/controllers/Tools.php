@@ -117,17 +117,11 @@ class Tools extends CI_Controller {
     }
 
 
-    public function parse_queue_log2()
-    {
-        // empty function for cron job, manual testing only
-    }
-
     /** Parse queue log file */
     public function parse_queue_log()
     {
         log_to_file('NOTICE', 'Running parser');
 
-        parser_unlock();
 
         $lock = parser_read_lock();
         if ($lock) 
@@ -135,6 +129,7 @@ class Tools extends CI_Controller {
             log_to_file('NOTICE', 'Parser is locked by procces '.$lock.', Exitting');
             exit;
         }
+
 
         log_to_file('NOTICE', 'Locking parser');
         parser_lock();
@@ -157,7 +152,6 @@ class Tools extends CI_Controller {
             parser_unlock();
             exit();
         }
-
         $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
         $queue_log = @fopen($queue_log_path, 'r');
@@ -168,6 +162,8 @@ class Tools extends CI_Controller {
             exit();
         }
 
+    try 
+    {		
         // Event types
         foreach ($this->Event_type_model->get_all() as $et) 
         {
@@ -237,7 +233,7 @@ class Tools extends CI_Controller {
             }
 
           
-            if ($ev_data[4] === 'CONFIGRELOAD') 
+            if ($ev_data[4] == 'CONFIGRELOAD') 
             {
                 continue;
             }
@@ -848,7 +844,7 @@ class Tools extends CI_Controller {
              * Custom DIALOUTFAILED event
              *
              * This event should be generated when generated call fails for some reason
-             */
+             */lock
             if ($ev_data[4] == 'DIALOUTFAILED') {
                 $event['custom_uniqueid'] = trim(preg_replace('/\s+/', '', $ev_data[5]));
                 $event['dialout_fail_reason'] = $ev_data[6];
@@ -874,10 +870,15 @@ class Tools extends CI_Controller {
         log_to_file('NOTICE', 'Parsed '.$parsed_events.' events');
 
         $this->collect_outgoing();
+        $this->collect_incoming();
         // $this->collect_custom_dids();
-
-        log_to_file('NOTICE', 'Unlocking parser');
-        parser_unlock();
+    }
+    catch (Exception $ex) 
+    {
+        log_to_file('ERROR', $ex->getMessage());
+    }
+    log_to_file('NOTICE', 'Unlocking parser');
+    parser_unlock();
     }
 
 
