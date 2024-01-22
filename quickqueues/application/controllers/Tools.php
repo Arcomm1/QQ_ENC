@@ -30,6 +30,7 @@ class Tools extends CI_Controller {
     // }
 
 
+
     /** User management */
     public function user_ctl($action = false, $username = false, $password = false, $role = false)
     {
@@ -120,6 +121,9 @@ class Tools extends CI_Controller {
     /** Parse queue log file */
     public function parse_queue_log()
     {
+        // for testing only
+        // $this->clearCacheKeys(); 
+
         log_to_file('NOTICE', 'Running parser');
 
         parser_unlock();
@@ -525,6 +529,7 @@ class Tools extends CI_Controller {
 
             $smsSent            = false;
             $lastEventTimestamp = $this->Call_model->get_last_event_timestamp($ev_data[1]);
+            $this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' => 'ENTERQUEUE'], $event);
             
             foreach ($allSettings as $setting) 
             {
@@ -545,7 +550,6 @@ class Tools extends CI_Controller {
                             $event['position']     = $ev_data[5];
                             $event['origposition'] = $ev_data[6];
                             $event['waittime']     = $ev_data[7];
-                            $this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' => 'ENTERQUEUE'], $event);
                             $number_for_sms        = $this->Call_model->get_number_for_sms($ev_data[1]);
             
                             if (in_array($number_for_sms['queue_id'], $queue_id_arr) && $setting['queue_id'] === $number_for_sms['queue_id'] && $setting['status'] === 'active') 
