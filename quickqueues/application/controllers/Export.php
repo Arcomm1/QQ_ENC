@@ -156,6 +156,8 @@ class Export extends MY_Controller {
 
         $calls = $this->Call_model->search($where, $like);
 
+    
+
          /* ------- Get Formatted Categories and Subcategories For Export ------- */
         if($category_export_permission == 'yes') {
             $main_subject = array();
@@ -179,9 +181,11 @@ class Export extends MY_Controller {
             }
         }
 
-            foreach ($calls as $c) {
+            foreach ($calls as $c) 
+            {
                 //$category_export_permission= $this->data->config->app_call_categories;
-                if($category_export_permission == 'yes') {
+                if($category_export_permission == 'yes') 
+                {
                     if (strlen($c->subject_family) > 0) {
                         $empty_subject_family = ['', '', '', ''];
                         $subject_family_array = explode('|', $c->subject_family);
@@ -240,25 +244,27 @@ class Export extends MY_Controller {
 
         /* ------- End OfFormatting Categories and Subcategories ------- */
 
-            $rows[] = array(
-                $c->date,
-                $c->queue_id ? $tqueues[$c->queue_id] : "",
-                $c->agent_id ? $tagents[$c->agent_id] : "",
-                $c->src,
-                $c->dst,
-                $c->event_type,
-                sec_to_time($c->calltime),
-                sec_to_time($c->holdtime),
-                $c->comment,
-                $category_export_permission == 'yes' ? $empty_subject_family[0] : '',
-                $category_export_permission == 'yes' ? $empty_subject_family[1] : '',
-                $category_export_permission == 'yes' ? $empty_subject_family[2] : '',
-                $category_export_permission == 'yes' ? $empty_subject_family[3] : '',
-            );
+       
+        $rows[] = array(
+            $c->date,
+            $c->queue_id ? $tqueues[$c->queue_id] : "",
+            $c->agent_id ? $tagents[$c->agent_id] : "",
+            $c->src,
+            $c->dst,
+            $c->event_type,
+            sec_to_time($c->calltime),
+            ($c->event_type == 'ABANDON' || $c->event_type == 'EXITWITHKEY' || $c->event_type == 'EXITWITHTIMEOUT' || $c->event_type == 'EXITEMPTY') ? sec_to_time($c->waittime) : sec_to_time($c->holdtime),
+            $c->comment,
+            $category_export_permission == 'yes' ? $empty_subject_family[0] : '',
+            $category_export_permission == 'yes' ? $empty_subject_family[1] : '',
+            $category_export_permission == 'yes' ? $empty_subject_family[2] : '',
+            $category_export_permission == 'yes' ? $empty_subject_family[3] : '',
+        );
+        
         }
        /* echo "<pre>";
             print_r($rows);
-        echo "</pre>";*/
+        // echo "</pre>";*/
         $this->_prepare_headers('recordings-'.date('Ymd-His').'.xlsx');
         $writer     = new XLSXWriter();
         $writer->setAuthor('Quickqueues');
@@ -1423,7 +1429,7 @@ class Export extends MY_Controller {
                 {
                     $found = true;
                 
-                    if($i->calls_unanswered == 0)
+                    if($i->calls_unanswered === 0)
                     {
     
                         $avg_holdtme = '00:00:00';
@@ -1432,6 +1438,7 @@ class Export extends MY_Controller {
                     {
                         $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
                     }
+
                     $rows_days[] = array(
                         'day'                       => $i->date,
                         'calls_answered'            => $i->calls_answered,
