@@ -2046,7 +2046,9 @@ class Queue extends MY_Controller {
                 'queue_id' => $id,
                 'called_back' => 'no',
                 'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY'),
-                'answered_elsewhere' => 'isnull'
+                'answered_elsewhere' => 'isnull',
+                'waittime >=' => 5
+
             )
         );
 
