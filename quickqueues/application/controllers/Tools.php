@@ -29,7 +29,10 @@ class Tools extends CI_Controller {
     //     load_views(array('agents/index'), $this->data, true);
     // }
 
-
+    // public function clearCacheKeys()
+    // {
+    //     $_SESSION['request_keys'] = null;
+    // }
 
     /** User management */
     public function user_ctl($action = false, $username = false, $password = false, $role = false)
@@ -143,21 +146,22 @@ class Tools extends CI_Controller {
         $globalConfig   = $this->globalSettings->getSettings();
         $allSettings    = $this->globalSettings->getAllSettings();
         $queue_log_path = $this->Config_model->get_item('ast_queue_log_path');
+        // Additional paramethers for manual roll back and reparse
+		$queue_log_rollback = $this->Config_model->get_item('queue_log_rollback');
+		$queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
+		$queue_log_force_duplicate_deletion = $this->Config_model->get_item('queue_log_force_duplicate_deletion');
+		
+		// Directory containing queue_log files
+		$directory_queue_log = '/var/log/asterisk';
+		// Name of the merged file
+		$merged_queue_log = $directory_queue_log . '/merged_queue_log';		
+		
         if (!$queue_log_path) 
         {
             log_to_file('ERROR', 'Quickqueues is not configured properly, ast_queue_log_path not specified, Exitting');
             parser_unlock();
             exit();
         }
-
-        $last_parsed_event = $this->Config_model->get_item('app_last_parsed_event');
-        if ($last_parsed_event === false) 
-        {
-            log_to_file('ERROR', 'Quickqueues is not configured properly, app_last_parsed_event not specified, Exitting');
-            parser_unlock();
-            exit();
-        }
-        $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
         $queue_log = @fopen($queue_log_path, 'r');
         if (!$queue_log) 
@@ -166,8 +170,104 @@ class Tools extends CI_Controller {
             parser_unlock();
             exit();
         }
+        
+//***************************************************************
+		if ($queue_log_rollback == "yes") {
+			// Calculate the date
+			$period_in_days = date('Y-m-d', strtotime("-{$queue_log_rollback_days} days"));
 
-    try 
+			// Prepare the query
+			$query = $this->db->select('timestamp')
+							  ->from('qq_calls')
+							  ->where('date >=', $period_in_days)
+							  ->order_by('date', 'ASC')
+							  ->limit(1)
+							  ->get();
+
+			// Check for errors
+			if ($query === FALSE) {
+				log_message('error', 'Error fetching timestamp: ' . $this->db->error()['message']);
+				$last_parsed_event = 1;  // or some other default value
+			} else {
+				$result = $query->row_array();
+				echo "Timestamp from $queue_log_rollback_days days ago: " . $result['timestamp'] . "\n";
+				$last_parsed_event = $result['timestamp'];
+			}
+
+			$this->db->update('qq_config', array('value' => $last_parsed_event), array('name' => 'app_last_parsed_event'));
+
+			// Get all queue_log files
+			$allFiles = glob($directory_queue_log . '/queue_log*');
+
+			// Separate queue_log and dated files
+			$datedFiles = array_filter($allFiles, function($filename) {
+				return strpos($filename, 'queue_log-') !== false;
+			});
+			$queueLog = array_filter($allFiles, function($filename) {
+				return strpos($filename, 'queue_log-') === false;
+			});
+
+			// Sort dated files by date in ascending order
+			usort($datedFiles, function($a, $b) {
+				return strcmp($a, $b);
+			});
+
+			// Append queue_log to the end of the array
+			$filesToMerge = array_merge($datedFiles, $queueLog);
+
+			// Check if merged file exists, delete it if it does
+			if (file_exists($merged_queue_log)) {
+				if (!unlink($merged_queue_log)) {
+					die("Failed to delete existing file: $merged_queue_log");
+				}
+			}
+
+			// Open file handle for writing to the merged file
+			$handle = fopen($merged_queue_log, 'a'); // 'a' mode to append to the file
+
+			// Check if handle is valid
+			if ($handle) {
+				foreach ($filesToMerge as $file) {
+					$content = file_get_contents($file);
+					fwrite($handle, $content . "\n");
+				}
+				fclose($handle);
+				echo "Files merged successfully into '$merged_queue_log'.";
+			} else {
+				echo "Unable to open file for writing.";
+			}
+
+
+			// Read the merged file
+			$queue_log = @fopen($directory_queue_log . '/merged_queue_log', 'r');
+			if (!$queue_log) {
+				log_to_file("ERROR", "Can not open log file, Exitting");
+				parser_unlock();
+				exit();
+			}
+			$this->db->update('qq_config', array('value' => 'no'), array('name' => 'queue_log_rollback'));
+			$this->db->update('qq_config', array('value' => '1'), array('name' => 'queue_log_rollback_days'));
+		}
+		else {
+			// Check if merged file exists, delete it if it does
+			if (file_exists($merged_queue_log)) {
+				if (!unlink($merged_queue_log)) {
+					die("Failed to delete existing file: $merged_queue_log");
+				}
+			}			
+        $last_parsed_event = $this->Config_model->get_item('app_last_parsed_event');
+}
+		//***************************************************************
+		
+        if ($last_parsed_event === false) 
+        {
+            log_to_file('ERROR', 'Quickqueues is not configured properly, app_last_parsed_event not specified, Exitting');
+            parser_unlock();
+            exit();
+        }
+        $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
+
+            try 
     {		
         // Event types
         foreach ($this->Event_type_model->get_all() as $et) 
@@ -322,12 +422,20 @@ class Tools extends CI_Controller {
             /**
              * ENTERQUEUE - call entered queue, new Call row should be created
              */
-            if ($ev_data[4] == 'ENTERQUEUE') 
-            {
-                // $ev_data[5] is holding "url" param, which we do not use
+            
+			//************************************************* - Must re check
+			if ($ev_data[4] == 'ENTERQUEUE') {
                 $event['src'] = $ev_data[6];
+                $existingCall = $this->Call_model->get_by('uniqueid', $ev_data[1]);
+				if (!$existingCall) {
                 $this->Call_model->create($event);
+                } else {
+					echo "Duplicate entry avoided for uniqueid: $ev_data[1]";
+					log_to_file('NOTICE', "Duplicate entry avoided for uniqueid: ".$ev_data[1]);
             }
+}			
+			//************************************************* - Must re check
+			
 
             /**
              * CONNECT - call that entered queue (ENTERQUEUE event) was connected to agents,
@@ -430,7 +538,6 @@ class Tools extends CI_Controller {
                             log_to_file('DEBUG', 'Something went wrong, not search for calls to mark as duplicate, uniqueid '.$ev_data[1]);
                         }
                     }
-
                     unset($this_call);
 
                     $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1], 'event_type' => 'CONNECT'), $event);
@@ -529,7 +636,9 @@ class Tools extends CI_Controller {
 
             $smsSent            = false;
             $lastEventTimestamp = $this->Call_model->get_last_event_timestamp($ev_data[1]);
-            $this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' => 'ENTERQUEUE'], $event);
+            
+			// Update Last Call Status
+            $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
             
             foreach ($allSettings as $setting) 
             {
@@ -550,6 +659,7 @@ class Tools extends CI_Controller {
                             $event['position']     = $ev_data[5];
                             $event['origposition'] = $ev_data[6];
                             $event['waittime']     = $ev_data[7];
+$this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' => 'ENTERQUEUE'], $event);
                             $number_for_sms        = $this->Call_model->get_number_for_sms($ev_data[1]);
             
                             if (in_array($number_for_sms['queue_id'], $queue_id_arr) && $setting['queue_id'] === $number_for_sms['queue_id'] && $setting['status'] === 'active') 
@@ -563,6 +673,7 @@ class Tools extends CI_Controller {
                     }
                 }
             }
+
             $this->Event_model->update_by_complex(
                 array(
                     'uniqueid' => $ev_data[1],
@@ -867,7 +978,7 @@ class Tools extends CI_Controller {
             unset($agent_id);
             unset($queue_id);
             unset($event);
-
+            // $this->clearCacheKeys();
         }
 
 
@@ -877,13 +988,64 @@ class Tools extends CI_Controller {
         $this->collect_outgoing();
     
         // $this->collect_custom_dids();
+
+		//*************************************************
+		// Calculate the time range
+		$endTime = date('Y-m-d H:i:s'); // Current time
+		
+		if ($queue_log_rollback == "yes") {
+			$startTime = date('Y-m-d H:i:s', strtotime("-{$queue_log_rollback_days} days"));
+		}
+		else {
+			$startTime = date('Y-m-d H:i:s', strtotime("-1 hours"));
+		}
+
+		// Query to find duplicates, excluding the first occurrence
+		$duplicateQuery = "
+			SELECT *
+			FROM qq_calls
+			WHERE (uniqueid, event_type, src, agent_id, calltime, date)
+			IN (
+				SELECT uniqueid, event_type, src, agent_id, calltime, date
+				FROM qq_calls
+				WHERE date BETWEEN ? AND ?
+				GROUP BY uniqueid, event_type, src, agent_id, calltime, date
+				HAVING COUNT(*) > 1
+			)
+			AND id NOT IN (
+				SELECT MIN(id)
+				FROM qq_calls
+				WHERE date BETWEEN ? AND ?
+				GROUP BY uniqueid, event_type, src, agent_id, calltime, date
+			);
+		";
+
+		// Bind parameters and execute the query
+		$duplicateCalls = $this->db->query($duplicateQuery, array($startTime, $endTime, $startTime, $endTime))->result_array();
+
+		// Process the results and mart all found duplicate entries in DB
+		foreach ($duplicateCalls as $call) {
+			$this->Call_model->update($call['id'], array('duplicate_record' => 'yes'));
+		}
+
+		if ($queue_log_force_duplicate_deletion == "yes") {
+			// Delete duplicate marked calls
+			$this->db->delete('qq_calls', array('duplicate_record' => 'yes'));
+		}
+
+		// Delete duplicate agents
+		//$this->db->query("DELETE qq1 FROM qq_agents qq1 INNER JOIN qq_agents qq2 ON qq1.name = qq2.name AND qq1.id > qq2.id");
+
+		// Clean up qq_queue_agents with non existan agents
+		//$this->db->query("DELETE FROM qq_queue_agents WHERE NOT EXISTS (SELECT 1 FROM qq_agents WHERE qq_agents.id = qq_queue_agents.agent_id)");
+
+		//*************************************************				
     }
     catch (Exception $ex) 
     {
         log_to_file('ERROR', $ex->getMessage());
     }
     log_to_file('NOTICE', 'Unlocking parser');
-    parser_unlock();
     }
 
 
