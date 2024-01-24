@@ -35,6 +35,7 @@ function log_to_file($level = false, $message = false) {
  * @param string $pid Process ID
  * @return bool
  */
+
 function parser_lock($pid = false) {
     if (!$pid) {
         $pid = getmypid();
@@ -48,7 +49,6 @@ function parser_lock($pid = false) {
         return true;
     }
 }
-
 
 /**
  * Read parser lock
@@ -70,6 +70,8 @@ function parser_read_lock() {
  *
  * @return bool
  */
+
+ /*
 function parser_unlock() {
     $ci =& get_instance();
     $lockFilePath = QQ_PARSER_LOCK_PATH;
@@ -79,6 +81,27 @@ function parser_unlock() {
     } else {
         return false;
     }
+}
+*/
+
+function parser_unlock() {
+    $ci =& get_instance();
+    $lockFilePath = QQ_PARSER_LOCK_PATH;
+
+    if (file_exists($lockFilePath)) {
+        // Read the PID from the lock file
+        $pid = file_get_contents($lockFilePath);
+
+        if ($pid === false || !is_numeric($pid) || !posix_kill((int)$pid, 0)) {
+            // Either failed to read PID, or PID is not valid, or process is not running
+            // Proceed to unlock
+            if (unlink($lockFilePath)) {
+                return true; // Successfully unlocked
+            }
+        }
+    }
+	echo "Failed to unlock or process: $pid is still running\n";
+    return false; // Failed to unlock or process is still running
 }
 
 /**
