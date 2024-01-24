@@ -130,6 +130,7 @@ class Tools extends CI_Controller {
         log_to_file('NOTICE', 'Running parser');
 
         parser_unlock();
+        log_to_file('NOTICE', 'Unlocking parser');
 
         $lock = parser_read_lock();
         if ($lock) 
@@ -1045,7 +1046,6 @@ $this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' =>
     {
         log_to_file('ERROR', $ex->getMessage());
     }
-    log_to_file('NOTICE', 'Unlocking parser');
     }
 
 
