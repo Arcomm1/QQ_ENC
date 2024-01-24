@@ -437,7 +437,6 @@ class Tools extends CI_Controller {
 }			
 			//************************************************* - Must re check
 			
-
             /**
              * CONNECT - call that entered queue (ENTERQUEUE event) was connected to agents,
              * update call entry matching ENTERQUEUE and current unique ID
@@ -626,6 +625,29 @@ class Tools extends CI_Controller {
              * Call entry matching ENTERQUEUE and currect unique ID should updated
              */
 
+if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') {
+					$event['position'] = $ev_data[5];
+					$event['origposition'] = $ev_data[6];
+					$event['waittime'] = $ev_data[7];
+					$this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
+					
+					$this->Event_model->update_by_complex(
+						array(
+							'uniqueid' => $ev_data[1],
+							'event_type' => 'DID_FUTURE',
+						),
+						array(
+							'timestamp' => $event['timestamp'],
+							'date' => $event['date'],
+							'event_type' => 'DID'
+						)
+					);
+
+
+					if (!$this->Call_model->get_recording($event['uniqueid'])) {
+						log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
+					}
+				}
       
             //echo "<br><br>";
             //var_dump($globalConfig);
@@ -638,10 +660,7 @@ class Tools extends CI_Controller {
             $smsSent            = false;
             $lastEventTimestamp = $this->Call_model->get_last_event_timestamp($ev_data[1]);
             
-			// Update Last Call Status
-            $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-            
-            foreach ($allSettings as $setting) 
+			foreach ($allSettings as $setting) 
             {
                 // Check if the current event or queue change occurred after the last event for the call
                 echo $event['timestamp'] . "LAST:" . $lastEventTimestamp . '<br>';
@@ -657,11 +676,7 @@ class Tools extends CI_Controller {
                             ($setting['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT'))) 
                         {
                             echo 'should send<br>';
-                            $event['position']     = $ev_data[5];
-                            $event['origposition'] = $ev_data[6];
-                            $event['waittime']     = $ev_data[7];
-$this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' => 'ENTERQUEUE'], $event);
-                            $number_for_sms        = $this->Call_model->get_number_for_sms($ev_data[1]);
+                            $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
             
                             if (in_array($number_for_sms['queue_id'], $queue_id_arr) && $setting['queue_id'] === $number_for_sms['queue_id'] && $setting['status'] === 'active') 
                             {
@@ -674,23 +689,6 @@ $this->Call_model->update_by_complex(['uniqueid' => $ev_data[1], 'event_type' =>
                     }
                 }
             }
-
-            $this->Event_model->update_by_complex(
-                array(
-                    'uniqueid' => $ev_data[1],
-                    'event_type' => 'DID_FUTURE',
-                ),
-                array(
-                    'timestamp' => $event['timestamp'],
-                    'date' => $event['date'],
-                    'event_type' => 'DID'
-                )
-                );
-
-                if (!$this->Call_model->get_recording($event['uniqueid'])) 
-                {
-                    log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
-                } 
             /**
              * EXITWITHKEY - caller left queue by pressing specific key.
              * Update call entry matching ENTERQUEUE and current unique ID
