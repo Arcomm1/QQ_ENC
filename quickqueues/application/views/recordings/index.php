@@ -218,7 +218,11 @@
                                             <div scrPlaceholder><?php echo $c->src; ?></div>
                                             <?php if (in_array($c->event_type, array('OUT_ANSWERED', 'OUT_NOANSWER', 'OUT_BUSY', 'OUT_FAILED'))) { ?>
                                             <div class="small text-medium-emphasis">
-                                                <?php echo $agents[$c->agent_id]; ?>
+												<?php 
+												if (isset($agents[$c->agent_id])) {
+													echo $agents[$c->agent_id]; 
+												}
+												?>
                                             </div>
                                             <?php } ?>
                                         </td>
@@ -226,7 +230,11 @@
                                             <div><?php echo $c->dst; ?></div>
                                             <?php if (in_array($c->event_type, array('COMPLETECALLER', 'COMPLETEAGENT', 'CONNECT'))) { ?>
                                             <div class="small text-medium-emphasis">
-                                                <?php echo $agents[$c->agent_id]; ?>
+												<?php 
+												if (isset($agents[$c->agent_id])) {
+													echo $agents[$c->agent_id]; 
+												}
+												?>
                                             </div>
                                             <?php } ?>
                                         </td>
