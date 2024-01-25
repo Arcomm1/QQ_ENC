@@ -1122,7 +1122,8 @@ log_to_file('NOTICE', 'Unlocking parser');
         $collect = $this->Config_model->get_item('app_track_outgoing');
         $from    = QQ_TODAY_START;
         $mark_called_back = $this->Config_model->get_item('app_auto_mark_called_back');
-        $queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
+		$queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
+        $queue_log_rollback_with_deletion = $this->Config_model->get_item('queue_log_rollback_with_deletion');
 
         if ($collect == 'no') {
             log_to_file('NOTICE', 'Collecting outgoing calls is disabled in configuration, aborting.');
