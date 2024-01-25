@@ -286,9 +286,6 @@ parser_unlock_complex();
 				parser_unlock();
 				exit();
 			}
-			$this->db->update('qq_config', array('value' => 'no'), array('name' => 'queue_log_rollback'));
-			$this->db->update('qq_config', array('value' => '1'), array('name' => 'queue_log_rollback_days'));
-            $this->db->update('qq_config', array('value' => 'no'), array('name' => 'queue_log_rollback_with_deletion'));
 		}
 		else {
 			// Check if merged file exists, delete it if it does
@@ -1124,6 +1121,10 @@ log_to_file('NOTICE', 'Unlocking parser');
         $mark_called_back = $this->Config_model->get_item('app_auto_mark_called_back');
 		$queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
         $queue_log_rollback_with_deletion = $this->Config_model->get_item('queue_log_rollback_with_deletion');
+
+        $this->db->update('qq_config', array('value' => 'no'), array('name' => 'queue_log_rollback'));
+        $this->db->update('qq_config', array('value' => '1'), array('name' => 'queue_log_rollback_days'));
+        $this->db->update('qq_config', array('value' => 'no'), array('name' => 'queue_log_rollback_with_deletion'));        
 
 		if ($queue_log_rollback_with_deletion == "yes") {
 			// Set $from to the date-time of $queue_log_rollback_days days ago
