@@ -129,8 +129,8 @@ class Tools extends CI_Controller {
 
         log_to_file('NOTICE', 'Running parser');
 
-        parser_unlock();
-        log_to_file('NOTICE', 'Unlocking parser');
+                log_to_file('NOTICE', 'Unlocking parser');
+parser_unlock_complex();
 
         $lock = parser_read_lock();
         if ($lock) 
@@ -143,13 +143,13 @@ class Tools extends CI_Controller {
         log_to_file('NOTICE', 'Locking parser');
         parser_lock();
 
-
         $globalConfig   = $this->globalSettings->getSettings();
         $allSettings    = $this->globalSettings->getAllSettings();
         $queue_log_path = $this->Config_model->get_item('ast_queue_log_path');
         // Additional paramethers for manual roll back and reparse
 		$queue_log_rollback = $this->Config_model->get_item('queue_log_rollback');
 		$queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
+        $queue_log_rollback_with_deletion = $this->Config_model->get_item('queue_log_rollback_with_deletion');
 		$queue_log_force_duplicate_deletion = $this->Config_model->get_item('queue_log_force_duplicate_deletion');
 		
 		// Directory containing queue_log files
@@ -196,6 +196,20 @@ class Tools extends CI_Controller {
 			}
 
 			$this->db->update('qq_config', array('value' => $last_parsed_event), array('name' => 'app_last_parsed_event'));
+
+			if ($queue_log_rollback_with_deletion == "yes" and $last_parsed_event != "1") {
+				// Check if $last_parsed_event is set and is a valid timestamp
+				if (isset($last_parsed_event) && is_numeric($last_parsed_event)) {
+					// Delete records from qq_calls where timestamp is greater than $last_parsed_event
+					$this->db->where('timestamp >', $last_parsed_event);
+					$this->db->delete('qq_calls');
+
+					$this->db->where('timestamp >', $last_parsed_event);
+					$this->db->delete('qq_events');
+				} else {
+					log_message('error', 'Invalid last_parsed_event timestamp, cannot perform deletion.');
+				}
+			}
 
 			// Get all queue_log files
 			$allFiles = glob($directory_queue_log . '/queue_log*');
@@ -248,6 +262,7 @@ class Tools extends CI_Controller {
 			}
 			$this->db->update('qq_config', array('value' => 'no'), array('name' => 'queue_log_rollback'));
 			$this->db->update('qq_config', array('value' => '1'), array('name' => 'queue_log_rollback_days'));
+            $this->db->update('qq_config', array('value' => 'no'), array('name' => 'queue_log_rollback_with_deletion'));
 		}
 		else {
 			// Check if merged file exists, delete it if it does
@@ -676,7 +691,7 @@ if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EX
                             ($setting['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT'))) 
                         {
                             echo 'should send<br>';
-                            $number_for_sms = $this->Call_model->get_number_for_sms($ev_data[1]);
+                            $number_for_sms        = $this->Call_model->get_number_for_sms($ev_data[1]);
             
                             if (in_array($number_for_sms['queue_id'], $queue_id_arr) && $setting['queue_id'] === $number_for_sms['queue_id'] && $setting['status'] === 'active') 
                             {
@@ -1044,6 +1059,8 @@ if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EX
     {
         log_to_file('ERROR', $ex->getMessage());
     }
+log_to_file('NOTICE', 'Unlocking parser');
+		parser_unlock();
     }
 
 
@@ -1167,7 +1184,6 @@ if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EX
                 unset($call_data);
             }
         }
-
     }
 
     public function send_sms($sms_number,$text,$token)
