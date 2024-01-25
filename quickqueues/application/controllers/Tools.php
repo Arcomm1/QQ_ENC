@@ -309,20 +309,32 @@ parser_unlock_complex();
         }
         $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
-		foreach ($qq_agents as $qq_agent) {
-			// Step 2: Check if there is a matching name in users table with the same extension
-			$extension = $qq_agent->extension;
-			$matching_user = $this->db->get_where('users', array('extension' => $extension))->row();
-
-			if ($matching_user) {
-				// Step 3: Update qq_agents name and display_name to name from users table
-				$this->db->where('id', $qq_agent->id);
-				$this->db->update('qq_agents', array(
-					'name' => $matching_user->name,
-					'display_name' => $matching_user->name // You can update display_name to the same value as name
-				));
-			}
-		}        
+        // Step 1: Select all extensions from qq_agents
+        $query = $this->db->get('qq_agents');
+        
+        if ($query && $query->num_rows() > 0) {
+            $qq_agents = $query->result();
+        
+            foreach ($qq_agents as $qq_agent) {
+                // Step 2: Check if there is a matching name in users table with the same extension
+                $extension = $qq_agent->extension;
+                $matching_user = $this->db->get_where('users', array('extension' => $extension))->row();
+        
+                if ($matching_user) {
+                    // Step 3: Update qq_agents name and display_name to name from users table
+                    $this->db->where('id', $qq_agent->id);
+                    $this->db->update('qq_agents', array(
+                        'name' => $matching_user->name,
+                        'display_name' => $matching_user->name // You can update display_name to the same value as name
+                    ));
+                }
+            }
+        } else {
+            // Handle the case where no data is returned or query fails
+            // For example, log an error or handle it appropriately
+            log_message('error', 'No data returned from qq_agents or query failed.');
+        }
+       
 
             try 
     {		
