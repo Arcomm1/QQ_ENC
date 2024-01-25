@@ -104,20 +104,34 @@ class Tools extends CI_Controller {
             exit();
         }
 
-        if ($action == 'create') {
-            if (!$name or !$value or !$default) {
-                exit("Please provide configuration item name, value and default value\n");
-            }
-            if (!$category) {
-                $category = 'custom';
-            }
-            if ($this->Config_model->create(array('name' => $name, 'value' => $value, 'default' => $default, 'category' => $category))) {
-                echo "Configuration item created successfully.\n";
-            } else {
-                echo "Could not create configuration item.\n";
-            }
-        }
+		if ($action == 'create') {
+			if (!$name || !$value || !$default) {
+				exit("Please provide configuration item name, value, and default value.\n");
+			}
+			if (!$category) {
+				$category = 'custom';
+			}
 
+			// Check if the configuration item already exists
+			$existingItem = $this->Config_model->get_item($name);
+			if ($existingItem) {
+				// Directly update the existing item in the database
+				$updateQuery = "UPDATE qq_config SET value = ?, `default` = ?, category = ? WHERE name = ?";
+				$result = $this->db->query($updateQuery, array($value, $default, $category, $name));
+				if ($result) {
+					echo "Configuration item updated successfully.\n";
+				} else {
+					echo "Could not update the configuration item.\n";
+				}
+			} else {
+				// Create a new item
+				if ($this->Config_model->create(array('name' => $name, 'value' => $value, 'default' => $default, 'category' => $category))) {
+					echo "Configuration item created successfully.\n";
+				} else {
+					echo "Could not create the configuration item.\n";
+				}
+			}
+		}
     }
 
 
