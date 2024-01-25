@@ -1125,6 +1125,11 @@ log_to_file('NOTICE', 'Unlocking parser');
 		$queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
         $queue_log_rollback_with_deletion = $this->Config_model->get_item('queue_log_rollback_with_deletion');
 
+		if ($queue_log_rollback_with_deletion == "yes") {
+			// Set $from to the date-time of $queue_log_rollback_days days ago
+			$from = date('Y-m-d H:i:s', strtotime("-{$queue_log_rollback_days} days"));
+		}        
+
         if ($collect == 'no') {
             log_to_file('NOTICE', 'Collecting outgoing calls is disabled in configuration, aborting.');
             return 0;
