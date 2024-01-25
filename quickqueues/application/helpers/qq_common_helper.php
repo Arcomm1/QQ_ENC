@@ -71,8 +71,7 @@ function parser_read_lock() {
  * @return bool
  */
 
- /*
-function parser_unlock() {
+ function parser_unlock() {
     $ci =& get_instance();
     $lockFilePath = QQ_PARSER_LOCK_PATH;
 
@@ -82,9 +81,8 @@ function parser_unlock() {
         return false;
     }
 }
-*/
 
-function parser_unlock() {
+function parser_unlock_complex() {
     $ci =& get_instance();
     $lockFilePath = QQ_PARSER_LOCK_PATH;
 
@@ -99,9 +97,11 @@ function parser_unlock() {
                 return true; // Successfully unlocked
             }
         }
-    }
+    else {
 	echo "Failed to unlock or process: $pid is still running\n";
     return false; // Failed to unlock or process is still running
+}
+}
 }
 
 /**
