@@ -442,14 +442,8 @@ parser_unlock_complex();
 			//************************************************* - Must re check
 			if ($ev_data[4] == 'ENTERQUEUE') {
                 $event['src'] = $ev_data[6];
-                $existingCall = $this->Call_model->get_by('uniqueid', $ev_data[1]);
-				if (!$existingCall) {
                 $this->Call_model->create($event);
-                } else {
-					echo "Duplicate entry avoided for uniqueid: $ev_data[1]";
-					log_to_file('NOTICE', "Duplicate entry avoided for uniqueid: ".$ev_data[1]);
-            }
-}			
+            }			
 			//************************************************* - Must re check
 			
             /**
