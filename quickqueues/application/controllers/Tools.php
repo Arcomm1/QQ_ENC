@@ -539,7 +539,13 @@ parser_unlock_complex();
                         log_to_file('DEBUG', 'Marking Unanswered calls as answered_elsewhere since config is set to '.$mark_answered_elsewhere);
 
                         log_to_file('DEBUG', 'Searching for unanswered calls from '.$this_call->src.', current call ID is '.$this_call->id);
-                        $from = date('Y-m-d H:i:s', (time() - $mark_answered_elsewhere * 60));
+                        // Reparse with mark_answered_elsewhere
+						if ($queue_log_rollback_with_deletion == "yes") {
+							$from = date('Y-m-d H:i:s', strtotime("-{$queue_log_rollback_days} days"));
+						}
+						else {
+							$from = date('Y-m-d H:i:s', (time() - $mark_answered_elsewhere * 60));
+						}
 
                         if (strlen($this_call->src) > 1) 
                         {
