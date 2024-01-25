@@ -1122,6 +1122,7 @@ log_to_file('NOTICE', 'Unlocking parser');
         $collect = $this->Config_model->get_item('app_track_outgoing');
         $from    = QQ_TODAY_START;
         $mark_called_back = $this->Config_model->get_item('app_auto_mark_called_back');
+        $queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
 
         if ($collect == 'no') {
             log_to_file('NOTICE', 'Collecting outgoing calls is disabled in configuration, aborting.');
@@ -1196,7 +1197,15 @@ log_to_file('NOTICE', 'Unlocking parser');
                 if ($mark_called_back > 0) {
                     log_to_file('NOTICE', 'Auto marking of called back calls is enabled, getting relevant calls');
                     log_to_file('DEBUG', 'Searching for all calls from '.$call_data['dst']);
-                    $mark_from = date('Y-m-d H:i:s', (time() - $mark_called_back * 60));
+
+					if ($queue_log_rollback_with_deletion == "yes") {
+						// Set $from to the date-time of $queue_log_rollback_days days ago
+						$mark_from = date('Y-m-d H:i:s', strtotime("-{$queue_log_rollback_days} days"));
+					}
+					else {
+						// Set $from to the date-time of $mark_answered_elsewhere minutes ago
+						$mark_from = date('Y-m-d H:i:s', (time() - $mark_called_back * 60));
+					}
 
                     if (strlen($call_data['dst']) > 5) {
                         if ($call_data['event_type'] == 'OUT_ANSWERED') {
