@@ -307,7 +307,9 @@ parser_unlock_complex();
         $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
         // Step 1: Select all extensions from qq_agents
-        $query = $this->db->get('qq_agents');
+		$this->db->where("extension IS NOT NULL");
+		$this->db->where("extension !=", ""); // This checks if extension is not an empty string
+		$query = $this->db->get('qq_agents');
         
         if ($query && $query->num_rows() > 0) {
             $qq_agents = $query->result();
@@ -690,7 +692,7 @@ parser_unlock_complex();
              * Call entry matching ENTERQUEUE and currect unique ID should updated
              */
 
-if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') {
+            if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') {
 					$event['position'] = $ev_data[5];
 					$event['origposition'] = $ev_data[6];
 					$event['waittime'] = $ev_data[7];
@@ -713,7 +715,8 @@ if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EX
 						log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
 					}
 				}
-      
+            
+            /** SMS
             //echo "<br><br>";
             //var_dump($globalConfig);
             /*
@@ -724,31 +727,33 @@ if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EX
 
             $smsSent            = false;
             $lastEventTimestamp = $this->Call_model->get_last_event_timestamp($ev_data[1]);
-            
-			foreach ($allSettings as $setting) 
-            {
-                // Check if the current event or queue change occurred after the last event for the call
-                echo $event['timestamp'] . "LAST:" . $lastEventTimestamp . '<br>';
-                if ($event['timestamp'] >= $lastEventTimestamp) 
+
+            if ($queue_log_rollback !="yes") {
+    			foreach ($allSettings as $setting) 
                 {
-                    // Check if the SMS has not been sent yet
-                    echo 'პირობა შესრულდა<br>';
-                    if (!$smsSent) 
+                    // Check if the current event or queue change occurred after the last event for the call
+                    echo $event['timestamp'] . "LAST:" . $lastEventTimestamp . '<br>';
+                    if ($event['timestamp'] >= $lastEventTimestamp) 
                     {
-                        $queue_id_arr = explode(',', $setting['queue_id']);
-                        echo $ev_data[4] . ' ' . $setting['sms_type'] . '<br>';
-                        if (($setting['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
-                            ($setting['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT'))) 
+                        // Check if the SMS has not been sent yet
+                        echo 'პირობა შესრულდა<br>';
+                        if (!$smsSent) 
                         {
-                            echo 'should send<br>';
-                            $number_for_sms        = $this->Call_model->get_number_for_sms($ev_data[1]);
-            
-                            if (in_array($number_for_sms['queue_id'], $queue_id_arr) && $setting['queue_id'] === $number_for_sms['queue_id'] && $setting['status'] === 'active') 
+                            $queue_id_arr = explode(',', $setting['queue_id']);
+                            echo $ev_data[4] . ' ' . $setting['sms_type'] . '<br>';
+                            if (($setting['sms_type'] == "1" && ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT')) ||
+                                ($setting['sms_type'] == "2" && ($ev_data[4] == 'COMPLETECALLER' || $ev_data[4] == 'COMPLETEAGENT'))) 
                             {
-                                echo $setting['queue_id'] . "rigis aidi";
-                                $sms_number = $number_for_sms['src'];
-                                $this->send_sms($sms_number, $setting['sms_content'], $setting['sms_token']);
-                                $smsSent    = true;
+                                echo 'should send<br>';
+                                $number_for_sms        = $this->Call_model->get_number_for_sms($ev_data[1]);
+                
+                                if (in_array($number_for_sms['queue_id'], $queue_id_arr) && $setting['queue_id'] === $number_for_sms['queue_id'] && $setting['status'] === 'active') 
+                                {
+                                    echo $setting['queue_id'] . "rigis aidi";
+                                    $sms_number = $number_for_sms['src'];
+                                    $this->send_sms($sms_number, $setting['sms_content'], $setting['sms_token']);
+                                    $smsSent    = true;
+                                }
                             }
                         }
                     }
