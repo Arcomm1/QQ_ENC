@@ -15148,15 +15148,40 @@ select option {
 {
   width          : 100%;
   margin-top     : 20px;
+  padding        : 10px 0;
+}
+.queue-overload
+{
+  font-weight: bold;
 }
 .sms-row 
 {
   cursor: pointer;
+  font-weight: bold;
 }
 
 .custom-collapse
 {
   display: none;
+}
+.calls-without-service-row
+{
+  cursor: pointer;
+  font-weight: bold;
+}
+.callback-params 
+{
+  font-weight: bold;
+  font-size: 16px;
+}
+.calls-without-service-params
+{
+  font-weight: bold;
+  font-size: 16px;
+}
+.callback-resolution-label
+{
+  font-weight: bold;
 }
 .toggle-icon 
 {
@@ -15177,4 +15202,8 @@ select option {
 .additionalRecordings
 {
   flex-direction: column;
+}
+.duplicate-calls-label
+{
+  font-weight: bold;
 }
