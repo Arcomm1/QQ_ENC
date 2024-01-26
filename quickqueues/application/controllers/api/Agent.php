@@ -1324,10 +1324,6 @@ class Agent extends MY_Controller {
                 );
             }
         }
-
-		usort($agent_stats, function($a, $b) {
-			return strcmp($a['extension'], $b['extension']);
-		});
         
         foreach($agent_call_stats as $s) {
             $agent_stats[$s->agent_id]['calls_answered']           = $s->calls_answered;
