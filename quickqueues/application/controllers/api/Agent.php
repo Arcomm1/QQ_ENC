@@ -1301,24 +1301,26 @@ class Agent extends MY_Controller {
 
 
         foreach ($this->data->user_agents as $a) {
-            $agent_stats[$a->id] = array(
-                'display_name'              => $a->display_name,
-                'last_call'                 => $a->last_call,
-                'extension'                 => $a->extension,
-                'agent_id'                  => $a->id,
-                'calls_answered'            => 0,
-                'calls_outgoing'            => 0,
-                'calls_missed'              => 0,
-                'total_calltime'            => 0,
-                'total_ringtime'            => 0,
-                'total_pausetime'           => 0,
-                'avg_calltime'              => 0,
-                'avg_ringtime'              => 0,
-                'incoming_total_calltime'    => 0,
-                'calls_outgoing_answered'   => 0,
-                'outgoing_total_calltime'   => 0,
-                'calls_outgoing_unanswered' => 0,
-            );
+            if ($a->extension !="") {
+                $agent_stats[$a->id] = array(
+                    'display_name'              => $a->display_name,
+                    'last_call'                 => $a->last_call,
+                    'extension'                 => $a->extension,
+                    'agent_id'                  => $a->id,
+                    'calls_answered'            => 0,
+                    'calls_outgoing'            => 0,
+                    'calls_missed'              => 0,
+                    'total_calltime'            => 0,
+                    'total_ringtime'            => 0,
+                    'total_pausetime'           => 0,
+                    'avg_calltime'              => 0,
+                    'avg_ringtime'              => 0,
+                    'incoming_total_calltime'    => 0,
+                    'calls_outgoing_answered'   => 0,
+                    'outgoing_total_calltime'   => 0,
+                    'calls_outgoing_unanswered' => 0,
+                );
+            }
         }
         foreach($agent_call_stats as $s) {
             $agent_stats[$s->agent_id]['calls_answered']           = $s->calls_answered;
