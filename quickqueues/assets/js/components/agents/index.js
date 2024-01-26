@@ -85,7 +85,7 @@ var agent_overview = new Vue({
                             this.agents_busy++;
                         }
                     }
-                })
+                });
         },
 
         get_current_calls: function() {
