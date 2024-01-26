@@ -256,12 +256,13 @@ var monitoring_dashboard = new Vue({
     {
         $('#nav_monitoring').addClass('active text-primary');
 
-        this.get_basic_stats();
-        this.get_freepbx_agents();
-        this.get_agent_stats();
-        this.get_realtime_data();
-        this.get_queue_stats();
-        
+		//This must be executes first, as it draws the page
+		this.get_agent_realtime_status();
+		this.get_basic_stats();
+		this.get_freepbx_agents();
+		this.get_agent_stats();
+		this.get_realtime_data();
+		this.get_queue_stats();	
 
         setInterval(() => this.get_queue_stats(), 5000);
         setInterval(() => this.get_basic_stats(), 60000);
