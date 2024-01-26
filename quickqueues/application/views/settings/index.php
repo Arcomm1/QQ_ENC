@@ -73,78 +73,153 @@
             </section>
         </div>
         <hr>
+        <!-- Duplicate calls settings start here -->
+        <div class="row duplicate-calls-row">
+        <div class="col-sm-12 d-flex flex-row align-items-center justify-content-between" id="duplicate-calls-label">
+            <p class="duplicate-calls-label"><?php echo lang('duplicate_calls'); ?></p>
+            <div class="toggle-icon" id="duplicate-calls-icon">&#9660;</div>
+        </div>
+    </div>
+    <div id="duplicate-calls-settings" class="custom-collapse">
+        <section class="duplicate-calls-settings bg-light p-3 mb-4">
+            <div class="form-group row">
+                <label for="rollback" class="col-sm-2 col-form-label">Rollback</label>
+                <div class="col-sm-10">
+                    <select name="rollback" class="form-control">
+                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['rollback']) && $this->data->queueDuplicateSettings['rollback'] == 'no' ? "selected" : ""; ?>>
+                            no
+                        </option>
+                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['rollback']) && $this->data->queueDuplicateSettings['rollback'] == 'yes' ? "selected" : ""; ?>>
+                            yes
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
+                <label for="rollback_days" class="col-sm-2 col-form-label">Rollback days</label>
+                <div class="col-sm-10">
+                    <input type="number" name="rollback_days" class="form-control" value="<?php echo isset($this->data->queueDuplicateSettings['rollback_days']) ? $this->data->queueDuplicateSettings['rollback_days'] : '1'; ?>">
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
+                <label for="force_duplicate_deletion" class="col-sm-2 col-form-label">Queue force duplicate deletion</label>
+                <div class="col-sm-10">
+                    <select name="force_duplicate_deletion" class="form-control">
+                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['force_duplicate_deletion']) && $this->data->queueDuplicateSettings['force_duplicate_deletion'] == 'no' ? "selected" : ""; ?>>
+                            no
+                        </option>
+                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['force_duplicate_deletion']) && $this->data->queueDuplicateSettings['force_duplicate_deletion'] == 'yes' ? "selected" : ""; ?>>
+                            yes
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
+                <label for="rollback_with_deletion" class="col-sm-2 col-form-label">Queue rollback with deletion</label>
+                <div class="col-sm-10">
+                    <select name="rollback_with_deletion" class="form-control">
+                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['rollback_with_deletion']) && $this->data->queueDuplicateSettings['rollback_with_deletion'] == 'no' ? "selected" : ""; ?>>
+                            no
+                        </option>
+                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['rollback_with_deletion']) && $this->data->queueDuplicateSettings['rollback_with_deletion'] == 'yes' ? "selected" : ""; ?>>
+                            yes
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
+                <label for="fix_agent_duplicates" class="col-sm-2 col-form-label">Queue log fix agent duplicates</label>
+                <div class="col-sm-10">
+                    <select name="fix_agent_duplicates" class="form-control">
+                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['fix_agent_duplicates']) && $this->data->queueDuplicateSettings['fix_agent_duplicates'] == 'no' ? "selected" : ""; ?>>
+                            no
+                        </option>
+                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['fix_agent_duplicates']) && $this->data->queueDuplicateSettings['fix_agent_duplicates'] == 'yes' ? "selected" : ""; ?>>
+                            yes
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </section>
+    </div>
+
+        <!-- Duplicate calls settings end here -->
+        <hr>
         <input type="submit" value="Submit" class="btn btn-primary">
     </form>
 </div>
 
 <script>
-    $(document).ready(function () {
-        $(".sms-row").click(function () {
+    $(document).ready(function () 
+    {
+        $(".sms-row").click(function () 
+        {
             $("#sms-settings").slideToggle();
             const toggleIcon = document.getElementById("toggle-icon");
             toggleIcon.classList.toggle("up-arrow");
         });
+        
 
-        $("#queue-select").change(function () {
+        $("#queue-select").change(function () 
+        {
             const selectedQueueId = $(this).val();
             $("#selected-queue-id").val(selectedQueueId);
             console.log("selected queue id:", selectedQueueId);
         });
 
-        $("#queue-select").change(function () {
+        $("#duplicate-calls-label").click(function () 
+        {
+            $("#duplicate-calls-settings").slideToggle();
+            const toggleIconNew = document.getElementById("duplicate-calls-icon");
+            toggleIconNew.classList.toggle("up-arrow");
+        });
+
+        
+        $("#queue-select").change(function () 
+        {
             const selectedQueueId = $(this).val();
             $("#selected-queue-id").val(selectedQueueId);
-
-            // Make an AJAX request to fetch settings for the selected queue
             $.ajax({
                 type: "GET",
                 url: "<?php echo site_url('settings/get_settings'); ?>",
                 data: { queue_id: selectedQueueId },
                 dataType: 'json',
-                success: function (response) {
+                success: function (response) 
+                {
                     console.log("Settings for the selected queue:", response);
-
-                    // Update input fields with the fetched settings
                     $("input[name='overload']").val(response.call_overload);
                     $("input[name='sms_text']").val(response.sms_content);
                     $("input[name='sms_key']").val(response.sms_token);
                     $("select[name='sms_type']").val(response.sms_type);
                     $("select[name='status']").val(response.status);
-
-                    // Optionally, update other UI elements based on the settings
-
                 },
-                error: function (error) {
+                error: function (error) 
+                {
                     console.error("Error fetching settings", error);
-
-                    // Optionally, handle errors or show an error message
-
                 }
             });
         });
-        // Handle form submission
-        $("#settings-form").submit(function (e) {
-            e.preventDefault(); // Prevent the default form submission
 
-            // Serialize form data
+        $("#settings-form").submit(function (e)
+        {
+            e.preventDefault();
             const formData = $(this).serialize();
-
-            // Perform an AJAX request to submit the form data
             $.ajax({
                 type: "POST",
                 url: $(this).attr("action"),
                 data: formData,
-                dataType: 'json', // Expect JSON response
-                success: function (response) {
+                dataType: 'json',
+                success: function (response) 
+                {
                     console.log("Form submitted successfully", response);
-
-                    // Optionally, update the UI or show a success message
-
                 },
-                error: function (error) {
+                error: function (error) 
+                {
                     console.error("Error submitting form", error);
-
-                    // Optionally, handle errors or show an error message
 
                 }
             });

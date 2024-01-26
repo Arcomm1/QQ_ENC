@@ -27,10 +27,12 @@ class Settings extends CI_Controller
     
     public function index()
     {
-        $settings_data           = $this->Settings_model->getSettings();
-        $queues                  = $this->Queue_model->get_queue_entries();
-        $settings_data['queues'] = $queues;
-        $this->data->settings    = $settings_data;
+        $settings_data                  = $this->Settings_model->getSettings();
+        $queues                         = $this->Queue_model->get_queue_entries();
+        $queueDuplicateSettings         = $this->Settings_model->getDuplicateSettings();
+        $settings_data['queues']        = $queues;
+        $this->data->settings           = $settings_data;
+        $this->data->duplicateSettings  = $queueDuplicateSettings;
         load_views('settings/index', $this->data, true);
     }
 
@@ -41,11 +43,18 @@ class Settings extends CI_Controller
         $this->output->set_content_type('application/json')->set_output(json_encode($settings));
     }
 
+    public function get_duplicate_settings()
+    {
+        $duplicateSettings = $this->Settings_model->getDuplicateSettings();
+        $this->output->set_content_type('application/json')->set_output(json_encode($duplicateSettings));
+    }
+
     public function update_settings()
     {
-        if ($this->input->post())
+        if ($this->input->post()) 
         {
-            $data = array(
+            // Update General Settings
+            $general_settings = array(
                 'call_overload' => $this->input->post('overload'),
                 'sms_content'   => $this->input->post('sms_text'),
                 'sms_token'     => $this->input->post('sms_key'),
@@ -53,8 +62,20 @@ class Settings extends CI_Controller
                 'queue_id'      => $this->input->post('selected_queue_id'),
                 'status'        => $this->input->post('status'),
             );
-            $this->Settings_model->updateSettings($data);
+            $this->Settings_model->updateSettings($general_settings);
+
+            // Update Duplicate Settings
+            $duplicate_settings = array(
+                'queue_log_force_duplicate_deletion' => $this->input->post('force_duplicate_deletion'),
+                'queue_log_rollback_with_deletion'   => $this->input->post('rollback_with_deletion'),
+                'queue_log_rollback'                 => $this->input->post('rollback'),
+                'queue_log_rollback_days'            => $this->input->post('rollback_days'),
+                'queue_log_fix_agent_duplicates'     => $this->input->post('fix_agent_duplicates'),
+            );
+            $this->Settings_model->updateDuplicateSettings($duplicate_settings);
         }
     }
+
+   
 }
 
