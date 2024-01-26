@@ -62,7 +62,8 @@ var monitoring_dashboard = new Vue({
                 // Calculate total calls for each queue
                 const totalCallsByQueue = {};
       
-                for (const queueId in this.queueStats) {
+                for (const queueId in this.queueStats) 
+                {
                   if (this.queueStats.hasOwnProperty(queueId)) 
                   {
                     const queueData  = this.queueStats[queueId];
@@ -94,19 +95,23 @@ var monitoring_dashboard = new Vue({
             });
         },
 
-        get_agent_realtime_status: function() {
+        get_agent_realtime_status: function() 
+        {
             axios.get(api_url+'agent/get_realtime_status_for_all_agents/')
-                .then(response => {
-                    if (typeof(response.data.data) == 'object') {
+                .then(response => 
+                {
+                    if (typeof(response.data.data) == 'object') 
+                    {
                         this.agent_statuses = response.data.data;
                         this.agent_statuses_loading = false;
         
-                        this.agents_busy = 0;
-                        this.agents_on_call = 0;
-                        this.agents_free = 0;
+                        this.agents_busy        = 0;
+                        this.agents_on_call     = 0;
+                        this.agents_free        = 0;
                         this.agents_unavailable = 0;
         
-                        for (let fa in this.freepbx_agents) {
+                        for (let fa in this.freepbx_agents) 
+                        {
                             if (this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'] == 'Idle')
                             {
                                 this.agents_free++;
@@ -151,15 +156,21 @@ var monitoring_dashboard = new Vue({
 
         get_realtime_data: function() 
         {
-            axios.get(api_url+'queue/get_realtime_data/')
+            let id  = '_';
+            let key = id + '-' + getRequestKey('realtime_data');
+
+            axios.get(api_url+'queue/get_realtime_data/'+id+'/'+key)
                 .then(response => {
-                    this.realtime_data         = response.data.data;
-                    this.realtime_data_loading = false;
-                    this.total_callers         = 0;
-                    for (queue in response.data.data) 
+                    if(response.status == 'OK')
                     {
-                        this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
-                    }  
+                        this.realtime_data         = response.data.data;
+                        this.realtime_data_loading = false;
+                        this.total_callers         = 0;
+                        for (queue in response.data.data) 
+                        {
+                            this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
+                        }  
+                    }
                 });
         },
 
@@ -181,7 +192,7 @@ var monitoring_dashboard = new Vue({
             axios.post(api_url+'agent/get_stats_for_all_queues/',this.form_data)
             .then(response => {
                 this.agent_stats_loading = false;
-                this.agent_stats = response.data.data;
+                this.agent_stats         = response.data.data;
             });
         },
 
@@ -203,7 +214,8 @@ var monitoring_dashboard = new Vue({
         
     },
 
-    computed: {
+    computed: 
+    {
         sortedQueueData: function() 
         {
             const sortedQueueIds = Object.keys(this.totalCallsByQueue).sort((a, b) => 
@@ -279,9 +291,7 @@ var monitoring_dashboard = new Vue({
                 this.updateCallDuration(key);
             }
         }, 1000);
-
         
     }
-
 
 });

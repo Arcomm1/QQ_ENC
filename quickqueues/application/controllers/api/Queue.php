@@ -1310,23 +1310,37 @@ class Queue extends MY_Controller {
     }
 
 
-    public function get_realtime_data($id = false)
+    public function get_realtime_data($id = false, $key = "")
     {
+        $id = $id == '_' ? false : $id;
+
+        if($this->checkOrAddKey($key))
+        {
+            $this->r->status  = 'Duplicate';
+            $this->r->message = 'Up to date';
+            $this->_respond();
+            return;
+        }
+
         $this->load->library('asterisk_manager');
     
-        if (!$id) {
+        if (!$id) 
+        {
             $queues = array();
             foreach ($this->data->user_queues as $q) 
             {
                 $queueStatus = $this->asterisk_manager->queue_status($q->name);
     
                 // Check if $queueStatus has the 'data' key before accessing it
-                if (isset($queueStatus['data'])) {
+                if (isset($queueStatus['data'])) 
+                {
                     $queues[] = $queueStatus;
                 }
             }
             $this->r->data = $queues;
-        } else {
+        } 
+        else 
+        {
             $queue = $this->Queue_model->get($id);
             $queueStatus = $this->asterisk_manager->queue_status($queue->name);
     
@@ -1353,8 +1367,8 @@ class Queue extends MY_Controller {
                 }
             }
         }
-    
-        $this->r->status = 'OK';
+        
+        $this->r->status  = 'OK';
         $this->r->message = 'Queue realtime data will follow';
         $this->_respond();
     }
@@ -2016,9 +2030,12 @@ class Queue extends MY_Controller {
 
     public function get_basic_stats_for_today($id = false)
     {
-        if (!$id) {
-            foreach ($this->data->user_queues as $q) {
-                if (stripos($q->display_name, 'Callback') === false) {
+        if (!$id) 
+        {
+            foreach ($this->data->user_queues as $q) 
+            {
+                if (stripos($q->display_name, 'Callback') === false) 
+                {
                     $id[] = $q->id;
                 }
             }
@@ -2031,6 +2048,7 @@ class Queue extends MY_Controller {
                 'event_type' => array('COMPLETECALLER', 'COMPLETEAGENT')
             )
         );
+       
 
         $this->r->data->calls_unanswered = $this->Call_model->count_by_complex(
             array(
@@ -2048,7 +2066,6 @@ class Queue extends MY_Controller {
                 'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY'),
                 'answered_elsewhere' => 'isnull',
                 'waittime >=' => 5
-
             )
         );
 

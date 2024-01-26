@@ -1,4 +1,22 @@
 // https://stackoverflow.com/a/11486026
+
+function getRequestKey(type)
+{
+    type = type === undefined ? '' : type;
+    let key = null;
+    if(window['request_key_'+type])
+    {
+        key = window['request_key_'+type];
+    }
+
+    if(!key)
+    {
+        key = Date.now() + Math.floor(Math.random() * 1000);
+        window['request_key_'+type] = type+'-'+key;
+    }
+    return window['request_key_'+type];
+}
+
 function sec_to_time(sec)
 {
     if (sec == 0 || sec === undefined || sec === null || Number.isNaN(sec) || sec === Infinity) {

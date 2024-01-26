@@ -7,7 +7,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class MY_controller extends CI_Controller
 {
-
     public function __construct()
     {
         parent::__construct();
@@ -44,8 +43,29 @@ class MY_controller extends CI_Controller
         if ($this->data->config->app_notifications == 'yes') {
             $this->data->notifications = $this->Notification_model->get_new_for_user($this->data->logged_in_user->id);
         }
-
     }
 
+
+    public function checkOrAddKey($key)
+    {
+        if(empty($key))
+        {
+            return false;
+        }
+        if(!isset($_SESSION['request_keys']))
+        {
+            $_SESSION['request_keys'] = [];
+        }
+        $entries = $_SESSION['request_keys'];
+
+        if(in_array($key,$entries))
+        {
+            return true;
+        }
+
+        array_push($entries,$key);
+        $_SESSION['request_keys'] = $entries;
+        return false;
+    }
 
 }
