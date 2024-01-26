@@ -165,6 +165,7 @@ parser_unlock_complex();
 		$queue_log_rollback_days = $this->Config_model->get_item('queue_log_rollback_days');
         $queue_log_rollback_with_deletion = $this->Config_model->get_item('queue_log_rollback_with_deletion');
 		$queue_log_force_duplicate_deletion = $this->Config_model->get_item('queue_log_force_duplicate_deletion');
+        $queue_log_fix_agent_duplicates = $this->Config_model->get_item('queue_log_fix_agent_duplicates');
 		
 		// Directory containing queue_log files
 		$directory_queue_log = '/var/log/asterisk';
