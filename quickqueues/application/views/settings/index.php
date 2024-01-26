@@ -86,10 +86,10 @@
                 <label for="rollback" class="col-sm-2 col-form-label">Rollback</label>
                 <div class="col-sm-10">
                     <select name="rollback" class="form-control">
-                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['rollback']) && $this->data->queueDuplicateSettings['rollback'] == 'no' ? "selected" : ""; ?>>
+                        <option value="no" <?php echo isset($this->data->duplicateSettings['queue_log_rollback']) && $this->data->duplicateSettings['queue_log_rollback'] == 'no' ? "selected" : ""; ?>>
                             no
                         </option>
-                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['rollback']) && $this->data->queueDuplicateSettings['rollback'] == 'yes' ? "selected" : ""; ?>>
+                        <option value="yes" <?php echo isset($this->data->duplicateSettings['queue_log_rollback']) && $this->data->duplicateSettings['queue_log_rollback'] == 'yes' ? "selected" : ""; ?>>
                             yes
                         </option>
                     </select>
@@ -99,7 +99,7 @@
             <div class="form-group row">
                 <label for="rollback_days" class="col-sm-2 col-form-label">Rollback days</label>
                 <div class="col-sm-10">
-                    <input type="number" name="rollback_days" class="form-control" value="<?php echo isset($this->data->queueDuplicateSettings['rollback_days']) ? $this->data->queueDuplicateSettings['rollback_days'] : '1'; ?>">
+                    <input type="number" name="rollback_days" class="form-control" value="<?php echo isset($this->data->duplicateSettings['queue_log_rollback_days']) ? $this->data->duplicateSettings['queue_log_rollback_days'] : '1'; ?>">
                 </div>
             </div>
             <hr>
@@ -107,10 +107,10 @@
                 <label for="force_duplicate_deletion" class="col-sm-2 col-form-label">Queue force duplicate deletion</label>
                 <div class="col-sm-10">
                     <select name="force_duplicate_deletion" class="form-control">
-                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['force_duplicate_deletion']) && $this->data->queueDuplicateSettings['force_duplicate_deletion'] == 'no' ? "selected" : ""; ?>>
+                        <option value="no" <?php echo isset($this->data->duplicateSettings['queue_log_force_duplicate_deletion']) && $this->data->duplicateSettings['queue_log_force_duplicate_deletion'] == 'no' ? "selected" : ""; ?>>
                             no
                         </option>
-                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['force_duplicate_deletion']) && $this->data->queueDuplicateSettings['force_duplicate_deletion'] == 'yes' ? "selected" : ""; ?>>
+                        <option value="yes" <?php echo isset($this->data->duplicateSettings['queue_log_force_duplicate_deletion']) && $this->data->duplicateSettings['queue_log_force_duplicate_deletion'] == 'yes' ? "selected" : ""; ?>>
                             yes
                         </option>
                     </select>
@@ -121,10 +121,10 @@
                 <label for="rollback_with_deletion" class="col-sm-2 col-form-label">Queue rollback with deletion</label>
                 <div class="col-sm-10">
                     <select name="rollback_with_deletion" class="form-control">
-                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['rollback_with_deletion']) && $this->data->queueDuplicateSettings['rollback_with_deletion'] == 'no' ? "selected" : ""; ?>>
+                        <option value="no" <?php echo isset($this->data->duplicateSettings['queue_log_rollback_with_deletion']) && $this->data->duplicateSettings['queue_log_rollback_with_deletion'] == 'no' ? "selected" : ""; ?>>
                             no
                         </option>
-                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['rollback_with_deletion']) && $this->data->queueDuplicateSettings['rollback_with_deletion'] == 'yes' ? "selected" : ""; ?>>
+                        <option value="yes" <?php echo isset($this->data->duplicateSettings['queue_log_rollback_with_deletion']) && $this->data->duplicateSettings['queue_log_rollback_with_deletion'] == 'yes' ? "selected" : ""; ?>>
                             yes
                         </option>
                     </select>
@@ -135,10 +135,10 @@
                 <label for="fix_agent_duplicates" class="col-sm-2 col-form-label">Queue log fix agent duplicates</label>
                 <div class="col-sm-10">
                     <select name="fix_agent_duplicates" class="form-control">
-                        <option value="no" <?php echo isset($this->data->queueDuplicateSettings['fix_agent_duplicates']) && $this->data->queueDuplicateSettings['fix_agent_duplicates'] == 'no' ? "selected" : ""; ?>>
+                        <option value="no" <?php echo isset($this->data->duplicateSettings['queue_log_fix_agent_duplicates']) && $this->data->duplicateSettings['queue_log_fix_agent_duplicates'] == 'no' ? "selected" : ""; ?>>
                             no
                         </option>
-                        <option value="yes" <?php echo isset($this->data->queueDuplicateSettings['fix_agent_duplicates']) && $this->data->queueDuplicateSettings['fix_agent_duplicates'] == 'yes' ? "selected" : ""; ?>>
+                        <option value="yes" <?php echo isset($this->data->duplicateSettings['queue_log_fix_agent_duplicates']) && $this->data->duplicateSettings['queue_log_fix_agent_duplicates'] == 'yes' ? "selected" : ""; ?>>
                             yes
                         </option>
                     </select>
