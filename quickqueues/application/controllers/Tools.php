@@ -1102,19 +1102,43 @@ parser_unlock_complex();
 			$this->db->delete('qq_calls', array('duplicate_record' => 'yes'));
 		}
 
-		// Delete duplicate agents
-		//$this->db->query("DELETE qq1 FROM qq_agents qq1 INNER JOIN qq_agents qq2 ON qq1.name = qq2.name AND qq1.id > qq2.id");
+        // Merge and Delete duplicate Agents by lower ID
+		if ($queue_log_fix_agent_duplicates =="yes") {
+			// Step 1: Identify duplicates
+			$query = $this->db->query("
+				SELECT name, extension, GROUP_CONCAT(id ORDER BY id) as ids
+				FROM qq_agents
+				GROUP BY name, extension
+				HAVING COUNT(*) > 1
+			");
 
-		// Clean up qq_queue_agents with non existan agents
-		//$this->db->query("DELETE FROM qq_queue_agents WHERE NOT EXISTS (SELECT 1 FROM qq_agents WHERE qq_agents.id = qq_queue_agents.agent_id)");
+			foreach ($query->result() as $row) {
+				$ids = explode(',', $row->ids);
+				$originalId = array_shift($ids); // Keep the lowest ID and remove it from the array
 
+				// Step 2: Update qq_events and delete duplicates
+				foreach ($ids as $id) {
+					// Update qq_events
+					$this->db->query("UPDATE qq_events SET agent_id = $originalId WHERE agent_id = $id");
+					
+					// Update qq_calls
+					$this->db->query("UPDATE qq_calls SET agent_id = $originalId WHERE agent_id = $id");
+
+					// Delete the duplicate agent
+					$this->db->delete('qq_agents', array('id' => $id));
+				}
+			}
+
+			// Step 3: Cleanup qq_queue_agents
+			$this->db->query("DELETE FROM qq_queue_agents WHERE NOT EXISTS (SELECT 1 FROM qq_agents WHERE qq_agents.id = qq_queue_agents.agent_id)");
+		}
 		//*************************************************				
     }
     catch (Exception $ex) 
     {
         log_to_file('ERROR', $ex->getMessage());
     }
-log_to_file('NOTICE', 'Unlocking parser');
+        log_to_file('NOTICE', 'Unlocking parser');
 		parser_unlock();
     }
 
