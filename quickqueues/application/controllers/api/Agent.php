@@ -191,7 +191,9 @@ class Agent extends MY_Controller {
 
         $extensions = array();
         foreach ($this->data->user_agents as $a) {
-            $extensions[] = $a->extension;
+			if ($a->extension !="") {
+				$extensions[] = $a->extension;
+			}
         }
 
         foreach ($ami_response as $ar) {
