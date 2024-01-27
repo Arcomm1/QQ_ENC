@@ -1310,19 +1310,9 @@ class Queue extends MY_Controller {
     }
 
 
-    public function get_realtime_data($id = false, $key = "")
+    public function get_realtime_data($id = false)
     {
-        $id = $id == '_' ? false : $id;
-
-        if($this->checkOrAddKey($key))
-        {
-            $this->r->status  = 'Duplicate';
-            $this->r->message = 'Up to date';
-            $this->_respond();
-            return;
-        }
         $this->load->library('asterisk_manager');
-
     
         if (!$id) 
         {
