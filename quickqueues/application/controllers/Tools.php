@@ -1070,8 +1070,11 @@ parser_unlock_complex();
 			$startTime = date('Y-m-d H:i:s', strtotime("-1 hours"));
 		}
 
-		// Query to find duplicates, excluding the first occurrence
-		$duplicateQuery = "
+		// Can be used as Custom Start Date to remove duplicates
+		// $startTime = date('2024-01-01 00 00');
+
+		// Query to find duplicates, excluding the first occurrence in Calls
+		$duplicateQuery_qq_calls = "
 			SELECT *
 			FROM qq_calls
 			WHERE (uniqueid, event_type, src, agent_id, calltime, date)
@@ -1089,18 +1092,44 @@ parser_unlock_complex();
 				GROUP BY uniqueid, event_type, src, agent_id, calltime, date
 			);
 		";
-
+		
+		// Query to find duplicates, excluding the first occurrence in Events
+		$duplicateQuery_qq_events = "
+			SELECT *
+			FROM qq_events
+			WHERE (uniqueid, event_type, agent_id, queue_id, date)
+			IN (
+				SELECT uniqueid, event_type, agent_id, queue_id, date
+				FROM qq_events
+				WHERE date BETWEEN ? AND ?
+				GROUP BY uniqueid, event_type, agent_id, queue_id, date
+				HAVING COUNT(*) > 1
+			)
+			AND id NOT IN (
+				SELECT MIN(id)
+				FROM qq_events
+				WHERE date BETWEEN ? AND ?
+				GROUP BY uniqueid, event_type, agent_id, queue_id, date
+			);
+		";
+		
 		// Bind parameters and execute the query
-		$duplicateCalls = $this->db->query($duplicateQuery, array($startTime, $endTime, $startTime, $endTime))->result_array();
+		$duplicateCalls = $this->db->query($duplicateQuery_qq_calls, array($startTime, $endTime, $startTime, $endTime))->result_array();
+		$duplicateEvents = $this->db->query($duplicateQuery_qq_events, array($startTime, $endTime, $startTime, $endTime))->result_array();
 
 		// Process the results and mart all found duplicate entries in DB
-		foreach ($duplicateCalls as $call) {
-			$this->Call_model->update($call['id'], array('duplicate_record' => 'yes'));
+		foreach ($duplicateCalls as $one_call) {
+			$this->Call_model->update($one_call['id'], array('duplicate_record' => 'yes'));
 		}
+		foreach ($duplicateEvents as $one_event) {
+			$this->Event_model->update($one_event['id'], array('duplicate_record' => 'yes'));
+		}		
 
 		if ($queue_log_force_duplicate_deletion == "yes") {
 			// Delete duplicate marked calls
-			$this->db->delete('qq_calls', array('duplicate_record' => 'yes'));
+			$this->db->where('duplicate_record', 'yes')->where('date >=', $startTime)->where('date <=', $endTime)->delete('qq_calls');
+			// Delete duplicate marked events
+			$this->db->where('duplicate_record', 'yes')->where('date >=', $startTime)->where('date <=', $endTime)->delete('qq_events');
 		}
 
         // Merge and Delete duplicate Agents by lower ID
