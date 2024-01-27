@@ -46,7 +46,6 @@ var monitoring_dashboard = new Vue({
                 .then(response => {
                     this.basic_stats         = response.data.data;
                     this.basic_stats_loading = false;
-                    console.log(this.basic_stats);
                 });
         },
 
@@ -57,7 +56,6 @@ var monitoring_dashboard = new Vue({
               .get(api_url + 'queue/get_stats_by_queue/', this.form_data)
               .then((response) => {
                 this.queueStats = response.data.data;
-                console.log(this.queueStats);
       
                 // Calculate total calls for each queue
                 const totalCallsByQueue = {};
@@ -79,7 +77,6 @@ var monitoring_dashboard = new Vue({
                 this.totalCallsByQueue = totalCallsByQueue;
       
                 // Debugging: log the calculated totals
-                console.log(this.totalCallsByQueue);
       
                 this.queueStats_loading = false;
               });
@@ -156,15 +153,20 @@ var monitoring_dashboard = new Vue({
 
         get_realtime_data: function() 
         {
-            axios.get(api_url+'queue/get_realtime_data/')
+            let id  = '_';
+            let key = id + '-' + getRequestKey('realtime_data');
+
+            axios.get(api_url+'queue/get_realtime_data/'+id+'/'+key)
                 .then(response => {
-                    this.realtime_data         = response.data.data;
-                    this.realtime_data_loading = false;
-                    this.total_callers         = 0;
-                    for (queue in response.data.data) 
+                    if(response.status == 'OK')
                     {
-                        this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
-                         
+                        this.realtime_data         = response.data.data;
+                        this.realtime_data_loading = false;
+                        this.total_callers         = 0;
+                        for (queue in response.data.data) 
+                        {
+                            this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
+                        }  
                     }
                 });
         },
@@ -252,7 +254,6 @@ var monitoring_dashboard = new Vue({
             a = 0;
             for (queue in this.realtime_data) 
             {
-                console.log(queue);
                 // a = a + Object.keys(this.realtime_data[queue]['callers'].length);
             }
             return a;

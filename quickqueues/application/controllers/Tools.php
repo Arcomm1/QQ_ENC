@@ -24,15 +24,16 @@ class Tools extends CI_Controller {
         //$this->parse_queue_log();
     }
 
-    // public function index()
-    // {
-    //     load_views(array('agents/index'), $this->data, true);
-    // }
+    public function index()
+    {
+        load_views(array('agents/index'), $this->data, true);
+    }
 
-    // public function clearCacheKeys()
-    // {
-    //     $_SESSION['request_keys'] = null;
-    // }
+    public function clearCacheKeys()
+    {
+        $_SESSION['request_keys'] = null;
+        
+    }
 
     /** User management */
     public function user_ctl($action = false, $username = false, $password = false, $role = false)
@@ -144,7 +145,7 @@ class Tools extends CI_Controller {
         log_to_file('NOTICE', 'Running parser');
 
                 log_to_file('NOTICE', 'Unlocking parser');
-parser_unlock_complex();
+        parser_unlock_complex();
 
         $lock = parser_read_lock();
         if ($lock) 
@@ -494,11 +495,13 @@ parser_unlock_complex();
             
 			//************************************************* - Must re check
 			if ($ev_data[4] == 'ENTERQUEUE') {
+                $this->clearCacheKeys();
                 $event['src'] = $ev_data[6];
                 $this->Call_model->create($event);
-            }			
+            }	
+          		
 			//************************************************* - Must re check
-			
+		 
             /**
              * CONNECT - call that entered queue (ENTERQUEUE event) was connected to agents,
              * update call entry matching ENTERQUEUE and current unique ID
@@ -1048,7 +1051,7 @@ parser_unlock_complex();
             unset($agent_id);
             unset($queue_id);
             unset($event);
-            // $this->clearCacheKeys();
+            $this->clearCacheKeys();
         }
 
 
