@@ -1346,14 +1346,6 @@ class Agent extends MY_Controller {
             $agent_stats[$s->agent_id]['total_pausetime'] = $s->total_pausetime;
         }
         
-		// Function to compare calls answered
-		function compare_calls_answered($a, $b) {
-			return $b['calls_answered'] - $a['calls_answered'];
-		}
-
-		// Sort the agent_stats array
-		usort($agent_stats, 'compare_calls_answered');
-        
         $this->r->data = $agent_stats;
 
         $this->r->status = 'OK';
