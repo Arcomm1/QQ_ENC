@@ -570,13 +570,11 @@ class Call_model extends MY_Model {
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
         
-        /*
 		// Exclude Internal Calls
 		$this->db->group_start()
           ->where('src NOT IN (SELECT extension FROM users)')
           ->or_where('dst NOT IN (SELECT extension FROM users)')
           ->group_end();	        
-        */
         
         $this->db->from('qq_calls');
         return $this->db->get()->row();
