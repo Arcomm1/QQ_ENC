@@ -156,20 +156,15 @@ var monitoring_dashboard = new Vue({
 
         get_realtime_data: function() 
         {
-            let id  = '_';
-            let key = id + '-' + getRequestKey('realtime_data');
-
-            axios.get(api_url+'queue/get_realtime_data/'+id+'/'+key)
+            axios.get(api_url+'queue/get_realtime_data/')
                 .then(response => {
-                    if(response.status == 'OK')
+                    this.realtime_data         = response.data.data;
+                    this.realtime_data_loading = false;
+                    this.total_callers         = 0;
+                    for (queue in response.data.data) 
                     {
-                        this.realtime_data         = response.data.data;
-                        this.realtime_data_loading = false;
-                        this.total_callers         = 0;
-                        for (queue in response.data.data) 
-                        {
-                            this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
-                        }  
+                        this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
+                         
                     }
                 });
         },
