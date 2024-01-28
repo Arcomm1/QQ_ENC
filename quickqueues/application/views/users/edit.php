@@ -72,7 +72,7 @@
                                     <label for="username"><?php echo lang('role'); ?></label>
                                     <select v-if="num_user_queues == 0 & role == 'manager'" tabindex="6" v-model="role" class="form-control" id="role" name="role" aria-describedby="role"></select>
                                     <select v-else-if="num_user_agents == 0 & role == 'agent'" tabindex="6" v-model="role" class="form-control" id="role" name="role" aria-describedby="role"></select>
-                                    <select v-else tabindex="6" v-model="role" disabled class="form-control" id="role" name="role" aria-describedby="role"></select>
+                                    <select v-else tabindex="6" v-model="role" class="form-control" id="role" name="role" aria-describedby="role"></select>
                                     <small v-if="role_err" id="role_status" class="form-text text-danger">{{ role_err }}</small>
                                     <small v-else id="role_status" ><?php echo lang('desc_role'); ?></small>
                                 </div>
