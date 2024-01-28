@@ -118,7 +118,7 @@
                                 <th scope="col"><?php echo lang('actions'); ?></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="monitoring-agents-dashboard-table-body">
                           <tr v-for="agent in agents" v-if="agent && agent.display_name">
                                 <td v-bind:id="'agent_status_'+agent.agent_id"
                                     v-if="agent_statuses[agent.extension]">
