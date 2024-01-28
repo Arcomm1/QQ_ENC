@@ -165,7 +165,19 @@
                                                     {{ " | "+agent.last_call }}
                                                 </div>
                                             </td>
-                                            <td v-if="agent_current_calls[agent.extension]">--</td>
+											<td v-if="agent_current_calls[agent.extension]">
+												{{
+													agent_statuses[agent.extension]
+													? (
+														agent_statuses[agent.extension].StatusText === 'Idle' ? 'Free' :
+														agent_statuses[agent.extension].StatusText === 'Unavailable' ? 'Unavailable' :
+														agent_statuses[agent.extension].StatusText === 'InUse' ? 'OnCall' :
+														agent_statuses[agent.extension].StatusText === 'Busy' ? 'Busy' :
+														agent_statuses[agent.extension].StatusText
+													  )
+													: ''
+												}}
+											</td>
                                             <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_answered }}</td>
                                             <td v-if="agent_current_calls[agent.extension]">{{ sec_to_time(agent_stats[agent.id].incoming_total_calltime) }}</td>
                                             <td v-if="agent_current_calls[agent.extension]">{{ agent_stats[agent.id].calls_missed }}</td>
@@ -204,7 +216,19 @@
                                                 (agent_statuses[agent.extension].Status == 0 ||
                                                  agent_statuses[agent.extension].Status == 2 ||
                                                  agent_statuses[agent.extension].Status == 4 ||
-                                                 agent_statuses[agent.extension].Status == 8)">--</td>
+                                                 agent_statuses[agent.extension].Status == 8)">
+												{{
+													agent_statuses[agent.extension]
+													? (
+														agent_statuses[agent.extension].StatusText === 'Idle' ? 'Free' :
+														agent_statuses[agent.extension].StatusText === 'Unavailable' ? 'Unavailable' :
+														agent_statuses[agent.extension].StatusText === 'InUse' ? 'OnCall' :
+														agent_statuses[agent.extension].StatusText === 'Busy' ? 'Busy' :
+														agent_statuses[agent.extension].StatusText
+													  )
+													: ''
+												}}
+												 </td>
                                             <td  v-if="agent_statuses[agent.extension] &&
                                                 (agent_statuses[agent.extension].Status == 0 ||
                                                  agent_statuses[agent.extension].Status == 2 ||
