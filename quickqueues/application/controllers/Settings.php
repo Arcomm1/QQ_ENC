@@ -22,6 +22,14 @@ class Settings extends CI_Controller
         }
 
         $this->data = new stdClass();
+
+		// Config Class ADD
+		$this->data->config = new stdClass();
+        foreach ($this->Config_model->get_all() as $item) {
+            $this->data->config->{$item->name} = $item->value;
+        }		
+		// Config Class ADD        
+        
         $this->data->page_title = lang('settings');   
     }
     
