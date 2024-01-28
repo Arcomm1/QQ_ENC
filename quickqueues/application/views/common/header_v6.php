@@ -102,10 +102,12 @@
                         </a>
                     </li>
 					<?php if ($this->session->userdata('role') =="admin" or $this->session->userdata('role') =="manager") { ?>
+					 <?php if ($config->app_enable_switchboard == 'yes') { ?>
 					<li class="nav-item">
 						<a id="nav_switchboard" class="nav-link" i href="<?php echo site_url('switchboard') ;?>">
 							<?php echo lang('switchboard'); ?></a>
 					</li>
+					<?php } ?>
 					<?php } ?>					
                     <?php if (isset($inject_nav_item)) { ?>
                     <li class="nav-item">
