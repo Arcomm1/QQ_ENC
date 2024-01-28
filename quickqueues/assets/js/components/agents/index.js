@@ -130,4 +130,47 @@ var agent_overview = new Vue({
 
 
 });
+$(document).ready(function() {
+    // Get the table body
+    var tableBody = $('.monitoring-agents-dashboard-table-body');
+
+    // Function to sort the table rows
+    function sortTable(columnIndex) {
+        var rows = tableBody.find('tr').toArray();
+
+        rows.sort(function(a, b) {
+            var cellA, cellB;
+
+            // Check if sorting based on 'Status' column
+            if (columnIndex === 1) {
+                // Get the text from the <td> element in the 'Status' column
+                cellA = $(a).find('td:eq(1)').text();
+                cellB = $(b).find('td:eq(1)').text();
+            } else {
+                // Get the text from the <td> element with Vue.js data
+                cellA = $(a).find('td:eq(2)').text();
+                cellB = $(b).find('td:eq(2)').text();
+            }
+
+            return cellA.localeCompare(cellB);
+        });
+
+        // Append the sorted rows back to the table body
+        $.each(rows, function(index, row) {
+            tableBody.append(row);
+        });
+    }
+
+    // Function to automatically sort the table every 5 seconds
+    function autoSortTable() {
+        // Assuming you want to sort by the 'Status' column (index 1)
+        sortTable(1);
+    }
+
+    // Initial sort on page load
+    autoSortTable();
+
+    // Call the autoSortTable function every 5 seconds
+    setInterval(autoSortTable, 1000);
+});
 
