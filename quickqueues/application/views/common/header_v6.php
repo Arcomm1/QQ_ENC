@@ -101,6 +101,12 @@
                             <?php echo lang('monitoring'); ?>
                         </a>
                     </li>
+					<?php if ($this->session->userdata('role') =="admin" or $this->session->userdata('role') =="manager") { ?>
+					<li class="nav-item">
+						<a id="nav_switchboard" class="nav-link" i href="<?php echo site_url('switchboard') ;?>">
+							<?php echo lang('switchboard'); ?></a>
+					</li>
+					<?php } ?>					
                     <?php if (isset($inject_nav_item)) { ?>
                     <li class="nav-item">
                         <a id="<?php echo $inject_nav_item[0]; ?>" class="nav-link" href="<?php echo site_url($inject_nav_item[1]); ?>">
@@ -108,7 +114,7 @@
                         </a>
                     </li>
                     <?php } ?>
-                    <?php if (isset($logged_in_user) && $logged_in_user->role == 'admin') { ?>
+                    <?php if ($this->session->userdata('role') =="admin") { ?>
                     <li class="nav-item dropdown d-flex align-items-center">
                         <a class="nav-link py-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
                             <?php echo lang('manage'); ?>
@@ -117,11 +123,6 @@
                             <a class="dropdown-item" href="<?php echo site_url('users'); ?>">
                                 <?php echo lang('users'); ?>
                             </a>
-                            <?php if ($config->app_campaigns == 'yes') { ?>
-                            <a class="dropdown-item" href="<?php echo site_url('campaigns'); ?>">
-                                <?php echo lang('campaigns'); ?>
-                            </a>
-                            <?php } ?>
                         </div>
                     </li>
                     <?php } ?>
@@ -183,5 +184,3 @@
 
         <!-- content -->
         <div class="body flex-grow-1 px-3 mb-4">
-
-
