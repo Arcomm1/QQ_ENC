@@ -58,15 +58,28 @@ var switchboard = new Vue({
         },
 
 
-        get_devices: function () {
-            this.devices_loading = true,
-            axios.get(api_url+'misc/get_devices')
-                .then(response => {
-                    this.devices_loading = false;
-                    this.devices = response.data.data;
-                })
-                .finally(() => this.devices_error = false)
-        },
+		get_devices: function () {
+			this.devices_loading = true;
+			axios.get(api_url + 'misc/get_devices')
+				.then(response => {
+					this.devices_loading = false;
+					let truncatedDevices = {};
+					for (let key in response.data.data) {
+						if (response.data.data.hasOwnProperty(key)) {
+							let deviceString = response.data.data[key];
+							// Truncate the string to 18 characters
+							truncatedDevices[key] = deviceString.length > 15 ? deviceString.substring(0, 15) + '...' : deviceString;
+						}
+					}
+					this.devices = truncatedDevices;
+				})
+				.catch(error => {
+					// Handle error here if necessary
+					console.error("Error fetching devices:", error);
+				})
+				.finally(() => this.devices_error = false);
+		},
+
 
         show_exts: function () {
             this.get_extension_states();
@@ -88,5 +101,3 @@ var switchboard = new Vue({
     },
 
 });
-
-
