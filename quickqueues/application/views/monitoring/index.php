@@ -172,7 +172,7 @@
 														agent_statuses[agent.extension].StatusText === 'Idle' ? 'Free' :
 														agent_statuses[agent.extension].StatusText === 'Unavailable' ? 'Unavailable' :
 														agent_statuses[agent.extension].StatusText === 'InUse' ? 'OnCall' :
-														agent_statuses[agent.extension].StatusText === 'Busy' ? 'Busy' :
+														agent_statuses[agent.extension].StatusText === 'Busy' ? 'N/A' :
 														agent_statuses[agent.extension].StatusText
 													  )
 													: ''
@@ -223,7 +223,7 @@
 														agent_statuses[agent.extension].StatusText === 'Idle' ? 'Free' :
 														agent_statuses[agent.extension].StatusText === 'Unavailable' ? 'Unavailable' :
 														agent_statuses[agent.extension].StatusText === 'InUse' ? 'OnCall' :
-														agent_statuses[agent.extension].StatusText === 'Busy' ? 'Busy' :
+														agent_statuses[agent.extension].StatusText === 'Busy' ? 'N/A' :
 														agent_statuses[agent.extension].StatusText
 													  )
 													: ''
