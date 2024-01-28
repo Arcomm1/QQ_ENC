@@ -23,37 +23,35 @@
   
   <style>
 #switchboard .card {
-    width: 100%; /* Full width for the card container */
-    margin: 20px auto; /* Centered horizontally with margin */
+    width: 100%;
+    margin: 20px auto;
 }
 
 .extension-states {
     display: grid;
-    grid-template-columns: repeat(15, 1fr); /* Creates 15 columns */
-    gap: 10px; /* Space between cards */
+    grid-template-columns: repeat(15, 1fr);
+    row-gap: 0px;
+    column-gap: 10px;
 }
 
 .extension-state {
-    /* Removed flex properties since we are using grid now */
+    margin: 0;
+    padding: 0;
+    height: 75px; /* Adjust this height as necessary */
 }
 
 .extension-state .card {
-    /* Style for individual cards, adjust as needed */
-    min-width: 0; /* Overcome grid blowout issue */
-    word-wrap: break-word; /* Ensures text stays within the card */
-}
-
-.extension-state .card-title {
-    font-size: 14px; /* Adjust the font size as needed */
-    font-weight: bold; /* Make the text bold */
-    margin: 0; /* Optional: Adjust margin if necessary */
-    padding: 2px; /* Optional: Adjust padding if necessary */
+    min-width: 0;
+    word-wrap: break-word;
+    margin: 0; /* Remove margin from card */
+    padding: 0; /* Remove padding from card */
 }
 
 .extension-state .card-body {
     text-align: center;
-    padding: 5px; /* Adjust the padding as needed */
+    padding: 5px;
 }
+
 
 .extension-state .card-text {
     font-size: 12px; /* Adjust the font size as needed */
