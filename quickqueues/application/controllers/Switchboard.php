@@ -15,11 +15,8 @@ class Switchboard extends MY_Controller {
     public function index()
     {
         $this->data->js_include = base_url('assets/js/components/switchboard/index.js');
-        $this->load->view('common/header', $this->data);
-        $this->load->view('switchboard/index');
-        $this->load->view('common/footer');
+		load_views(array('switchboard/index'), $this->data, true);
 
     }
-
 
 }
