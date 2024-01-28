@@ -1,4 +1,5 @@
 <div class="settings-page-container">
+	<?php if ($this->session->userdata('role') =="admin") { ?>
     <form action="<?php echo site_url('settings/update_settings'); ?>" method="post" id="settings-form">
         <div class="form-group row">
             <label for="overload" class="col-sm-2 col-form-label"><?php echo lang('overload'); ?></label>
@@ -73,7 +74,7 @@
             </section>
         </div>
         <hr>
-        <?php if ($this->session->userdata('role') =="admin") { ?>
+	
         <!-- Duplicate calls settings start here -->
         <div class="row duplicate-calls-row">
         <div class="col-sm-12 d-flex flex-row align-items-center justify-content-between" id="duplicate-calls-label">
@@ -147,12 +148,11 @@
             </div>
         </section>
     </div>
-
         <!-- Duplicate calls settings end here -->
-        <?php } ?>
         <hr>
         <input type="submit" value="Submit" class="btn btn-primary">
     </form>
+	<?php } ?>
 </div>
 
 <script>
