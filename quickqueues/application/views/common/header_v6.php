@@ -101,14 +101,27 @@
                             <?php echo lang('monitoring'); ?>
                         </a>
                     </li>
-					<?php if ($this->session->userdata('role') =="admin" or $this->session->userdata('role') =="manager") { ?>
-					 <?php if ($config->app_enable_switchboard == 'yes') { ?>
-					<li class="nav-item">
-						<a id="nav_switchboard" class="nav-link" i href="<?php echo site_url('switchboard') ;?>">
-							<?php echo lang('switchboard'); ?></a>
-					</li>
-					<?php } ?>
-					<?php } ?>					
+					<?php
+					if ($this->session->userdata('role') == "admin" || $this->session->userdata('role') == "manager") {
+						if ($config->app_enable_switchboard == 'yes') {
+							echo '
+								<li class="nav-item">
+									<a id="nav_switchboard" class="nav-link" href="' . site_url("switchboard") . '">
+										' . lang("switchboard") . '</a>
+								</li>
+							';
+						}
+						if ($config->app_enable_switchboard == 'no' && $this->session->userdata('role') == "admin") {
+							echo '
+								<li class="nav-item">
+									<a id="nav_switchboard" class="nav-link" href="' . site_url("switchboard") . '">
+										' . lang("switchboard") . '</a>
+								</li>
+							';
+						}
+					}
+					?>
+			
                     <?php if (isset($inject_nav_item)) { ?>
                     <li class="nav-item">
                         <a id="<?php echo $inject_nav_item[0]; ?>" class="nav-link" href="<?php echo site_url($inject_nav_item[1]); ?>">
