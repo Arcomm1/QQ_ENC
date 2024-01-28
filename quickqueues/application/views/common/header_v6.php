@@ -151,9 +151,10 @@
                     </div>
                 </nav>
                 <!-- End Of dark mode switcher -->
-
+				
                 <!-- user menu -->
                 <ul class="header-nav me-4">
+				<?php if ($this->session->userdata('role') =="admin") { ?>
                 <li class="nav-item">
                     <a class="nav-link" href="<?php echo site_url('Settings'); ?>">
                         <svg class="icon">
@@ -161,6 +162,7 @@
                         </svg>
                     </a>
                 </li>
+				<?php } ?>
                     <li class="nav-item dropdown d-flex align-items-center">
                         <a class="nav-link py-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
                             <div class="avatar avatar-md">
