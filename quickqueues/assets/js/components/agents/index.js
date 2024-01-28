@@ -134,8 +134,8 @@ $(document).ready(function() {
     // Get the table body
     var tableBody = $('.monitoring-agents-dashboard-table-body');
 
-    // Function to sort the table rows
-    function sortTable(columnIndex) {
+    // Function to sort the table rows in descending order
+    function sortTableDescending(columnIndex) {
         var rows = tableBody.find('tr').toArray();
 
         rows.sort(function(a, b) {
@@ -152,7 +152,8 @@ $(document).ready(function() {
                 cellB = $(b).find('td:eq(2)').text();
             }
 
-            return cellA.localeCompare(cellB);
+            // Reverse the order of comparison for descending sorting
+            return cellB.localeCompare(cellA);
         });
 
         // Append the sorted rows back to the table body
@@ -161,16 +162,17 @@ $(document).ready(function() {
         });
     }
 
-    // Function to automatically sort the table every 5 seconds
-    function autoSortTable() {
+    // Function to automatically sort the table in descending order every 5 seconds
+    function autoSortTableDescending() {
         // Assuming you want to sort by the 'Status' column (index 1)
-        sortTable(1);
+        sortTableDescending(1);
     }
 
-    // Initial sort on page load
-    autoSortTable();
+    // Initial descending sort on page load
+    autoSortTableDescending();
 
-    // Call the autoSortTable function every 5 seconds
-    setInterval(autoSortTable, 1000);
+    // Call the autoSortTableDescending function every 5 seconds for descending sorting
+    setInterval(autoSortTableDescending, 1000);
 });
+
 
