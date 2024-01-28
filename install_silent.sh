@@ -13,6 +13,7 @@ if [ ! -f '/etc/amportal.conf' ]; then
 fi
 
 DEST="/var/www/html/callcenter"
+DEST_pbx_bridge="/var/www/html/pbx-bridge"
 APPUSER="admin"
 APPPASS="admin"
 APPEMAIL="support@arcomm.ge"
@@ -122,6 +123,12 @@ echo "==========================================================================
 
 echo ""
 echo "Moving application files to installation destination"
+
+echo "Copying installation files pbx-bridge"
+echo "Source: " $(pwd)/pbx-bridge/
+echo "Dest  : " $DEST_pbx_bridge
+mkdir -p $DEST_pbx_bridge
+/bin/ln -sf $(pwd)/pbx-bridge/{*,.*} $DEST_pbx_bridge/
 
 echo "Copying installation files"
 echo "Source: " $(pwd)/quickqueues/
