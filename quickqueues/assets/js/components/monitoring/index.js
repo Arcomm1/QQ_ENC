@@ -268,13 +268,65 @@ var monitoring_dashboard = new Vue({
 		this.get_realtime_data();
 		this.get_queue_stats();	
 
-        setInterval(() => this.get_queue_stats(), 5000);
-        setInterval(() => this.get_basic_stats(), 60000);
-        setInterval(() => this.get_agent_stats(), 6000);
-        setInterval(() => this.get_freepbx_agents(), 3000);
-        setInterval(() => this.get_agent_realtime_status(), 2000);
-        setInterval(() => this.get_realtime_data(), 2000);
-        setInterval(() => this.get_current_calls(), 3000);
+
+		function getRandomDelay(min, max) {
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+
+		// Recursive setTimeout for each function
+		const scheduleAgentRealtimeStatus = () => {
+			this.get_agent_realtime_status();
+			setTimeout(scheduleAgentRealtimeStatus, 2000 + getRandomDelay(500, 2000));
+		};
+
+		const scheduleBasicStats = () => {
+			this.get_basic_stats();
+			setTimeout(scheduleBasicStats, 60000 + getRandomDelay(500, 2000));
+		};
+
+		const scheduleFreePBXAgents = () => {
+			this.get_freepbx_agents();
+			setTimeout(scheduleFreePBXAgents, 3000 + getRandomDelay(500, 2000));
+		};
+
+		const scheduleAgentStats = () => {
+			this.get_agent_stats();
+			setTimeout(scheduleAgentStats, 6000 + getRandomDelay(500, 2000));
+		};
+
+		const scheduleRealtimeData = () => {
+			this.get_realtime_data();
+			setTimeout(scheduleRealtimeData, 3000 + getRandomDelay(500, 2000));
+		};
+
+		const scheduleQueueStats = () => {
+			this.get_queue_stats();
+			setTimeout(scheduleQueueStats, 5000 + getRandomDelay(500, 2000));
+		};
+
+		const scheduleCurrentCalls = () => {
+			this.get_current_calls();
+			setTimeout(scheduleCurrentCalls, 3000 + getRandomDelay(500, 2000));
+		};
+
+		// Updating call duration with a fixed interval
+		const updateCallDuration = () => {
+			for (const key in this.agent_statuses) {
+				this.updateCallDuration(key);
+			}
+			setTimeout(updateCallDuration, 1000); // Keeping this interval constant as it's a frequent update
+		};
+
+		// Initial calls to start the recursive scheduling
+		scheduleAgentRealtimeStatus();
+		scheduleBasicStats();
+		scheduleFreePBXAgents();
+		scheduleAgentStats();
+		scheduleRealtimeData();
+		scheduleQueueStats();
+		scheduleCurrentCalls();
+		updateCallDuration();
+
 
         setInterval(() => 
         {
