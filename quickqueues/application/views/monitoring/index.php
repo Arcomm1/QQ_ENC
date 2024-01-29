@@ -156,6 +156,7 @@
                                                     <span v-if="agent_current_calls[agent.extension]">
                                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                                         {{ agent_current_calls[agent.extension].second_party }}
+                                                        <img src="<?php echo base_url('assets/img/copy.png'); ?>" width="20" height="20" alt="" @click="copyToClipboard(agent_current_calls[agent.extension].second_party)">
                                                     </span>
 													<span v-if="sec_to_time(callDurations[agent.extension]) !== '00:00:00'">
 														{{ sec_to_time(callDurations[agent.extension]) }}
