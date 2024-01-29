@@ -31,37 +31,46 @@ var switchboard = new Vue({
                     this.extension_states_loading = false;
                     this.extension_states = [];
                     for (e in response.data.data) {
-                        if (response.data.data[e].Context == 'from-internal') {
-                            if (response.data.data[e].Status == '4') {
-                                this.extension_states.push([response.data.data[e].Exten.substring(10), response.data.data[e]]);
-                                this.exts.push(response.data.data[e].Exten.substring(10));
-                                console.log("unavailable");
-                                console.log(this.exts);
-                            }
-                        }
-                    }
-                    for (e in response.data.data) {
                         if (response.data.data[e].Context == 'ext-local') {
-                            if (this.exts.includes(response.data.data[e].Exten) === false) {
-                                console.log("other");
+                            if (this.filter == 'all') {
                                 this.extension_states.push([response.data.data[e].Exten, response.data.data[e]]);
-                                console.log(this.exts);
+                            }
+
+                            if (this.filter == 'free') {
+                                if (response.data.data[e].Status == 0) {
+                                    this.extension_states.push([response.data.data[e].Exten, response.data.data[e]]);
+                                }
+                            }
+
+                            if (this.filter == 'on_call') {
+                                if (response.data.data[e].Status == 1 || response.data.data[e].Status == 8 || response.data.data[e].Status == 16) {
+                                    this.extension_states.push([response.data.data[e].Exten, response.data.data[e]]);
+                                }
+                            }
+
+                            if (this.filter == 'busy') {
+                                if (response.data.data[e].Status == 2) {
+                                    this.extension_states.push([response.data.data[e].Exten, response.data.data[e]]);
+                                }
+                            }
+
+                            if (this.filter == 'unavailable') {
+                                if (response.data.data[e].Status == 4) {
+                                    this.extension_states.push([response.data.data[e].Exten, response.data.data[e]]);
+                                }
                             }
                         }
                     }
                     this.extension_states.sort();
-                    console.log(this.extension_states);
-
                 })
-                .finally(() => this.extension_states_error = false, this.exts = [])
-
+                .finally(() => this.extension_states_error = false);
         },
-
 
 		get_devices: function () {
 			this.devices_loading = true;
 			axios.get(api_url + 'misc/get_devices')
 				.then(response => {
+					console.log("Response JSON:", JSON.stringify(response, null, 2));
 					this.devices_loading = false;
 					let truncatedDevices = {};
 					for (let key in response.data.data) {
@@ -84,6 +93,13 @@ var switchboard = new Vue({
         show_exts: function () {
             this.get_extension_states();
         },
+		
+        show_exts: function (which) {
+            $('.btn').removeClass('active');
+            $('#exts_'+which).addClass('active');
+            this.filter = which;
+            this.get_extension_states();
+        },
 
         refresh_states: function () {
             setInterval( () => this.get_extension_states(), 3000);
@@ -95,7 +111,7 @@ var switchboard = new Vue({
     },
 
     created () {
-        this.show_exts();
+        this.show_exts('all');
         // this.get_extension_states();
         this.refresh_states();
     },
