@@ -267,11 +267,6 @@ var start = new Vue({
         {
             return this.total_stats.callback_request;
         },
-        callback_request_percent: function()
-        {
-            let percent = this.total_stats.callback_request > 0 ? ((this.total_stats.callback_request / this.all_incoming_calls) * 100).toFixed(2)+ '%' : '0%';
-            return this.total_stats.callback_request + ' (' + percent + ')';
-        },
         unique_incoming_calls: function() {
             return parseInt(this.total_stats.unique_incoming_calls_answered) + parseInt(this.total_stats.unique_incoming_calls_unanswered)
         },
