@@ -99,12 +99,33 @@ var agent_overview = new Vue({
             })
         },
 
-        refresh_stats: function() {
-            setInterval( () => this.get_overview(), 60000);
-            setInterval( () => this.get_queues(), 10000);
-            setInterval( () => this.get_realtime_status(), 5000);
-            setInterval( () => this.get_current_calls(), 5000);
-        },
+		refresh_stats: function() {
+			const scheduleOverview = () => {
+				this.get_overview();
+				setTimeout(scheduleOverview, 60000 + getRandomDelay(500, 2000));
+			};
+
+			const scheduleQueues = () => {
+				this.get_queues();
+				setTimeout(scheduleQueues, 10000 + getRandomDelay(500, 2000));
+			};
+
+			const scheduleRealtimeStatus = () => {
+				this.get_realtime_status();
+				setTimeout(scheduleRealtimeStatus, 5000 + getRandomDelay(500, 2000));
+			};
+
+			const scheduleCurrentCalls = () => {
+				this.get_current_calls();
+				setTimeout(scheduleCurrentCalls, 5000 + getRandomDelay(500, 2000));
+			};
+
+			scheduleOverview();
+			scheduleQueues();
+			scheduleRealtimeStatus();
+			scheduleCurrentCalls();
+		},
+
 
         get_queues: function() {
             this.queues_loading = true;
@@ -130,6 +151,11 @@ var agent_overview = new Vue({
 
 
 });
+
+function getRandomDelay(min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 $(document).ready(function() {
     var tableBody = $('.monitoring-agents-dashboard-table-body');
 
