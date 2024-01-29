@@ -8,7 +8,7 @@ class Switchboard extends MY_Controller {
     public function __construct()
     {
         parent::__construct();
-        $this->data->page_title = lang('monitoring');
+        $this->data->page_title = lang('switchboard');
     }
 
 
