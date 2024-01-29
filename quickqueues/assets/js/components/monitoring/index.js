@@ -204,6 +204,18 @@ var monitoring_dashboard = new Vue({
         {
             return queueId.toLowerCase().includes('callback');
         },
+
+		copyToClipboard(text) {
+			const input = document.createElement('textarea');
+			input.value = text;
+			document.body.appendChild(input);
+			input.select();
+			document.execCommand('copy');
+			document.body.removeChild(input);
+
+			// Optionally, you can show a message to indicate that the text has been copied.
+			// Example: alert('Copied to clipboard: ' + text);
+		},	        
         
     },
 
@@ -380,5 +392,5 @@ $(document).ready(function() {
     autoSortTable();
 
     // Call the autoSortTable function every 5 seconds
-    setInterval(autoSortTable, 1000);
+    setInterval(autoSortTable, 1500);
 });
