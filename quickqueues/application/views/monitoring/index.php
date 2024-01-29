@@ -145,7 +145,8 @@
                                     <tbody class="monitoring-dashboard-table-body">
                                         <tr v-for="agent in freepbx_agents">
                                             <td  v-bind:id="'agent_status_'+agent.id"
-                                                 v-if="agent_statuses[agent.extension]">
+                                                 v-if="agent_statuses[agent.extension]"
+												 style="width: 500px;">
                                                 <div>
                                                     <span>
                                                         <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
