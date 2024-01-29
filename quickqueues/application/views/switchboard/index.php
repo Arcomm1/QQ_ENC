@@ -1,6 +1,17 @@
 <div id="switchboard">
     <div class="card border-top-primary border-primary border-top-3">
         <div class="card-header">{{ lang['switchboard'] }}</div>
+		<div class="row mb-2">
+			<div class="col d-flex justify-content-center">
+				<div class="btn-group btn-group">
+					<button id="exts_all" class="btn btn-outline-info" @click="show_exts('all')"><?php echo lang('all'); ?></button>
+					<button id="exts_free" class="btn btn-outline-info" @click="show_exts('free')"><?php echo lang('free'); ?></button>
+					<button id="exts_on_call" class="btn btn-outline-info" @click="show_exts('on_call')"><?php echo lang('on_call'); ?></button>
+					<button id="exts_busy" class="btn btn-outline-info" @click="show_exts('busy')"><?php echo lang('busy'); ?></button>
+					<button id="exts_unavailable" class="btn btn-outline-info" @click="show_exts('unavailable')"><?php echo lang('unavailable'); ?></button>
+				</div>
+			</div>
+		</div>		
         <div class="card-body">
             <div class="extension-states">
                 <div v-for="state in extension_states" :key="state[0]" class="extension-state">
@@ -24,7 +35,7 @@
   <style>
 #switchboard .card {
     width: 100%;
-    margin: 5px auto;
+    margin: 20px auto;
 }
 
 .extension-states {
@@ -37,8 +48,7 @@
 .extension-state {
     margin: 0;
     padding: 0;
-    overflow: hidden;
-   
+    height: 75px; /* Adjust this height as necessary */
 }
 
 .extension-state .card {
