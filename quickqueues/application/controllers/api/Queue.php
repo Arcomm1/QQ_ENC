@@ -1324,16 +1324,16 @@ class Queue extends MY_Controller {
             */
         }
 
-        $cacheData = $this->get_or_add_cached_data('realtime_data');
-        
-        if($cacheData)
-        {
-            $this->r->status  = 'OK';
-            $this->r->message = 'Queue realtime data will follow (Cached)';
-            $this->r->data    = $cacheData;
-            $this->_respond();
-            return;
-        }
+        // $cacheData = $this->get_or_add_cached_data('realtime_data');
+
+        // if($cacheData)
+        // {
+        //     $this->r->status  = 'OK';
+        //     $this->r->message = 'Queue realtime data will follow (Cached)';
+        //     $this->r->data    = $cacheData;
+        //     $this->_respond();
+        //     return;
+        // }
         
         
         $this->load->library('asterisk_manager');
