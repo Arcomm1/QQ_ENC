@@ -106,22 +106,22 @@
                 <div class="card-body">
                     <div class="row agent-stat-numbers">
                         <div class="col">
-                            <div class="border-start border-start-4 border-start-success px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('available'); ?></small>
+                            <div class="border-start border-start-4 border-start-success px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('available'); ?></small>
                                 <div class="fs-5 fw-semibold">{{ agents_free }}</div>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="border-start border-start-4 border-start-info px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('on_call'); ?></small>
+                            <div class="border-start border-start-4 border-start-info px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('on_call'); ?></small>
                                 <div class="fs-5 fw-semibold">{{ agents_on_call }}</div>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="border-start border-start-4 border-start-danger px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('paused'); ?></small> 
+                            <div class="border-start border-start-4 border-start-danger px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('paused'); ?></small> 
                                 <div class="fs-5 fw-semibold">{{ agents_busy }}</div>
                             </div>
                         </div>
                         <div class="col">
-                            <div class="border-start border-start-4 border-start-dark px-3 mb-3"><small class="text-medium-emphasis"><?php echo lang('logged_out'); ?></small>
+                            <div class="border-start border-start-4 border-start-dark px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('logged_out'); ?></small>
                                 <div class="fs-5 fw-semibold">{{ agents_unavailable }}</div>
                             </div>
                         </div>
@@ -132,14 +132,14 @@
                                 <table class="table table-border mb-0">
                                     <thead class="table-light fw-semibold">
                                         <tr class="align-middle monitoring-table-head">
-                                            <th scope="col"><?php echo lang('agent'); ?></th>
-                                            <th scope="col"><?php echo lang('status'); ?></th>
-                                            <th scope="col"><?php echo lang('calls_answered'); ?></th>
-                                            <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
-                                            <th scope="col"><?php echo lang('ringnoanswer'); ?></th>
-                                            <th scope="col"><?php echo lang('calls_outgoing_answered'); ?></th>
-                                            <th scope="col"><?php echo lang('outgoing_talk_time_sum'); ?></th>
-                                            <th scope="col"><?php echo lang('calls_outgoing_failed'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('agent'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('status'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('calls_answered'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('incoming_talk_time_sum'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('ringnoanswer'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('calls_outgoing_answered'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('outgoing_talk_time_sum'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('calls_outgoing_failed'); ?></th>
                                         </tr>
                                     </thead>
                                     <tbody class="monitoring-dashboard-table-body">
@@ -169,7 +169,7 @@
                                                 </div>
                                             </td>
 
-                                            <td  v-if="agent_statuses[agent.extension]">
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">
 												{{
 													agent_statuses[agent.extension]
 													? (
@@ -184,12 +184,12 @@
 													: ''
 												}}
 												 </td>
-                                            <td  v-if="agent_statuses[agent.extension]">{{ agent_stats[agent.id].calls_answered }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]">{{ sec_to_time(agent_stats[agent.id].incoming_total_calltime) }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]">{{ agent_stats[agent.id].calls_missed }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]">{{ agent_stats[agent.id].calls_outgoing_answered }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]">{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]">{{ agent_stats[agent.id].calls_outgoing_unanswered }}
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_answered }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id].incoming_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_missed }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_outgoing_answered }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_outgoing_unanswered }}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -229,3 +229,9 @@
         </div>
     </div>
 </div>
+<style>
+#monitoring_dashboard {
+    width: 100%;
+    max-width: none;
+}
+</style>
