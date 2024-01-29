@@ -24,7 +24,7 @@
   <style>
 #switchboard .card {
     width: 100%;
-    margin: 20px auto;
+    margin: 5px auto;
 }
 
 .extension-states {
@@ -37,7 +37,8 @@
 .extension-state {
     margin: 0;
     padding: 0;
-    height: 75px; /* Adjust this height as necessary */
+    overflow: hidden;
+   
 }
 
 .extension-state .card {
