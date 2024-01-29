@@ -131,48 +131,31 @@ var agent_overview = new Vue({
 
 });
 $(document).ready(function() {
-    // Get the table body
     var tableBody = $('.monitoring-agents-dashboard-table-body');
 
-    // Function to sort the table rows in descending order
     function sortTableDescending(columnIndex) {
         var rows = tableBody.find('tr').toArray();
 
         rows.sort(function(a, b) {
-            var cellA, cellB;
+            // Parse the numbers from the cells
+            var cellA = parseInt($(a).find('td').eq(columnIndex).text());
+            var cellB = parseInt($(b).find('td').eq(columnIndex).text());
 
-            // Check if sorting based on 'Status' column
-            if (columnIndex === 1) {
-                // Get the text from the <td> element in the 'Status' column
-                cellA = $(a).find('td:eq(1)').text();
-                cellB = $(b).find('td:eq(1)').text();
-            } else {
-                // Get the text from the <td> element with Vue.js data
-                cellA = $(a).find('td:eq(2)').text();
-                cellB = $(b).find('td:eq(2)').text();
-            }
-
-            // Reverse the order of comparison for descending sorting
-            return cellB.localeCompare(cellA);
+            // Compare the numbers for descending order
+            return cellB - cellA; // For ascending, use cellA - cellB
         });
 
-        // Append the sorted rows back to the table body
-        $.each(rows, function(index, row) {
+        // Append sorted rows back to the table body
+        rows.forEach(function(row) {
             tableBody.append(row);
         });
     }
 
-    // Function to automatically sort the table in descending order every 5 seconds
-    function autoSortTableDescending() {
-        // Assuming you want to sort by the 'Status' column (index 1)
-        sortTableDescending(1);
-    }
+    // Sort the table by the 'calls_answered' column in descending order on page load
+    sortTableDescending(1); // Change the index if 'calls_answered' is in a different column
 
-    // Initial descending sort on page load
-    autoSortTableDescending();
-
-    // Call the autoSortTableDescending function every 5 seconds for descending sorting
-    setInterval(autoSortTableDescending, 1000);
+    // Optionally, keep sorting every second (might be excessive)
+    setInterval(function() { sortTableDescending(1); }, 1000);
 });
 
 
