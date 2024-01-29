@@ -536,6 +536,7 @@ class Call_model extends MY_Model {
         $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS calls_unanswered');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
         $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS total_ringtime');
+    
 
         /* ------ FOR SLA: Hold Time ------ */
 
@@ -569,13 +570,12 @@ class Call_model extends MY_Model {
         $this->db->where_in('agent_id', $agent_id);
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
-        
-		// Exclude Internal Calls
+        // Exclude Internal Calls
 		$this->db->group_start()
-          ->where('src NOT IN (SELECT extension FROM users)')
-          ->or_where('dst NOT IN (SELECT extension FROM users)')
-          ->group_end();	        
-        
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();	        
+      
         $this->db->from('qq_calls');
         return $this->db->get()->row();
     }
