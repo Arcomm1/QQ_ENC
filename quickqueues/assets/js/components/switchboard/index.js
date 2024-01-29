@@ -13,7 +13,7 @@ var switchboard = new Vue({
 
             state_class_map: {
                 0: 'bg-success',
-                1: 'bg-danger',
+                1: 'bg-info',
                 2: 'bg-danger',
                 4: 'bg-secondary',
                 8: 'bg-warning',
