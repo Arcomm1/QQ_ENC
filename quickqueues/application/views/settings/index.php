@@ -128,7 +128,7 @@
                         </option>
                         <option value="yes" <?php echo isset($this->data->duplicateSettings['queue_log_rollback_with_deletion']) && $this->data->duplicateSettings['queue_log_rollback_with_deletion'] == 'yes' ? "selected" : ""; ?>>
                             yes
-                        </option>
+                        </option>                        
                     </select>
                 </div>
             </div>
@@ -141,6 +141,20 @@
                             no
                         </option>
                         <option value="yes" <?php echo isset($this->data->duplicateSettings['queue_log_fix_agent_duplicates']) && $this->data->duplicateSettings['queue_log_fix_agent_duplicates'] == 'yes' ? "selected" : ""; ?>>
+                            yes
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
+                <label for="app_enable_switchboard" class="col-sm-2 col-form-label">App enable switchboard</label>
+                <div class="col-sm-10">
+                    <select name="app_enable_switchboard" class="form-control">
+                        <option value="no" <?php echo isset($this->data->duplicateSettings['app_enable_switchboard']) && $this->data->duplicateSettings['app_enable_switchboard'] == 'no' ? "selected" : ""; ?>>
+                            no
+                        </option>
+                        <option value="yes" <?php echo isset($this->data->duplicateSettings['app_enable_switchboard']) && $this->data->duplicateSettings['app_enable_switchboard'] == 'yes' ? "selected" : ""; ?>>
                             yes
                         </option>
                     </select>
@@ -206,25 +220,25 @@
             });
         });
 
-        $("#settings-form").submit(function (e)
-        {
-            e.preventDefault();
-            const formData = $(this).serialize();
-            $.ajax({
-                type: "POST",
-                url: $(this).attr("action"),
-                data: formData,
-                dataType: 'json',
-                success: function (response) 
-                {
-                    console.log("Form submitted successfully", response);
-                },
-                error: function (error) 
-                {
-                    console.error("Error submitting form", error);
+        $("#settings-form").submit(function (e) {
+    e.preventDefault();
+    const formData = $(this).serialize();
+    $.ajax({
+        type: "POST",
+        url: $(this).attr("action"),
+        data: formData,
+        dataType: 'json',
+        success: function (response) {
+            console.log("Form submitted successfully", response);
+        },
+        error: function (xhr, status, error) {
+            console.error("Error submitting form");
+            console.log("XHR:", xhr);
+            console.log("Status:", status);
+            console.log("Error:", error);
+        }
+    });
+});
 
-                }
-            });
-        });
     });
 </script>

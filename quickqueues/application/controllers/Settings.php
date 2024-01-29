@@ -9,6 +9,7 @@ class Settings extends CI_Controller
 
         $this->load->model('Settings_model');
         $this->load->model('Queue_model');
+        $this->load->model('Config_model');
         
         $this->app_language = $this->Config_model->get_item('app_language');
 
@@ -25,11 +26,11 @@ class Settings extends CI_Controller
 
 		// Config Class ADD
 		$this->data->config = new stdClass();
-        foreach ($this->Config_model->get_all() as $item) {
+        foreach ($this->Config_model->get_all() as $item) 
+        {
             $this->data->config->{$item->name} = $item->value;
         }		
 		// Config Class ADD        
-        
         $this->data->page_title = lang('settings');   
     }
     
@@ -59,30 +60,47 @@ class Settings extends CI_Controller
 
     public function update_settings()
     {
-        if ($this->input->post()) 
+        $response = array('status' => 'success'); 
+    
+        try {
+            if ($this->input->post()) 
+            {
+                // Update General Settings
+                $general_settings = array(
+                    'call_overload' => $this->input->post('overload'),
+                    'sms_content'   => $this->input->post('sms_text'),
+                    'sms_token'     => $this->input->post('sms_key'),
+                    'sms_type'      => $this->input->post('sms_type'),
+                    'queue_id'      => $this->input->post('selected_queue_id'),
+                    'status'        => $this->input->post('status'),
+                );
+                $this->Settings_model->updateSettings($general_settings);
+    
+                // Update Duplicate Settings
+                $duplicate_settings = array(
+                    'queue_log_force_duplicate_deletion' => $this->input->post('force_duplicate_deletion'),
+                    'queue_log_rollback_with_deletion'   => $this->input->post('rollback_with_deletion'),
+                    'queue_log_rollback'                 => $this->input->post('rollback'),
+                    'queue_log_rollback_days'            => $this->input->post('rollback_days'),
+                    'queue_log_fix_agent_duplicates'     => $this->input->post('fix_agent_duplicates'),
+                    'app_enable_switchboard'             => $this->input->post('app_enable_switchboard'),
+                );
+                $this->Settings_model->updateDuplicateSettings($duplicate_settings);
+            } 
+            else 
+            {
+                throw new Exception('Invalid POST data');
+            }
+        } 
+        catch (Exception $e) 
         {
-            // Update General Settings
-            $general_settings = array(
-                'call_overload' => $this->input->post('overload'),
-                'sms_content'   => $this->input->post('sms_text'),
-                'sms_token'     => $this->input->post('sms_key'),
-                'sms_type'      => $this->input->post('sms_type'),
-                'queue_id'      => $this->input->post('selected_queue_id'),
-                'status'        => $this->input->post('status'),
-            );
-            $this->Settings_model->updateSettings($general_settings);
-
-            // Update Duplicate Settings
-            $duplicate_settings = array(
-                'queue_log_force_duplicate_deletion' => $this->input->post('force_duplicate_deletion'),
-                'queue_log_rollback_with_deletion'   => $this->input->post('rollback_with_deletion'),
-                'queue_log_rollback'                 => $this->input->post('rollback'),
-                'queue_log_rollback_days'            => $this->input->post('rollback_days'),
-                'queue_log_fix_agent_duplicates'     => $this->input->post('fix_agent_duplicates'),
-            );
-            $this->Settings_model->updateDuplicateSettings($duplicate_settings);
+            $response = array('status' => 'error', 'message' => $e->getMessage());
         }
+    
+        // Send JSON response
+        $this->output->set_content_type('application/json')->set_output(json_encode($response));
     }
+    
 
    
 }
