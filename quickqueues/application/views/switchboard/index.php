@@ -11,7 +11,7 @@
 					<button id="exts_unavailable" class="btn btn-outline-info" @click="show_exts('unavailable')"><?php echo lang('unavailable'); ?></button>
 				</div>
 			</div>
-		</div>		
+		</div>			
         <div class="card-body">
             <div class="extension-states">
                 <div v-for="state in extension_states" :key="state[0]" class="extension-state">
@@ -35,7 +35,7 @@
   <style>
 #switchboard .card {
     width: 100%;
-    margin: 20px auto;
+    margin: 5px auto;
 }
 
 .extension-states {
@@ -48,7 +48,8 @@
 .extension-state {
     margin: 0;
     padding: 0;
-    height: 75px; /* Adjust this height as necessary */
+    overflow: hidden;
+   
 }
 
 .extension-state .card {
