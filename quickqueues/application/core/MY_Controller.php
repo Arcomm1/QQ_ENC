@@ -46,8 +46,33 @@ class MY_controller extends CI_Controller
     }
 
 
+    public function get_or_add_cached_data($key,$data = false)
+    {
+        if(empty($key))
+        {
+            return false;
+        }
+        if(!isset($_SESSION['cached_data'])) 
+        {
+            $_SESSION['cached_data'] = [];
+        }
+       
+        if($data)
+        {
+            $_SESSION['cached_data'][$key] = $data;
+        }
+        
+        if(isset($_SESSION['cached_data'][$key]))
+        {
+            return $_SESSION['cached_data'][$key];
+        }
+
+        return false;
+    }
+
     public function checkOrAddKey($key)
     {
+        var_dump($_SESSION['request_keys']);
         if(empty($key))
         {
             return false;

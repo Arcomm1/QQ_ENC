@@ -31,7 +31,12 @@ class Tools extends CI_Controller {
 
     public function clearCacheKeys()
     {
-        $_SESSION['request_keys'] = null;
+        //var_dump($_SESSION['request_keys']);
+        
+        //$_SESSION['request_keys'] = null;
+        $_SESSION['cached_data'] = null;
+
+        echo 'keyes are cleared';
         
     }
 
@@ -135,18 +140,19 @@ class Tools extends CI_Controller {
 		}
     }
 
-
     /** Parse queue log file */
     public function parse_queue_log()
     {
         // for testing only
-        // $this->clearCacheKeys(); 
+        //$this->clearCacheKeys(); 
 
+        echo '1<br>';
         log_to_file('NOTICE', 'Running parser');
 
                 log_to_file('NOTICE', 'Unlocking parser');
         parser_unlock_complex();
 
+        echo '2<br>';
         $lock = parser_read_lock();
         if ($lock) 
         {
@@ -155,6 +161,7 @@ class Tools extends CI_Controller {
         }
 
 
+        echo '3<br>';
         log_to_file('NOTICE', 'Locking parser');
         parser_lock();
 
@@ -180,6 +187,7 @@ class Tools extends CI_Controller {
             exit();
         }
 
+        echo '4<br>';
         $queue_log = @fopen($queue_log_path, 'r');
         if (!$queue_log) 
         {
@@ -188,8 +196,11 @@ class Tools extends CI_Controller {
             exit();
         }
         
+        echo '5<br>';
 //***************************************************************
-		if ($queue_log_rollback == "yes") {
+		if ($queue_log_rollback == "yes") 
+        {
+            echo '6<br>';
 			// Calculate the date
 			$period_in_days = date('Y-m-d', strtotime("-{$queue_log_rollback_days} days"));
 
@@ -289,7 +300,8 @@ class Tools extends CI_Controller {
 				exit();
 			}
 		}
-		else {
+		else 
+        {
 			// Check if merged file exists, delete it if it does
 			if (file_exists($merged_queue_log)) {
 				if (!unlink($merged_queue_log)) {
@@ -297,7 +309,7 @@ class Tools extends CI_Controller {
 				}
 			}			
         $last_parsed_event = $this->Config_model->get_item('app_last_parsed_event');
-}
+    }
 		//***************************************************************
 		
         if ($last_parsed_event === false) 
@@ -306,6 +318,7 @@ class Tools extends CI_Controller {
             parser_unlock();
             exit();
         }
+        echo '7<br>';
         $send_sms_on_exit_event = $this->Config_model->get_item('app_send_sms_on_exit_event');
 
         // Step 1: Select all extensions from qq_agents
@@ -366,6 +379,7 @@ class Tools extends CI_Controller {
         $mark_answered_elsewhere = $this->Config_model->get_item('app_mark_answered_elsewhere');
         $track_duplicate_calls   = $this->Config_model->get_item('app_track_duplicate_calls');
        
+        echo '8<br>';
         // Begin parsing
         while (($line = fgets($queue_log)) !== FALSE) 
         {
@@ -382,6 +396,7 @@ class Tools extends CI_Controller {
                 log_to_file("NOTICE", "Skipping empty line");
                 continue;
             }
+            echo '888<br>';
 
             $ev_data = explode("|", $line);
 
@@ -394,12 +409,14 @@ class Tools extends CI_Controller {
                 continue;
             }
 
+            echo '9<br>';
             // Skip already parsed events
             if ($last_parsed_event >= $ev_data[0]) 
             {
                 continue;
             }
 
+            echo '10<br>';
             // Do not parse unknown events
             if (!array_key_exists($ev_data[4], $event_types)) 
             {
@@ -408,11 +425,13 @@ class Tools extends CI_Controller {
             }
 
           
+            echo '11<br>';
             if ($ev_data[4] == 'CONFIGRELOAD') 
             {
                 continue;
             }
 
+            echo '12<br>';
             if ($track_ringnoanswer == 'no' and $ev_data[4] == 'RINGNOANSWER') 
             {
                 continue;
@@ -420,6 +439,7 @@ class Tools extends CI_Controller {
 
             $queue_id = null;
 
+            echo '13<br>';
             if ($ev_data[2] == 'NONE')
 			{
                 $queue_id = false;
@@ -428,6 +448,7 @@ class Tools extends CI_Controller {
             {
                 if (!array_key_exists($ev_data[2], $queues)) 
                 {
+                    echo '14<br>';
                     $new_queue_id = $this->Queue_model->create(array('name' => $ev_data[2], 'display_name' => $ev_data[2]));
                     if (!$new_queue_id) 
                     {
@@ -439,6 +460,7 @@ class Tools extends CI_Controller {
                 } 
                 else 
                 {
+                    echo '15<br>';
                     $queue_id = $queues[$ev_data[2]]->id;
                 }
             }
@@ -447,10 +469,12 @@ class Tools extends CI_Controller {
 
             if ($ev_data[3] == 'NONE') 
             {
+                echo '16<br>';
                 $agent_id = false;
             } 
             else 
             {
+                echo '17<br>';
                 if (!array_key_exists($ev_data[3], $agents)) 
                 {
                     if (in_array($ev_data[4], array('STARTPAUSE', 'STARTSESSION', 'STOPSESSION', 'STOPPAUSE'))) 
@@ -494,8 +518,10 @@ class Tools extends CI_Controller {
              */
             
 			//************************************************* - Must re check
-			if ($ev_data[4] == 'ENTERQUEUE') {
-                // $this->clearCacheKeys();
+			if ($ev_data[4] == 'ENTERQUEUE') 
+            {
+                echo '18<br>';
+                $this->clearCacheKeys();
                 $event['src'] = $ev_data[6];
                 $this->Call_model->create($event);
             }	
@@ -508,6 +534,7 @@ class Tools extends CI_Controller {
              */
             if ($ev_data[4] == 'CONNECT') 
             {
+                echo '19<br>';
                 // This event has holdtime, in $ev_data[5], but we do not need to
                 // store this since same value will be processed through COMPLETECALLER
                 // or COMPLETEAGENT event
@@ -529,6 +556,7 @@ class Tools extends CI_Controller {
 
             if ($ev_data[4] == 'COMPLETEAGENT' || $ev_data[4] == 'COMPLETECALLER') 
             {
+                echo '20<br>';
                 if(!$callProcessed)
                 {
                     $event['holdtime'] = $ev_data[5];
@@ -539,6 +567,7 @@ class Tools extends CI_Controller {
 
                     if ($mark_answered_elsewhere > 0) 
                     {
+                        echo '21<br>';
                         log_to_file('DEBUG', 'Marking Unanswered calls as answered_elsewhere since config is set to '.$mark_answered_elsewhere);
 
                         log_to_file('DEBUG', 'Searching for unanswered calls from '.$this_call->src.', current call ID is '.$this_call->id);
@@ -1051,7 +1080,7 @@ class Tools extends CI_Controller {
             unset($agent_id);
             unset($queue_id);
             unset($event);
-            // $this->clearCacheKeys();
+            $this->clearCacheKeys();
         }
 
 
