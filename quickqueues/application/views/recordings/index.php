@@ -383,7 +383,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col">
-                        <audio id="qq_player" :src="recordingsPopUp.audioFile" type="audio/wav" controls></audio>
+                        <audio id="qq_player" :src="recordingsPopUp.audioFile" type="audio/wav" controls controlsList="nodownload"></audio>
                         </div>
                     </div>
                 </div>
