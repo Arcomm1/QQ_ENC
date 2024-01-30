@@ -1303,7 +1303,8 @@ class Agent extends MY_Controller {
 
 
         foreach ($this->data->user_agents as $a) {
-            if ($a->extension !="") {
+			// Do not display empty extensions or mobile forwarding
+            if ($a->extension != "" && $a->name != "" && strpos($a->name, "Local/") !== 0) {
                 $agent_stats[$a->id] = array(
                     'display_name'              => $a->display_name,
                     'last_call'                 => $a->last_call,
