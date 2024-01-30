@@ -121,7 +121,8 @@
                         <tbody class="monitoring-agents-dashboard-table-body">
                           <tr v-for="agent in agents" v-if="agent && agent.display_name">
                                 <td v-bind:id="'agent_status_'+agent.agent_id"
-                                    v-if="agent_statuses[agent.extension]">
+                                    v-if="agent_statuses[agent.extension]"
+									style="width: 500px;">
                                     <div>
                                         <span>
                                             <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
@@ -192,6 +193,10 @@
     </div>
 </div>
 <style>
+#agent_overview {
+    width: 100%;
+    max-width: none;
+}
 .paused-text {
     display: block; /* This will put the text on a new line */
     color: red;     /* This will make the text red */
