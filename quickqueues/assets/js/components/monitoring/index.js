@@ -36,6 +36,8 @@ var monitoring_dashboard = new Vue({
             queueStats_loading         : false,
             totalCallsByQueue          : {},
             form_data                  : new FormData,
+			
+			uniqueAgentsArray: [],
         }
     },
 
@@ -163,11 +165,13 @@ var monitoring_dashboard = new Vue({
                         this.realtime_data         = response.data.data;
                         this.realtime_data_loading = false;
                         this.total_callers         = 0;
+						
+						this.uniqueAgentsArray = this.processQueueData(response.data.data); 
+						
                         for (queue in response.data.data) 
                         {
                             this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
                         }  
-                    
                 });
         },
 
@@ -219,7 +223,41 @@ var monitoring_dashboard = new Vue({
 
 			// Optionally, you can show a message to indicate that the text has been copied.
 			// Example: alert('Copied to clipboard: ' + text);
-		},	        
+		},
+
+        processQueueData: function(data) {
+            const agentsData = {};
+
+            // Processing each queue
+            for (const queueKey in data) {
+                const queue = data[queueKey];
+                if (queue.agents) {
+                    for (const agentKey in queue.agents) {
+                        const agent = queue.agents[agentKey];
+                        const agentName = agent.Name;
+                        const agentStatus = agent.Paused;
+
+                        // Creating a unique key for each agent
+                        if (!agentsData[agentName]) {
+                            agentsData[agentName] = agentStatus;
+                        }
+                    }
+                }
+            }
+
+            // Converting the unique agents data into the desired array format
+            const uniqueAgentsArray = Object.keys(agentsData).map(name => ({
+                Name: name,
+                Paused: agentsData[name]
+            }));
+
+            return uniqueAgentsArray;
+        },
+
+		isAgentPaused(agentName) {
+			const agent = this.uniqueAgentsArray.find(a => a.Name === agentName);
+			return agent && agent.Paused === '1';
+		},	
         
     },
 
