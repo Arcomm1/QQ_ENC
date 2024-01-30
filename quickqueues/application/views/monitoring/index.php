@@ -239,4 +239,9 @@
     width: 100%;
     max-width: none;
 }
+
+.paused-text {
+    display: block; /* This will put the text on a new line */
+    color: red;     /* This will make the text red */
+}
 </style>
