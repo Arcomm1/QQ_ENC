@@ -161,6 +161,9 @@
 													<span v-if="sec_to_time(callDurations[agent.extension]) !== '00:00:00'">
 														{{ sec_to_time(callDurations[agent.extension]) }}
 													</span>
+													<span v-if="isAgentPaused(agent.display_name)" class="paused-text">
+														Queue Paused
+													</span>                                                        
                                                     <span v-else></span> 
                                                 </div>
                                                 <div class="small text-medium-emphasis monitoring-dashboard-small-text">
@@ -186,12 +189,12 @@
 													: ''
 												}}
 												 </td>
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_answered }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id].incoming_total_calltime) }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_missed }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_outgoing_answered }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id].calls_outgoing_unanswered }}
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_answered }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id]?.incoming_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_missed }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_outgoing_answered }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id]?.outgoing_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_outgoing_unanswered }}
                                             </td>
                                         </tr>
                                     </tbody>
