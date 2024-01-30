@@ -173,6 +173,9 @@ else
     echo "$cron_create_file does not exist."
 fi
 
+# FaviIcon
+ln -s $(pwd)/quickqueues/assets/img/favicon.ico /var/www/html/favicon.ico
+
 echo "====== INSTALLATION SUMMARY ===================================================="
 
 echo "⠀⠀⠀⠀⢀⣀⣐⡙⠶⣿⣷⣌⡳⣿⡿⠿⢷⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
