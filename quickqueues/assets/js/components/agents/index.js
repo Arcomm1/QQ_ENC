@@ -25,6 +25,8 @@ var agent_overview = new Vue({
             queues_error: false,
 
             chanspy_status: false,
+			
+			uniqueAgentsArray: [],			
         }
     },
 
@@ -132,9 +134,44 @@ var agent_overview = new Vue({
             axios.get(api_url+'queue/get_realtime_data/')
                 .then(response => {
                     this.queues = response.data.data;
+					this.uniqueAgentsArray = this.processQueueData(response.data.data); 
                 })
                 .then(this.queues_loading = false);
-        }
+        },
+		
+        processQueueData: function(data) {
+            const agentsData = {};
+
+            // Processing each queue
+            for (const queueKey in data) {
+                const queue = data[queueKey];
+                if (queue.agents) {
+                    for (const agentKey in queue.agents) {
+                        const agent = queue.agents[agentKey];
+                        const agentName = agent.Name;
+                        const agentStatus = agent.Paused;
+
+                        // Creating a unique key for each agent
+                        if (!agentsData[agentName]) {
+                            agentsData[agentName] = agentStatus;
+                        }
+                    }
+                }
+            }
+
+            // Converting the unique agents data into the desired array format
+            const uniqueAgentsArray = Object.keys(agentsData).map(name => ({
+                Name: name,
+                Paused: agentsData[name]
+            }));
+
+            return uniqueAgentsArray;
+        },
+
+		isAgentPaused(agentName) {
+			const agent = this.uniqueAgentsArray.find(a => a.Name === agentName);
+			return agent && agent.Paused === '1';
+		},			
     },
 
     mounted () {
