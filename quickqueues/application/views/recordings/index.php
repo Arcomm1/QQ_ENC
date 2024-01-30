@@ -283,21 +283,26 @@
                                             <?php } ?>
                                             <i class="cil-comment-bubble text-warning modal_clear get_id" style="cursor:pointer; position:relative;" id="<?php echo $c->id ?>" data-toggle="modal" data-target="#call_subjects">
                                                 <?php 
-                                                        $comment      = $this->Call_subjects_model->get_call_params($c->id);
-                                                        $commentText  = $comment['comment'];
-                                                        $subjectFamily= $comment['subject_family'];
-                                                        
-                                                        if(strlen($commentText) > 0)
-                                                        {
-                                                            $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:-3px; left:6px; font-weight: bold;";
-                                                            echo '<i class="cil-check-alt text-success" style="'.$inlineStyle.'" ></i>';
-                                                        }
-                                                        if(strlen($subjectFamily) > 0 )
-                                                        {
-                                                            $inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:5px; left:6px; font-weight: bold;";
-                                                            echo '<i class="cil-check-alt text-info" style="'.$inlineStyle.'" ></i>';
-                                                        }
-
+													if ($this->Call_subjects_model->get_call_params($c->id) !== null) {
+														$comment = $this->Call_subjects_model->get_call_params($c->id);
+														$commentText = $comment['comment'];
+														
+														if (isset($comment['subject_family'])) {
+															$subjectFamily = $comment['subject_family'];
+														} else {
+															$subjectFamily = ''; // Set a default value if 'subject_family' is not present
+														}
+														
+														if (strlen($commentText) > 0) {
+															$inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:-3px; left:6px; font-weight: bold;";
+															echo '<i class="cil-check-alt text-success" style="'.$inlineStyle.'" ></i>';
+														}
+														
+														if (strlen($subjectFamily) > 0) {
+															$inlineStyle = "pointer-events:none; position:absolute; font-size:14px; display:block; top:5px; left:6px; font-weight: bold;";
+															echo '<i class="cil-check-alt text-info" style="'.$inlineStyle.'" ></i>';
+														}
+													}
                                                 ?>
                                             </i>
                                             <a @click="get_events(<?php echo "'".$c->uniqueid."'"; ?>)" data-coreui-toggle="modal" data-coreui-target="#call_details" class="text-decoration-none"><i class="cil-list text-primary"></i></a>
