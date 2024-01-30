@@ -66,7 +66,7 @@ class Call_model extends MY_Model {
         if ($random) {
             $this->db->order_by('RAND()');
         } else {
-            $this->db->order_by('id DESC');
+            $this->db->order_by('date DESC');
         }
 
 
