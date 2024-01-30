@@ -132,6 +132,9 @@
                                             <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                             {{ agent_current_calls[agent.extension].second_party }}
                                         </span>
+										<span v-if="isAgentPaused(agent.display_name)" class="paused-text">
+											Queue Paused
+										</span>  										
                                         <span v-else></span>
                                      </div>
                                     <div class="small text-medium-emphasis">
@@ -188,3 +191,9 @@
         </div>
     </div>
 </div>
+<style>
+.paused-text {
+    display: block; /* This will put the text on a new line */
+    color: red;     /* This will make the text red */
+}
+</style>
