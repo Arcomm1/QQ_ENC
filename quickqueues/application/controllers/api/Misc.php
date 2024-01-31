@@ -73,8 +73,63 @@ class Misc extends MY_Controller {
         $this->load->library('Asterisk_manager');
         $this->r->status = 'OK';
         $this->r->message = 'Extension realtime status will follow';
-        $this->r->data = $this->asterisk_manager->get_extension_state_list();
+        $agent_statuses = $this->asterisk_manager->get_extension_state_list();
+		
+        $extensions = array();
+		$extensions_line = array();
+		$statuses_line = array();
+		
+		$query = $this->db->select('extension')->from('users')->get();
 
+		// Check if the query was successful
+		if ($query) {
+			// Loop through the results and process each extension
+			foreach ($query->result() as $row) {
+				$extensions_line[] = $this->asterisk_manager->sip_show_peer($row->extension);
+			}
+		}		
+		
+		foreach ($extensions_line as $extensionData) {
+			// Check if 'ObjectName' exists before accessing it
+			$extension = isset($extensionData["ObjectName"]) ? $extensionData["ObjectName"] : null;
+
+			// Check if 'Address-IP' exists before accessing it
+			$ipStatus = isset($extensionData["Address-IP"]) ? $extensionData["Address-IP"] : null;
+
+			// Create a new array with the desired structure
+			$statusInfo = [
+				"extension" => $extension,
+				"ip_status" => $ipStatus,
+			];
+
+			// Add the new array to the statuses_line array
+			$statuses_line[] = $statusInfo;
+		}		
+
+		foreach ($agent_statuses as &$agentStatus) {
+			// Check if "Exten" index exists in $agentStatus
+			if (isset($agentStatus["Exten"])) {
+				$exten = $agentStatus["Exten"];
+
+				// Find the corresponding entry in $statuses_line based on "extension" value
+				$matchingStatus = null;
+				foreach ($statuses_line as $statusInfo) {
+					if ($statusInfo["extension"] === $exten) {
+						$matchingStatus = $statusInfo;
+						break;
+					}
+				}
+
+				// Check if a matching status was found and its "ip_status" is (null)
+				if ($matchingStatus !== null && $matchingStatus["ip_status"] === "(null)") {
+					// Update both "StatusText" and "status_color" in $agentStatus
+					$agentStatus["StatusText"] = "Unavailable";
+					$agentStatus["Status"] = "4";
+				}
+			}
+		}	
+
+        $this->r->data = $agent_statuses;
         $this->_respond();
     }
 
