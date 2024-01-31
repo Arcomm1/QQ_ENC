@@ -380,16 +380,6 @@ var monitoring_dashboard = new Vue({
 		scheduleQueueStats();
 		scheduleCurrentCalls();
 		updateCallDuration();
-
-
-        setInterval(() => 
-        {
-            for (const key in this.agent_statuses) 
-            {
-                this.updateCallDuration(key);
-            }
-        }, 1000);
-        
     }
 
 });
