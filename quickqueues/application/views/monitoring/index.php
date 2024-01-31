@@ -181,8 +181,8 @@
 														agent_statuses[agent.extension].StatusText === 'Idle' ? 'Available' :
 														agent_statuses[agent.extension].StatusText === 'Unavailable' ? 'Unavailable' :
 														agent_statuses[agent.extension].StatusText === 'InUse' ? 'Active' :
-														agent_statuses[agent.extension].StatusText === 'Busy' ? 'N/A' :
-														agent_statuses[agent.extension].StatusText === 'Ringing' ? 'Buzz' :
+														agent_statuses[agent.extension].StatusText === 'Busy' ? 'DND' :
+														agent_statuses[agent.extension].StatusText === 'Ringing' ? 'Active Ringings' :
 														agent_statuses[agent.extension].StatusText === 'Hold' ? 'Active OnHold' :														
 														agent_statuses[agent.extension].StatusText
 													  )
