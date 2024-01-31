@@ -17,7 +17,7 @@
                 <div v-for="state in extension_states" :key="state[0]" class="extension-state">
                     <div class="card" :class="state_class_map[state[1].Status]">
                         <div class="card-body">
-                            <h4 class="card-title">{{ state[0] }} <span v-if="state[1].Status == 2">!</span></h4>
+                            <h4 class="card-title">{{ state[0] }}</span></h4>
                             <p class="card-text">
                                 <span v-if="state[1].Status === 2" class="alert-icon">!</span>
                                 {{ devices[state[0]] || 'N/A' }}
