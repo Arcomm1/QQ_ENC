@@ -70,7 +70,7 @@ var switchboard = new Vue({
 			this.devices_loading = true;
 			axios.get(api_url + 'misc/get_devices')
 				.then(response => {
-					console.log("Response JSON:", JSON.stringify(response, null, 2));
+					//console.log("Response JSON:", JSON.stringify(response, null, 2));
 					this.devices_loading = false;
 					let truncatedDevices = {};
 					for (let key in response.data.data) {
@@ -84,7 +84,7 @@ var switchboard = new Vue({
 				})
 				.catch(error => {
 					// Handle error here if necessary
-					console.error("Error fetching devices:", error);
+					//console.error("Error fetching devices:", error);
 				})
 				.finally(() => this.devices_error = false);
 		},
