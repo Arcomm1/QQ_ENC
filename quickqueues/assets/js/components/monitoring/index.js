@@ -137,21 +137,23 @@ var monitoring_dashboard = new Vue({
             return this.agent_statuses[agentExtension]['StatusText'] === 'InUse';
         },
 
-        updateCallDuration: function(agentExtension) 
-        {
-            if (this.isAgentOnCall(agentExtension)) 
-            {
-                if (!this.callDurations[agentExtension]) 
-                {
-                    this.callDurations[agentExtension] = 0;
-                }
-                this.callDurations[agentExtension]++;
-            }
-            else
-            {
-                this.callDurations[agentExtension] = 0;
-            }
-        },
+		updateCallDuration: function(agentExtension) {
+			// Retrieve call durations from local storage
+			this.callDurations = JSON.parse(localStorage.getItem('callDurations')) || {};
+
+			if (this.isAgentOnCall(agentExtension)) {
+				if (!this.callDurations[agentExtension]) {
+					this.callDurations[agentExtension] = 0;
+				}
+				this.callDurations[agentExtension]++;
+			}
+			else {
+				this.callDurations[agentExtension] = 0;
+			}
+
+			// Save the updated call durations back to local storage
+			localStorage.setItem('callDurations', JSON.stringify(this.callDurations));
+		},
 
         get_realtime_data: function() 
         {
