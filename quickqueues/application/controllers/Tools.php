@@ -22,6 +22,10 @@ class Tools extends CI_Controller {
 
         $this->load->model('./../models/Settings_model', 'globalSettings');
         //$this->parse_queue_log();
+        include_once(APPPATH.'controllers/Persistant.php');
+
+        
+        $this->persist = new Persistant();
     }
 
     public function index()
@@ -34,8 +38,8 @@ class Tools extends CI_Controller {
         //var_dump($_SESSION['request_keys']);
         
         //$_SESSION['request_keys'] = null;
-        $_SESSION['cached_data'] = null;
-
+        //$_SESSION['cached_data'] = null;
+        $this->persist->clearData();
         echo 'keyes are cleared';
         
     }
@@ -144,7 +148,7 @@ class Tools extends CI_Controller {
     public function parse_queue_log()
     {
         // for testing only
-        //$this->clearCacheKeys(); 
+        // $this->clearCacheKeys(); 
 
         echo '1<br>';
         log_to_file('NOTICE', 'Running parser');

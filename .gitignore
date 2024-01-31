@@ -26,3 +26,4 @@ quickqueues/application/PRODUCTINFO
 quickqueues/uploads/*
 
 quickqueues/qq_sessions/
+quickqueues/persist.json

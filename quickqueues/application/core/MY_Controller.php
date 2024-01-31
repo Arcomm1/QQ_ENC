@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 
+include_once(APPPATH.'controllers/Persistant.php');
 /** MY_Controller.php - base CodeIgniter controller upon which most of the quickqueues controller should derive from */
 
 
@@ -14,6 +15,8 @@ class MY_controller extends CI_Controller
             redirect(site_url('auth/signin'));
         }
         $this->data = new stdClass();
+
+        $this->persist = new Persistant();
 
         // Set default page title
         $this->data->page_title = 'Quickqueues';
@@ -52,19 +55,17 @@ class MY_controller extends CI_Controller
         {
             return false;
         }
-        if(!isset($_SESSION['cached_data'])) 
-        {
-            $_SESSION['cached_data'] = [];
-        }
+        
+        $entries = $this->persist->getData();
        
         if($data)
         {
-            $_SESSION['cached_data'][$key] = $data;
+            $entries = $this->persist->setData($key,$data);
         }
         
-        if(isset($_SESSION['cached_data'][$key]))
+        if(isset($entries[$key]))
         {
-            return $_SESSION['cached_data'][$key];
+            return $entries[$key];
         }
 
         return false;
@@ -72,7 +73,6 @@ class MY_controller extends CI_Controller
 
     public function checkOrAddKey($key)
     {
-        var_dump($_SESSION['request_keys']);
         if(empty($key))
         {
             return false;

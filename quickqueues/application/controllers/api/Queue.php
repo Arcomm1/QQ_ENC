@@ -1312,6 +1312,7 @@ class Queue extends MY_Controller {
 
     public function get_realtime_data($id = false)
     {
+
         //$id = false;//$id == '_' ? false : $id;
 
         //if($this->checkOrAddKey($key))
@@ -1324,16 +1325,17 @@ class Queue extends MY_Controller {
             */
         }
 
-        // $cacheData = $this->get_or_add_cached_data('realtime_data');
+        $entryMame = 'realtime_data'.($id != false ? '_'.$id : '');
+        $cacheData = $this->get_or_add_cached_data($entryMame);
 
-        // if($cacheData)
-        // {
-        //     $this->r->status  = 'OK';
-        //     $this->r->message = 'Queue realtime data will follow (Cached)';
-        //     $this->r->data    = $cacheData;
-        //     $this->_respond();
-        //     return;
-        // }
+        if($cacheData)
+        {
+            $this->r->status  = 'OK';
+            $this->r->message = 'Queue realtime data will follow (Cached)';
+            $this->r->data    = $cacheData;
+            $this->_respond();
+            return;
+        }
         
         
         $this->load->library('asterisk_manager');
@@ -1382,7 +1384,7 @@ class Queue extends MY_Controller {
             }
         }
 
-        $this->get_or_add_cached_data('realtime_data',$this->r->data);
+        $this->get_or_add_cached_data($entryMame,$this->r->data);
         
         $this->r->status  = 'OK';
         $this->r->message = 'Queue realtime data will follow';
