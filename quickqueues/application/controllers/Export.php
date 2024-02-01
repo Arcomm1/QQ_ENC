@@ -247,8 +247,8 @@ class Export extends MY_Controller {
        
         $rows[] = array(
             $c->date,
-            $c->queue_id ? $tqueues[$c->queue_id] : "",
-            $c->agent_id ? $tagents[$c->agent_id] : "",
+            isset($tqueues[$c->queue_id]) ? $tqueues[$c->queue_id] : "",
+            isset($tagents[$c->agent_id]) ? $tagents[$c->agent_id] : "",
             $c->src,
             $c->dst,
             $c->event_type,
