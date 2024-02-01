@@ -1,1 +1,205 @@
-{"realtime_data":[{"agents":[{"Event":"QueueMember","Queue":"9002","Name":"Ibrahimi - 105","Location":"Local\/105@from-queue\/n","StateInterface":"hint:105@ext-local","Membership":"static","Penalty":"0","CallsTaken":"3","LastCall":"1706563488","InCall":"0","Status":"1","Paused":"0"},{"Event":"QueueMember","Queue":"9002","Name":"Gideoni - 104","Location":"Local\/104@from-queue\/n","StateInterface":"hint:104@ext-local","Membership":"static","Penalty":"0","CallsTaken":"0","LastCall":"0","InCall":"0","Status":"5","Paused":"0"}],"data":{"Event":"QueueParams","Queue":"9002","Max":"0","Strategy":"ringall","Calls":"0","Holdtime":"35","TalkTime":"22","Completed":"4","Abandoned":"55","ServiceLevel":"60","ServicelevelPerf":"50.0","Weight":"0","displayName":"jumber"},"callers":[]},{"agents":[{"Event":"QueueMember","Queue":"9000","Name":"Arkadi - 101","Location":"Local\/101@from-queue\/n","StateInterface":"hint:101@ext-local","Membership":"static","Penalty":"0","CallsTaken":"0","LastCall":"0","InCall":"0","Status":"5","Paused":"0"},{"Event":"QueueMember","Queue":"9000","Name":"Gregori - 100","Location":"Local\/100@from-queue\/n","StateInterface":"hint:100@ext-local","Membership":"static","Penalty":"0","CallsTaken":"0","LastCall":"0","InCall":"0","Status":"1","Paused":"0"}],"data":{"Event":"QueueParams","Queue":"9000","Max":"0","Strategy":"ringall","Calls":"0","Holdtime":"0","TalkTime":"0","Completed":"0","Abandoned":"5","ServiceLevel":"60","ServicelevelPerf":"0.0","Weight":"0","displayName":"tyabladze"},"callers":[]},{"agents":[{"Event":"QueueMember","Queue":"9001","Name":"Klementi - 103","Location":"Local\/103@from-queue\/n","StateInterface":"hint:103@ext-local","Membership":"static","Penalty":"0","CallsTaken":"0","LastCall":"0","InCall":"0","Status":"5","Paused":"0"},{"Event":"QueueMember","Queue":"9001","Name":"Bichiko - 102","Location":"Local\/102@from-queue\/n","StateInterface":"hint:102@ext-local","Membership":"static","Penalty":"0","CallsTaken":"0","LastCall":"0","InCall":"0","Status":"5","Paused":"0"}],"data":{"Event":"QueueParams","Queue":"9001","Max":"0","Strategy":"ringall","Calls":"0","Holdtime":"0","TalkTime":"0","Completed":"0","Abandoned":"1","ServiceLevel":"60","ServicelevelPerf":"0.0","Weight":"0","displayName":"kdemashvili"},"callers":[]},{"agents":[],"data":{"Event":"QueueParams","Queue":"9010","Max":"0","Strategy":"ringall","Calls":"0","Holdtime":"0","TalkTime":"0","Completed":"0","Abandoned":"1","ServiceLevel":"60","ServicelevelPerf":"0.0","Weight":"0","displayName":"tyabladze-Callback"},"callers":[]},{"agents":[],"data":{"Event":"QueueParams","Queue":"9012","Max":"0","Strategy":"ringall","Calls":"0","Holdtime":"0","TalkTime":"0","Completed":"0","Abandoned":"0","ServiceLevel":"60","ServicelevelPerf":"0.0","Weight":"0","displayName":"kdemashvili-Callback"},"callers":[]},{"agents":[],"data":{"Event":"QueueParams","Queue":"9011","Max":"0","Strategy":"ringall","Calls":"0","Holdtime":"0","TalkTime":"0","Completed":"0","Abandoned":"1","ServiceLevel":"60","ServicelevelPerf":"0.0","Weight":"0","displayName":"jumber-Callback"},"callers":[]}]}
+{
+  "realtime_data": [
+    {
+      "agents": [
+        {
+          "Event": "QueueMember",
+          "Queue": "9002",
+          "Name": "Ibrahimi - 105",
+          "Location": "Local\/105@from-queue\/n",
+          "StateInterface": "hint:105@ext-local",
+          "Membership": "static",
+          "Penalty": "0",
+          "CallsTaken": "3",
+          "LastCall": "1706563488",
+          "InCall": "0",
+          "Status": "1",
+          "Paused": "0"
+        },
+        {
+          "Event": "QueueMember",
+          "Queue": "9002",
+          "Name": "Gideoni - 104",
+          "Location": "Local\/104@from-queue\/n",
+          "StateInterface": "hint:104@ext-local",
+          "Membership": "static",
+          "Penalty": "0",
+          "CallsTaken": "0",
+          "LastCall": "0",
+          "InCall": "0",
+          "Status": "5",
+          "Paused": "0"
+        }
+      ],
+      "data": {
+        "Event": "QueueParams",
+        "Queue": "9002",
+        "Max": "0",
+        "Strategy": "ringall",
+        "Calls": "0",
+        "Holdtime": "35",
+        "TalkTime": "22",
+        "Completed": "4",
+        "Abandoned": "55",
+        "ServiceLevel": "60",
+        "ServicelevelPerf": "50.0",
+        "Weight": "0",
+        "displayName": "jumber"
+      },
+      "callers": []
+    },
+    {
+      "agents": [
+        {
+          "Event": "QueueMember",
+          "Queue": "9000",
+          "Name": "Arkadi - 101",
+          "Location": "Local\/101@from-queue\/n",
+          "StateInterface": "hint:101@ext-local",
+          "Membership": "static",
+          "Penalty": "0",
+          "CallsTaken": "0",
+          "LastCall": "0",
+          "InCall": "0",
+          "Status": "5",
+          "Paused": "0"
+        },
+        {
+          "Event": "QueueMember",
+          "Queue": "9000",
+          "Name": "Gregori - 100",
+          "Location": "Local\/100@from-queue\/n",
+          "StateInterface": "hint:100@ext-local",
+          "Membership": "static",
+          "Penalty": "0",
+          "CallsTaken": "0",
+          "LastCall": "0",
+          "InCall": "0",
+          "Status": "1",
+          "Paused": "0"
+        }
+      ],
+      "data": {
+        "Event": "QueueParams",
+        "Queue": "9000",
+        "Max": "0",
+        "Strategy": "ringall",
+        "Calls": "0",
+        "Holdtime": "0",
+        "TalkTime": "0",
+        "Completed": "0",
+        "Abandoned": "5",
+        "ServiceLevel": "60",
+        "ServicelevelPerf": "0.0",
+        "Weight": "0",
+        "displayName": "tyabladze"
+      },
+      "callers": []
+    },
+    {
+      "agents": [
+        {
+          "Event": "QueueMember",
+          "Queue": "9001",
+          "Name": "Klementi - 103",
+          "Location": "Local\/103@from-queue\/n",
+          "StateInterface": "hint:103@ext-local",
+          "Membership": "static",
+          "Penalty": "0",
+          "CallsTaken": "0",
+          "LastCall": "0",
+          "InCall": "0",
+          "Status": "5",
+          "Paused": "0"
+        },
+        {
+          "Event": "QueueMember",
+          "Queue": "9001",
+          "Name": "Bichiko - 102",
+          "Location": "Local\/102@from-queue\/n",
+          "StateInterface": "hint:102@ext-local",
+          "Membership": "static",
+          "Penalty": "0",
+          "CallsTaken": "0",
+          "LastCall": "0",
+          "InCall": "0",
+          "Status": "5",
+          "Paused": "0"
+        }
+      ],
+      "data": {
+        "Event": "QueueParams",
+        "Queue": "9001",
+        "Max": "0",
+        "Strategy": "ringall",
+        "Calls": "0",
+        "Holdtime": "0",
+        "TalkTime": "0",
+        "Completed": "0",
+        "Abandoned": "1",
+        "ServiceLevel": "60",
+        "ServicelevelPerf": "0.0",
+        "Weight": "0",
+        "displayName": "kdemashvili"
+      },
+      "callers": []
+    },
+    {
+      "agents": [],
+      "data": {
+        "Event": "QueueParams",
+        "Queue": "9010",
+        "Max": "0",
+        "Strategy": "ringall",
+        "Calls": "0",
+        "Holdtime": "0",
+        "TalkTime": "0",
+        "Completed": "0",
+        "Abandoned": "1",
+        "ServiceLevel": "60",
+        "ServicelevelPerf": "0.0",
+        "Weight": "0",
+        "displayName": "tyabladze-Callback"
+      },
+      "callers": []
+    },
+    {
+      "agents": [],
+      "data": {
+        "Event": "QueueParams",
+        "Queue": "9012",
+        "Max": "0",
+        "Strategy": "ringall",
+        "Calls": "0",
+        "Holdtime": "0",
+        "TalkTime": "0",
+        "Completed": "0",
+        "Abandoned": "0",
+        "ServiceLevel": "60",
+        "ServicelevelPerf": "0.0",
+        "Weight": "0",
+        "displayName": "kdemashvili-Callback"
+      },
+      "callers": []
+    },
+    {
+      "agents": [],
+      "data": {
+        "Event": "QueueParams",
+        "Queue": "9011",
+        "Max": "0",
+        "Strategy": "ringall",
+        "Calls": "0",
+        "Holdtime": "0",
+        "TalkTime": "0",
+        "Completed": "0",
+        "Abandoned": "1",
+        "ServiceLevel": "60",
+        "ServicelevelPerf": "0.0",
+        "Weight": "0",
+        "displayName": "jumber-Callback"
+      },
+      "callers": []
+    }
+  ]
+}

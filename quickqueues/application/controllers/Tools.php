@@ -147,7 +147,7 @@ class Tools extends CI_Controller {
     /** Parse queue log file */
     public function parse_queue_log()
     {
-        // for testing only
+                // for testing only
         // $this->clearCacheKeys(); 
 
         echo '1<br>';
@@ -525,7 +525,7 @@ class Tools extends CI_Controller {
 			if ($ev_data[4] == 'ENTERQUEUE') 
             {
                 echo '18<br>';
-                //$this->clearCacheKeys();
+                $this->clearCacheKeys();
                 $event['src'] = $ev_data[6];
                 $this->Call_model->create($event);
             }	
@@ -1084,7 +1084,7 @@ class Tools extends CI_Controller {
             unset($agent_id);
             unset($queue_id);
             unset($event);
-            //$this->clearCacheKeys();
+            $this->clearCacheKeys();
         }
 
 
@@ -1192,8 +1192,6 @@ class Tools extends CI_Controller {
 
 					// Delete the duplicate agent
 					$this->db->delete('qq_agents', array('id' => $id));
-					$this->db->delete('qq_agent_settings', array('agent_id' => $id));
-					$this->db->delete('qq_queue_agents', array('agent_id' => $id));
 				}
 			}
 

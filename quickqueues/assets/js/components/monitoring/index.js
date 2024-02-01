@@ -161,8 +161,8 @@ var monitoring_dashboard = new Vue({
             // let key = id + '-' + getRequestKey('realtime_data');
 
             //axios.get(api_url+'queue/get_realtime_data/'+id+'/'+key)
-            axios.get(api_url+'queue/get_realtime_data/')
-                .then(response => {
+axios.get(api_url+'queue/get_realtime_data/')
+                            .then(response => {
                 
                         this.realtime_data         = response.data.data;
                         this.realtime_data_loading = false;
@@ -173,8 +173,8 @@ var monitoring_dashboard = new Vue({
                         for (queue in response.data.data) 
                         {
                             this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
-                        }  
-                });
+}  
+                                        });
         },
 
         get_current_calls: function() 
