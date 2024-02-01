@@ -37,7 +37,9 @@ class Persistant
   {
     if(file_exists($this->file))
     {
-      unlink($this->file);
+      //unlink($this->file);
+      file_put_contents($file, '');
+
     }
   }
 }
