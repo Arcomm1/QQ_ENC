@@ -69,8 +69,15 @@ class Call_model extends MY_Model {
             $this->db->order_by('date DESC');
         }
 
+        // Exclude Internal Calls
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();
+		
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");			
 
-        // die($this->db->get_compiled_select());
         return $this->db->get($this->_table)->result();
     }
 
@@ -116,9 +123,16 @@ class Call_model extends MY_Model {
             }
         }
         $this->db->from($this->_table);
-        // $this->db->order_by('id DESC');
 
-        // die($this->db->get_compiled_select());
+        // Exclude Internal Calls
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();
+		
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");			
+
         return $this->db->count_all_results();
     }
 
@@ -518,6 +532,16 @@ class Call_model extends MY_Model {
         $this->db->where_in('queue_id', $queue_ids);
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
+		
+        // Exclude Internal Calls
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();
+
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");		
+		
         return $this->db->get($this->_table)->row();
     }
 
@@ -570,11 +594,15 @@ class Call_model extends MY_Model {
         $this->db->where_in('agent_id', $agent_id);
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
+		
         // Exclude Internal Calls
 		$this->db->group_start()
         ->where('src NOT IN (SELECT extension FROM users)')
         ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();	        
+        ->group_end();	
+
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	        
       
         $this->db->from('qq_calls');
         return $this->db->get()->row();
@@ -597,6 +625,16 @@ class Call_model extends MY_Model {
         $this->db->where('qq_agents.id', 'qq_calls.agent_id', FALSE);
         $this->db->group_by('agent_id');
         $this->db->from('qq_calls, qq_agents');
+		
+        // Exclude Internal Calls 1
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();	   		
+
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	
+		
         return $this->db->get()->result();
     }
 
@@ -649,6 +687,16 @@ class Call_model extends MY_Model {
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('agent_id');
         $this->db->from('qq_calls');
+		
+        // Exclude Internal Calls 2
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();			
+
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	
+		
         return $this->db->get()->result();
     }
 
@@ -738,6 +786,16 @@ class Call_model extends MY_Model {
             $this->db->where('qq_queues.id', 'qq_calls.queue_id', FALSE);
             $this->db->group_by('queue_id');
             $this->db->from('qq_calls, qq_queues');
+			
+			// Exclude Internal Calls 3
+			$this->db->group_start()
+			->where('src NOT IN (SELECT extension FROM users)')
+			->or_where('dst NOT IN (SELECT extension FROM users)')
+			->group_end();				
+
+			// Additionally, exclude calls where src is in extensions and dst contains '*'
+			$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	
+			
             return $this->db->get()->result();
     }
 
@@ -821,7 +879,15 @@ class Call_model extends MY_Model {
     
         $this->db->group_by('DATE_FORMAT(date, "%H")');
 
-    
+        // Exclude Internal Calls 4
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();	
+ 
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	
+ 
         return $this->db->get()->result();
     }
     
@@ -849,6 +915,16 @@ class Call_model extends MY_Model {
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
+
+        // Exclude Internal Calls 5
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();			
+
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	
+		
         return $this->db->get($this->_table)->result();
     }
 
@@ -876,6 +952,16 @@ class Call_model extends MY_Model {
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
+		
+        // Exclude Internal Calls 5
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();			
+
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	
+		
         return $this->db->get($this->_table)->result();
     }
 
@@ -904,6 +990,16 @@ class Call_model extends MY_Model {
         $this->db->where('date >', $date_range['date_gt']);
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('HOUR(date)');
+		
+        // Exclude Internal Calls 5
+		$this->db->group_start()
+        ->where('src NOT IN (SELECT extension FROM users)')
+        ->or_where('dst NOT IN (SELECT extension FROM users)')
+        ->group_end();			
+
+		// Additionally, exclude calls where src is in extensions and dst contains '*'
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");	
+		
         return $this->db->get($this->_table)->result();
     }
 
