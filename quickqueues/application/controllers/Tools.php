@@ -1192,6 +1192,8 @@ class Tools extends CI_Controller {
 
 					// Delete the duplicate agent
 					$this->db->delete('qq_agents', array('id' => $id));
+					$this->db->delete('qq_agent_settings', array('agent_id' => $id));
+					$this->db->delete('qq_queue_agents', array('agent_id' => $id));
 				}
 			}
 
