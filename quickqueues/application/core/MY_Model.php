@@ -473,7 +473,35 @@ class MY_model extends CI_Model
         }
         return $this->db->count_all_results($this->_table);
     }
+	
+	public function count_by_complex_with_exclusion($where = false, $exclusionCondition = null) {
+		if (!$where || !is_array($where) || !count($where)) {
+			return 0;
+		}
+		$this->_set_soft_delete_where();
+		foreach ($where as $field => $value) {
+			if ($value == 'isnull') {
+				$this->db->where("$field IS NULL");
+				continue;
+			}
+			if ($value) {
+				if (is_array($value)) {
+					$this->db->where_in($field, $value);
+				} else {
+					$this->db->where($field, $value);
+				}
+			}
+		}
 
+		// Check if exclusionCondition is a callable function and execute it
+		if (is_callable($exclusionCondition)) {
+			call_user_func($exclusionCondition, $this->db);
+		} else if ($exclusionCondition) {
+			$this->db->where($exclusionCondition, NULL, FALSE);
+		}
+
+		return $this->db->count_all_results($this->_table);
+	}
 
     /**
      * Get sum of of specific column, matching simple WHERE clause
