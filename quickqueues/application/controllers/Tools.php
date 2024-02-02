@@ -1180,9 +1180,24 @@ class Tools extends CI_Controller {
 
 			foreach ($query->result() as $row) {
 				$ids = explode(',', $row->ids);
+				$maxIDValue = max($ids); //Max agent_id value
 				$originalId = array_shift($ids); // Keep the lowest ID and remove it from the array
+				
+				// Step 2 update last call
+				// Select src and uniqueid where agent_id is equal to $maxIDValue
+				$selectLastCallQuery = $this->db->select('src, uniqueid')
+					->from('qq_agent_last_call')
+					->where('agent_id', $maxIDValue)
+					->get();
 
-				// Step 2: Update qq_events and delete duplicates
+				// Check if the query executed successfully and fetch the result row
+				if ($selectLastCallQuery && $row = $selectLastCallQuery->row()) {
+					// Update the rows where agent_id is equal to $originalId
+					$updateQuery = "UPDATE qq_agent_last_call SET src = ?, uniqueid = ? WHERE agent_id = ?";
+					$updateResult = $this->db->query($updateQuery, [$row->src, $row->uniqueid, $originalId]);
+				} 			
+
+				// Step 3: Update and delete duplicates
 				foreach ($ids as $id) {
 					// Update qq_events
 					$this->db->query("UPDATE qq_events SET agent_id = $originalId WHERE agent_id = $id");
@@ -1192,6 +1207,9 @@ class Tools extends CI_Controller {
 
 					// Delete the duplicate agent
 					$this->db->delete('qq_agents', array('id' => $id));
+					$this->db->delete('qq_agent_settings', array('agent_id' => $id));
+					$this->db->delete('qq_queue_agents', array('agent_id' => $id));
+					$this->db->delete('qq_agent_last_call', array('agent_id' => $id));
 				}
 			}
 
