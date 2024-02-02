@@ -161,7 +161,7 @@ var monitoring_dashboard = new Vue({
             // let key = id + '-' + getRequestKey('realtime_data');
 
             //axios.get(api_url+'queue/get_realtime_data/'+id+'/'+key)
-axios.get(api_url+'queue/get_realtime_data/')
+                        axios.get(api_url+'queue/get_realtime_data/')
                             .then(response => {
                 
                         this.realtime_data         = response.data.data;

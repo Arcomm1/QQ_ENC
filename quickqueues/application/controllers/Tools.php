@@ -525,7 +525,7 @@ class Tools extends CI_Controller {
 			if ($ev_data[4] == 'ENTERQUEUE') 
             {
                 echo '18<br>';
-                $this->clearCacheKeys();
+                //$this->clearCacheKeys();
                 $event['src'] = $ev_data[6];
                 $this->Call_model->create($event);
             }	
@@ -1084,7 +1084,7 @@ class Tools extends CI_Controller {
             unset($agent_id);
             unset($queue_id);
             unset($event);
-            $this->clearCacheKeys();
+            //$this->clearCacheKeys();
         }
 
 
