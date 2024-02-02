@@ -79,7 +79,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);
@@ -140,7 +140,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
@@ -555,7 +555,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
@@ -623,7 +623,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);        
@@ -660,7 +660,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
@@ -728,7 +728,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
@@ -833,7 +833,7 @@ class Call_model extends MY_Model {
 			$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 			
 			// Adding the new exclusion condition for local to queue calls
-			//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+			$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 			
 			// Adding the new exclusion condition for ABANDON (local to queue calls)
 			$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);			
@@ -931,7 +931,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
@@ -974,7 +974,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
@@ -1017,7 +1017,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
@@ -1061,7 +1061,7 @@ class Call_model extends MY_Model {
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
 		
 		// Adding the new exclusion condition for local to queue calls
-		//$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
+		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
 		
 		// Adding the new exclusion condition for ABANDON (local to queue calls)
 		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
