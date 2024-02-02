@@ -2058,7 +2058,8 @@ class Queue extends MY_Controller {
                 }
             }
         }
-
+		
+		/*
         $this->r->data->calls_answered = $this->Call_model->count_by_complex(
             array(
                 'date >' => QQ_TODAY_START,
@@ -2066,8 +2067,7 @@ class Queue extends MY_Controller {
                 'event_type' => array('COMPLETECALLER', 'COMPLETEAGENT')
             )
         );
-       
-
+		
         $this->r->data->calls_unanswered = $this->Call_model->count_by_complex(
             array(
                 'date >' => QQ_TODAY_START,
@@ -2076,6 +2076,7 @@ class Queue extends MY_Controller {
             )
         );
 
+		
         $this->r->data->calls_without_service = $this->Call_model->count_by_complex(
             array(
                 'date >' => QQ_TODAY_START,
@@ -2086,7 +2087,43 @@ class Queue extends MY_Controller {
                 'waittime >=' => 5
             )
         );
-
+		*/
+		// New count_by_complex_with_exclusion to support additional exclusions
+        $this->r->data->calls_answered = $this->Call_model->count_by_complex_with_exclusion(
+            array(
+                'date >' => QQ_TODAY_START,
+                'queue_id' => $id,
+                'event_type' => array('COMPLETECALLER', 'COMPLETEAGENT')
+            ),
+			function($db) {
+				$db->group_start()
+				   ->where('src NOT IN (SELECT extension FROM users)')
+				   ->or_where('dst NOT IN (SELECT extension FROM users)')
+				   ->group_end();
+			}
+        );		
+		
+        $this->r->data->calls_unanswered = $this->Call_model->count_by_complex_with_exclusion(
+            array(
+                'date >' => QQ_TODAY_START,
+                'queue_id' => $id,
+                'event_type' => array('ABANDON','EXITEMPTY', 'EXITWITHTIMEOUT')
+            ),
+			"NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)"
+        );		
+		
+		$this->r->data->calls_without_service = $this->Call_model->count_by_complex_with_exclusion(
+			array(
+				'date >' => QQ_TODAY_START,
+				'queue_id' => $id,
+				'called_back' => 'no',
+				'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY'),
+				'answered_elsewhere' => 'isnull',
+				'waittime >=' => 5
+			),
+			"NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)"
+		);
+		
         $this->r->status = 'OK';
         $this->r->message = 'Queue basic stats will follow';
 
