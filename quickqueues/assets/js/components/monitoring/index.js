@@ -352,7 +352,7 @@ var monitoring_dashboard = new Vue({
 
 		const scheduleRealtimeData = () => {
 			this.get_realtime_data();
-            setTimeout(scheduleRealtimeData, 1000); // Keeping this interval constant as it's a frequent update
+            setTimeout(scheduleRealtimeData, 2000); // Keeping this interval constant as it's a frequent update
 		};
 
 		const scheduleQueueStats = () => {
