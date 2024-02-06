@@ -45,6 +45,42 @@ class Agent_model extends MY_Model {
         return $id;
     }
 
+    /* Create new agent modified tp prevent duplicates
+	function create($params = false)
+	{
+		if (!$params || !is_array($params) || count($params) == 0) {
+			return 0; // Indicate failure or invalid input
+		}
+
+		// Ensure all required fields are present
+		foreach ($this->_required_fields as $field) {
+			if (!array_key_exists($field, $params)) {
+				return 0; // Missing a required field, return failure
+			}
+		}
+
+		// Check if a record with the same name already exists
+		if (isset($params['name'])) {
+			$this->db->from($this->_table);
+			$this->db->where('name', $params['name']);
+			$existingCount = $this->db->count_all_results();
+			if ($existingCount > 0) {
+				// A record with this name already exists, do not create a new one.
+				return 0; // or another value to indicate duplication
+			}
+		} else {
+			// 'name' is required to check for existence, if not provided, handle error
+			return 0; // Indicate failure or missing name
+		}
+
+		// Proceed with inserting the new record as no duplicate name exists
+		$this->db->insert($this->_table, $params);
+		$id = $this->db->insert_id();
+		$this->set_default_settings($id); // Set default settings for the new record, if necessary
+		return $id;
+	}
+    */
+
 
     /**
      * Set extension for specific agent
