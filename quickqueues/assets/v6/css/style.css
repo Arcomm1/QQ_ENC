@@ -15207,3 +15207,8 @@ select option {
 {
   font-weight: bold;
 }
+#agent_overview 
+{
+  width: 100%;
+  max-width: none;
+}

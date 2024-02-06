@@ -17,6 +17,7 @@ class Agent_model extends MY_Model {
         $this->_settings_table      = $this->_table_prefix."agent_settings";
         $this->_user_agents_table   = $this->_table_prefix."user_agents";
         $this->_last_call_table     = $this->_table_prefix."agent_last_call";
+        $this->_agents_table        = $this->_table_prefix."agents";
 
     }
 
@@ -231,6 +232,18 @@ class Agent_model extends MY_Model {
 
         return true;
     }
+    public function update_agents($id = false, $value = false)
+    {
+        if (!$id || !$value) 
+        {
+            return false;
+        }
+        $data = array('display_name' => $value);
+        $this->db->where('id', $id);
+        $this->db->update($this->_agents_table, $data);
+        return true;
+    }
+    
 
 
     /**

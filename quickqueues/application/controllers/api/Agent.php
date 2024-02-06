@@ -951,7 +951,6 @@ class Agent extends MY_Controller {
             exit();
         }
         $agent = $this->Agent_model->get($id);
-        var_dump($agent);
         if (!$agent) {
             $this->r->status = 'FAIL';
             $this->r->message = "Agent does not exist";
@@ -1255,6 +1254,25 @@ class Agent extends MY_Controller {
 
         $this->_respond();
     }
+    
+    public function update_agents($id = false)
+    {
+        if (!$id || !$this->input->post()) 
+        {
+            $this->r->status = 'FAIL';
+            $this->r->message = "Invalid request";
+            $this->_respond();
+            exit();
+        }
+
+        $value = $this->input->post('value');
+        $this->Agent_model->update_agents($id, $value);
+        $this->r->status = 'OK';
+        $this->r->message = 'Agent updated succesfully';
+
+        $this->_respond();
+    }
+
 
 
     public function get_queues($id = false)

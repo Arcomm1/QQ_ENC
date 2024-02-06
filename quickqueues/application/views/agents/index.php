@@ -4,104 +4,6 @@
             <div class="card border-top-primary border-primary border-top-3">
                 <div class="card-body">
                     <h4 class="card-title mb-3"><?php echo lang('agents'); ?></h4>
-                    <div class="row mb-2">
-                        <div class="col-3 col-lg-3">
-                            <div class="card overflow-hidden">
-                                <div class="card-body p-0 d-flex align-items-center">
-                                    <div class="bg-success text-white text-strong py-4 px-5 me-3">
-                                        <svg class="icon icon-xxl">
-                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-user'); ?>"></use>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div v-cloak v-if="!agent_statuses_loading" class="fs-2 fw-semibold text-success">
-                                            <span>
-                                                {{ agents_free }}
-                                            </span>
-                                            <span v-else>
-                                                <div class="spinner-border text-success" role="status">
-                                                    <span class="visually-hidden"></span>
-                                                </div>
-                                            </span>
-                                        </div>
-                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('free'); ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-3 col-lg-3">
-                            <div class="card overflow-hidden">
-                                <div class="card-body p-0 d-flex align-items-center">
-                                    <div class="bg-info text-white text-strong py-4 px-5 me-3">
-                                        <svg class="icon icon-xxl">
-                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-user'); ?>"></use>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div v-cloak v-if="!agent_statuses_loading" class="fs-2 fw-semibold text-info">
-                                            <span>
-                                                {{ agents_on_call }}
-                                            </span>
-                                            <span v-else>
-                                                <div class="spinner-border text-info" role="status">
-                                                    <span class="visually-hidden"></span>
-                                                </div>
-                                            </span>
-                                        </div>
-                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('on_call'); ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-3 col-lg-3">
-                            <div class="card overflow-hidden">
-                                <div class="card-body p-0 d-flex align-items-center">
-                                    <div class="bg-secondary text-white text-strong py-4 px-5 me-3">
-                                        <svg class="icon icon-xxl">
-                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-user'); ?>"></use>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div v-cloak v-if="!agent_statuses_loading" class="fs-2 fw-semibold text-secondary">
-                                            <span>
-                                                {{ agents_unavailable }}
-                                            </span>
-                                            <span v-else>
-                                                <div class="spinner-border text-secondary" role="status">
-                                                    <span class="visually-hidden"></span>
-                                                </div>
-                                            </span>
-                                        </div>
-                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('unavailable'); ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-3 col-lg-3">
-                            <div class="card overflow-hidden">
-                                <div class="card-body p-0 d-flex align-items-center">
-                                    <div class="bg-danger text-white text-strong py-4 px-5 me-3">
-                                        <svg class="icon icon-xxl">
-                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-user'); ?>"></use>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div v-cloak v-if="!agent_statuses_loading" class="fs-2 fw-semibold text-danger">
-                                            <span>
-                                                {{ agents_busy }}
-                                            </span>
-                                            <span v-else>
-                                                <div class="spinner-border text-danger" role="status">
-                                                    <span class="visually-hidden"></span>
-                                                </div>
-                                            </span>
-                                        </div>
-                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('busy'); ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <!-- Ordering -->
                     <table class="table agents_table">
                         <thead class="table-light fw-semibold">
@@ -120,50 +22,48 @@
                         </thead>
                         <tbody class="monitoring-agents-dashboard-table-body">
                           <tr v-for="agent in agents" v-if="agent && agent.display_name">
-                                <td v-bind:id="'agent_status_'+agent.agent_id"
-                                    v-if="agent_statuses[agent.extension]"
-									style="width: 500px;">
-                                    <div>
-                                        <span>
-                                            <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
-                                            <i v-else class="cil-phone mr-3 text-dark"></i>
-                                        </span>
-                                        <a v-bind:href="'agents/stats/'+agent.agent_id" class="ml-3 link-dark">{{ agent.display_name }}</a>
-                                        <span v-if="agent_current_calls[agent.extension]">
-                                            <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
-                                            {{ agent_current_calls[agent.extension].second_party }}
-                                        </span>
-										<span v-if="isAgentPaused(agent.display_name)" class="paused-text">
-											Queue Paused
-										</span>  										
-                                        <span v-else></span>
-                                     </div>
-                                    <div class="small text-medium-emphasis">
-                                        <span>
-                                            <span>{{ agent.extension }}</span>
-                                        </span>
-                                        {{ " | "+agent.last_call }}
-                                    </div>
+                                <td style="width: 300px;">
+								  <div style="display:flex; gap: 10px;">
+									  <div style="width: 150px">
+										  <div>
+											  <span v-if="!agent.isEditing" :key="agent.display_name" @click="startEditing(agent)" style="cursor: pointer; text-decoration: underline; color: rgba(44, 56, 74, 0.95);">{{ agent.display_name }}</span>
+											  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
+											  <input class="form-control"v-else v-model="agent.editedDisplayName" @keyup.enter="updateDisplayName(agent)" />
+											  <?php endif; ?>
+										  </div>
+										  <div class="small text-medium-emphasis">
+											  <span>
+												  <span>{{ agent.extension }}</span>
+											  </span>
+											  {{ " | "+agent.last_call }}
+										  </div>
+									  </div>
+									  <div style="width: 150px">
+										  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
+										  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
+										  <?php endif; ?>
+									  </div>
+								  </div>
                                 </td>
-                                <td v-if="agent_statuses[agent.extension]">
+                                <td>
                                     {{ agent.calls_answered }}
                                 </td>
-                                <td v-if="agent_statuses[agent.extension]">
+                                <td>
                                     {{ sec_to_time(agent.incoming_total_calltime) }}
                                 </td>
-                                <td v-if="agent_statuses[agent.extension]">
+                                <td>
                                     {{ agent.calls_missed }}
                                 </td>
-                                <td v-if="agent_statuses[agent.extension]">
+                                <td>
                                     {{ agent.calls_outgoing_answered }}
                                 </td>
-                                <td v-if="agent_statuses[agent.extension]">
+                                <td>
                                     {{ sec_to_time(agent.outgoing_total_calltime) }}
                                 </td>
-                                <td v-if="agent_statuses[agent.extension]">
+                                <td>
                                     {{ agent.calls_outgoing_unanswered }}
                                 </td>
-                                <td v-if="agent_statuses[agent.extension]">
+                                <td>
                                     {{ sec_to_time(agent.total_pausetime) }}
                                 <td>
                                 <!-- <td>
@@ -192,13 +92,4 @@
         </div>
     </div>
 </div>
-<style>
-#agent_overview {
-    width: 100%;
-    max-width: none;
-}
-.paused-text {
-    display: block; /* This will put the text on a new line */
-    color: red;     /* This will make the text red */
-}
-</style>
+
