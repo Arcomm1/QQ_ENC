@@ -633,8 +633,9 @@ class Tools extends CI_Controller {
                 $extension = $qq_agent->extension;
                 $matching_user = $this->db->get_where('users', array('extension' => $extension))->row();
         
-                if ($matching_user) {
-                    // Step 3: Update qq_agents name and display_name to name from users table
+                if ($matching_user && ($matching_user->name != $qq_agent->name)) {
+                    // The condition above checks if there's a matching user and their names are different
+                    // Step 3: Update qq_agents name and display_name only if the name in users does not match the name in qq_agents
                     $this->db->where('id', $qq_agent->id);
                     $this->db->update('qq_agents', array(
                         'name' => $matching_user->name,
@@ -671,8 +672,9 @@ class Tools extends CI_Controller {
 					// Check for a matching user by extension
 					$matching_user = $this->db->get_where('users', ['extension' => $qq_agent->extension])->row();
 
-					if ($matching_user) {
-						// Update qq_agents with user info where extensions match
+                    if ($matching_user && ($matching_user->name != $qq_agent->name)) {
+                        // The condition above checks if there's a matching user and their names are different
+                        // Step 3: Update qq_agents name and display_name only if the name in users does not match the name in qq_agents
 						$this->db->where('id', $qq_agent->id);
 						$this->db->update('qq_agents', [
 							'name' => $matching_user->name,
