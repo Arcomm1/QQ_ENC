@@ -1577,21 +1577,38 @@ class Agent extends MY_Controller {
         $this->_respond();
     }
     
-	public function get_cached_stats_for_all_queues()
+	public function get_cached_realtime_all()
 	{
-		$filePath = './json/get_stats_for_all_queues.json'; // The file path to persist.json
-		if (file_exists($filePath)) {
-			$jsonData = file_get_contents($filePath);
-			$data = json_decode($jsonData, true);
-		} else {
-			$data = []; // Return an empty array if the file does not exist
+		$filePaths = [
+			'./json/get_current_calls_for_all_agents.json',
+			'./json/get_realtime_data.json',
+			'./json/get_realtime_status_for_all_agents.json',
+			'./json/get_stats_for_all_queues.json',
+		];
+
+		$combinedData = [];
+
+		foreach ($filePaths as $filePath) {
+			if (file_exists($filePath)) {
+				$jsonData = file_get_contents($filePath);
+				// Directly use the JSON data without decoding into an array
+				$combinedData[] = $jsonData;
+			} else {
+				// If a file does not exist, add an empty object or array as a placeholder
+				$combinedData[] = '[]'; // Using an empty array as a placeholder
+			}
 		}
 
-		// Setting the response data
-		$this->r->data = $data;
-		$this->r->status = 'OK';
-		$this->r->message = 'Cached queue realtime data';
-		$this->_respond();
+		// Combine data with $$$ as a delimiter
+		$responseString = implode('$$$', $combinedData);
+
+		// Assuming you're outputting directly for an AJAX call
+		header('Content-Type: application/json');
+		echo json_encode([
+			'data' => $responseString,
+			'status' => 'OK',
+			'message' => 'Combined JSON data',
+		]);
 	}
 
 }
