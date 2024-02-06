@@ -1576,6 +1576,22 @@ class Agent extends MY_Controller {
         // echo "<pre>"; print_r($agent_call_stats); print_r($agent_event_stats); die(print_r($agent_stats));
         $this->_respond();
     }
+    
+	public function get_cached_stats_for_all_queues()
+	{
+		$filePath = './json/get_stats_for_all_queues.json'; // The file path to persist.json
+		if (file_exists($filePath)) {
+			$jsonData = file_get_contents($filePath);
+			$data = json_decode($jsonData, true);
+		} else {
+			$data = []; // Return an empty array if the file does not exist
+		}
 
+		// Setting the response data
+		$this->r->data = $data;
+		$this->r->status = 'OK';
+		$this->r->message = 'Cached queue realtime data';
+		$this->_respond();
+	}
 
 }
