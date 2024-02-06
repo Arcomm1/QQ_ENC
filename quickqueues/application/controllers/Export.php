@@ -1428,7 +1428,6 @@ class Export extends MY_Controller {
                 if ($i->date == $date) 
                 {
                     $found       = true;
-                    $avg_holdtime = null;
                 
                     if($i->calls_unanswered === 0)
                     {
