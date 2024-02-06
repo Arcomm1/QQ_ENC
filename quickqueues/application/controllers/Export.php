@@ -1428,13 +1428,9 @@ class Export extends MY_Controller {
                 if ($i->date == $date) 
                 {
                     $found = true;
-                
-                    if($i->calls_unanswered === 0)
-                    {
-    
-                        $avg_holdtme = '00:00:00';
-                    }
-                    else
+                    $avg_holdtime = '00:00:00';
+                    
+                    if (!empty($i->calls_unanswered) && $i->calls_unanswered > 0) {
                     {
                         $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
                     }
