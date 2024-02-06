@@ -195,7 +195,7 @@ class Export extends MY_Controller {
                                 if (strpos($subject_family_array[0], 'undefined') == 'true') {
                                     $empty_subject_family[0] = '';
                                 } else {
-                                    $empty_subject_family[0] = $main_subject[$subject_family_array[0]];
+                                    $empty_subject_family[0] = isset($main_subject[$subject_family_array[0]]) ? $main_subject[$subject_family_array[0]] : null;
                                 }
                             }
                         } else {
