@@ -352,8 +352,135 @@ class Tools extends CI_Controller {
             // For example, log an error or handle it appropriately
             log_message('error', 'No data returned from qq_agents or query failed.');
         }
-       
 
+        /* New Method For Agent Management - Not Used Yet
+		// Agent Rename based on asterisk users
+		// Select all agents from qq_agents
+		$query = $this->db->get('qq_agents');
+
+		if ($query && $query->num_rows() > 0) {
+			$qq_agents = $query->result();
+
+			foreach ($qq_agents as $qq_agent) {
+				// Prepare data for possible archiving, including the extension and current date
+				$archiveData = [
+					'agent_id'      => $qq_agent->id, // Use original ID as agent_id
+					'name'          => $qq_agent->name,
+					'display_name'  => $qq_agent->display_name,
+					'extension'     => $qq_agent->extension, // Include the extension
+					'date'          => date('Y-m-d H:i:s'), // Current timestamp
+				];
+
+				// Handle agents with non-empty extensions
+				if (!empty($qq_agent->extension)) {
+					// Check for a matching user by extension
+					$matching_user = $this->db->get_where('users', ['extension' => $qq_agent->extension])->row();
+
+					if ($matching_user) {
+						// Update qq_agents with user info where extensions match
+						$this->db->where('id', $qq_agent->id);
+						$this->db->update('qq_agents', [
+							'name' => $matching_user->name,
+							'display_name' => $matching_user->name
+						]);
+					} else {
+						// Extension exists in qq_agents but not in users, archive the agent
+						$this->db->insert('qq_agents_archived', $archiveData);
+						$this->db->where('id', $qq_agent->id);
+						$this->db->delete('qq_agents');
+					}
+				} else {
+					// For agents with empty or NULL extensions, check the name pattern before archiving
+					if (!preg_match('/Local\/\d+@from-queue\/n/', $qq_agent->name)) {
+						// If name does not match the pattern, proceed to archive
+						$this->db->insert('qq_agents_archived', $archiveData);
+						$this->db->where('id', $qq_agent->id);
+						$this->db->delete('qq_agents');
+					}
+					// If the name matches the pattern, the agent is not archived, so no action needed here
+				}
+			}
+		} else {
+			// Log error if no agents found or if the query failed
+			log_message('error', 'No data returned from qq_agents or query failed.');
+		}
+		
+		// Clear unreal archived agents
+		$query = $this->db->query("SELECT agent_id FROM qq_agents_archived");
+		$agents = $query->result_array();
+		foreach ($agents as $agent) {
+			$agent_id = $agent['agent_id'];
+			
+			// Check for records in qq_calls
+			$queryCalls = $this->db->query("SELECT COUNT(*) as count FROM qq_calls WHERE agent_id = $agent_id");
+			$resultCalls = $queryCalls->row();
+			
+			// Check for records in qq_events
+			$queryEvents = $this->db->query("SELECT COUNT(*) as count FROM qq_events WHERE agent_id = $agent_id");
+			$resultEvents = $queryEvents->row();
+			
+			// If no records found in both tables, delete from qq_agents_archived
+			if ($resultCalls->count == 0 && $resultEvents->count == 0) {
+				$this->db->where('agent_id', $agent_id);
+				$this->db->delete('qq_agents_archived');
+			}
+		}
+		
+		// Step 4: Create Agents
+		$this->db->select('data');
+		$this->db->where('keyword', 'member');
+		$query = $this->db->get('queues_details');
+		$queueMembers = $query->result_array();
+		
+		foreach ($queueMembers as $member) {
+			// First, try to extract the extension number
+			preg_match('/Local\/(\d+)@from-queue\/n,0/', $member['data'], $matches);
+			$extensionFound = !empty($matches) && isset($matches[1]);
+			$extension = $extensionFound ? $matches[1] : '';
+
+			$insertData = [
+				'name' => '',
+				'display_name' => '',
+				'extension' => '',
+			];
+
+			if ($extensionFound) {
+				// If an extension was found, check if it exists in the users table
+				$userQuery = $this->db->get_where('users', ['extension' => $extension]);
+				if ($userQuery->num_rows() > 0) {
+					$user = $userQuery->row();
+					// Prepare insert data using user info
+					$insertData['name'] = $user->name; // Assuming 'name' is the correct field in users
+					$insertData['display_name'] = $user->name;
+					$insertData['extension'] = $extension;
+				}
+			}
+
+			// If no user was found with the extension, use a modified version of the data field
+			if (empty($insertData['name'])) {
+				if ($extensionFound && strlen($extension) > 6) {
+					// Construct name from the data field if extension is not used
+					$nameToUse = 'Local/' . $extension . '@from-queue/n';
+					$insertData['name'] = $nameToUse;
+					$insertData['display_name'] = $nameToUse;
+					// Keep 'extension' empty since we're not using it in this case
+				}
+			}
+
+			// Check if this name or extension already exists in qq_agents to avoid duplicates
+			if (!empty($insertData['extension'])) {
+				$agentQuery = $this->db->get_where('qq_agents', ['extension' => $insertData['extension']]);
+			} else {
+				$agentQuery = $this->db->get_where('qq_agents', ['name' => $insertData['name']]);
+			}
+
+			if ($agentQuery->num_rows() == 0 && (!empty($insertData['extension']) || !empty($insertData['name']))) {
+				// Insert into qq_agents
+				$this->db->insert('qq_agents', $insertData);
+			}
+		}        
+        */
+       
             try 
     {		
         // Event types

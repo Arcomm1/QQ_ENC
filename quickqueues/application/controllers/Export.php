@@ -195,7 +195,7 @@ class Export extends MY_Controller {
                                 if (strpos($subject_family_array[0], 'undefined') == 'true') {
                                     $empty_subject_family[0] = '';
                                 } else {
-                                    $empty_subject_family[0] = $main_subject[$subject_family_array[0]];
+                                    $empty_subject_family[0] = isset($main_subject[$subject_family_array[0]]) ? $main_subject[$subject_family_array[0]] : null;
                                 }
                             }
                         } else {
@@ -1427,17 +1427,15 @@ class Export extends MY_Controller {
             {
                 if ($i->date == $date) 
                 {
-                    $found       = true;
-                
-                    if($i->calls_unanswered === 0)
-                    {
-    
-                        $avg_holdtime = '00:00:00';
-                    }
-                    else
-                    {
-                        $avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
-                    }
+                    $found = true;
+
+					// Initialize $avg_holdtime with a default value.
+					$avg_holdtime = '00:00:00';
+
+					// Ensure $i->calls_unanswered is not empty and greater than 0.
+					if (!empty($i->calls_unanswered) && $i->calls_unanswered > 0) {
+						$avg_holdtime = sec_to_time(($i->total_holdtime + $i->total_waittime) / $i->calls_unanswered);
+					}                  
 
                     $rows_days[] = array(
                         'day'                       => $i->date,
