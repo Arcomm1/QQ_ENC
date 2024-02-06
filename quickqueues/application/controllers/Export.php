@@ -1427,12 +1427,13 @@ class Export extends MY_Controller {
             {
                 if ($i->date == $date) 
                 {
-                    $found = true;
+                    $found       = true;
+                    $avg_holdtime = null;
                 
                     if($i->calls_unanswered === 0)
                     {
     
-                        $avg_holdtme = '00:00:00';
+                        $avg_holdtime = '00:00:00';
                     }
                     else
                     {
