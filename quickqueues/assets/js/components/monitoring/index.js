@@ -173,8 +173,8 @@ var monitoring_dashboard = new Vue({
                         for (queue in response.data.data) 
                         {
                             this.total_callers = this.total_callers + Object.keys(response.data.data[queue]['callers']).length;
-}  
-                                        });
+        }  
+        });
         },
 
         get_current_calls: function() 

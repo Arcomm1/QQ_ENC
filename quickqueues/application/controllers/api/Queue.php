@@ -1665,11 +1665,8 @@ class Queue extends MY_Controller {
         $queue_ids = array();
 
         foreach ($this->data->user_queues as $q) 
-        {
-            if (stripos($q->display_name, 'callback') === false) 
-            {
-                array_push($queue_ids, $q->id);
-            }
+        {  
+            array_push($queue_ids, $q->id);
         }
 
         $this->r->data = $this->Call_model->get_stats_for_start($queue_ids, $date_range);

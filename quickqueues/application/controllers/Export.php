@@ -806,7 +806,7 @@ class Export extends MY_Controller {
         $callback_request_percent = $total_stats->callback_request > 0 && ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->callback_request) > 0 ?
         intval(($total_stats->callback_request / ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->callback_request) * 100) * 100) / 100 : '0%';
 
-        $rows_overview[] = array(lang('callback_request'), $total_stats->calls_unanswered, $calls_unanswered_percent);
+        $rows_overview[] = array(lang('callback_request'), $total_stats->callback_request, $callback_request_percent);
 
         // ATA AVG
         $rows_overview[] = array(lang('ata'), $total_stats->ata_count_total > 0 ? sec_to_time(
