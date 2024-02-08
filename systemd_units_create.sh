@@ -35,8 +35,20 @@ systemctl enable QQclearcache_${function}.timer
 systemctl start QQclearcache_${function}.timer
 
 # Rename files as required
-mv /usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js /usr/src/QQ/quickqueues/assets/js/components/monitoring/index_old.js
-mv /usr/src/QQ/quickqueues/assets/js/components/monitoring/index_for_service.js /usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js
+# Define file paths and names as variables
+source_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index_for_service.js"
+target_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js"
+backup_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index_old.js"
+
+# Check if the source file exists
+if [ -f "$source_file" ]; then
+  # Rename the target file to the backup file
+  mv "$target_file" "$backup_file"
+  # Rename the source file to the target file
+  mv "$source_file" "$target_file"
+else
+  echo "The file $source_file does not exist."
+fi
 
 # Display status
 systemctl status QQclearcache_${function}.timer
