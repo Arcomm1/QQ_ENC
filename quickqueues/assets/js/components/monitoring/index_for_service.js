@@ -99,13 +99,15 @@ var monitoring_dashboard = new Vue({
 			axios.get(api_url + 'agent/get_cached_realtime_all/') // Adjust the endpoint as necessary
 			.then(response => {
 				// Split the combined string into individual JSON strings
-				let combinedData = response.data.data.split('$$$');
+				let combinedData = response;
 
-				// Parse each JSON segment
-				let agentStatusesData = JSON.parse(combinedData[2]); // Adjust indexes based on order
-				let realtimeData = JSON.parse(combinedData[1]);
-				let agentCurrentCalls = JSON.parse(combinedData[0]);
-				let agentStats = JSON.parse(combinedData[3]);
+				// Directly access data from the response
+				let agentStatusesData = response.data.agent_statuses; // Correctly access `queue` data
+				let realtimeData = response.data.queue; // Assuming `queue_stats` holds what you refer to as realtimeData
+				let agentCurrentCalls = response.data.all_calls; // Correctly access `status`
+				let agentStats = response.data.queue_stats; // Correctly access `extensions`
+				
+				//console.log("Response JSON:", JSON.stringify(agentStatusesData, null, 2));
 
 				// Process agent statuses
 				if (typeof(agentStatusesData) == 'object') {
@@ -332,11 +334,11 @@ var monitoring_dashboard = new Vue({
 		};
 
 		// Initial calls to start the recursive scheduling;
-		scheduleBasicStats();
-		scheduleFreePBXAgents();
-		schedulecombined_data();
-		scheduleQueueStats();
-		updateCallDuration();
+			scheduleBasicStats();
+			scheduleFreePBXAgents();
+			schedulecombined_data();
+			scheduleQueueStats();
+			updateCallDuration();
     }
 
 });
