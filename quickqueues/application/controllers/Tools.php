@@ -54,10 +54,6 @@ class Tools extends CI_Controller {
 		if (!isset($this->data)) {
 			$this->data = new stdClass();
 		}
-		
-		// Example initialization, adjust according to your application logic
-		$this->data->user_queues = $this->Queue_model->get_all(); // Hypothetical method to get all queues
-		$this->data->user_agents = $this->Agent_model->get_all(); // Adjust this line according to your actual method to fetch agents
 	}
 	
     // Initialize $this->r as an empty stdClass
@@ -190,38 +186,29 @@ class Tools extends CI_Controller {
 		}
     }
 
-    public function get_realtime_data($id = false)
-    {     
-        $this->load->library('asterisk_manager');
-		$cacheFile = './json/get_realtime_data.json'; // Define the cache file path
-    
-        if (!$id) 
-        {
-            $queues = array();
-            foreach ($this->data->user_queues as $q) 
-            {
-                $queueStatus = $this->asterisk_manager->queue_status($q->name);
-    
-                // Check if $queueStatus has the 'data' key before accessing it
-                if (isset($queueStatus['data'])) 
-                {
-                    $queues[] = $queueStatus;
-                }
-            }
-            $this->r->data = $queues;
-        } 
-        else 
-        {
-            $queue = $this->Queue_model->get($id);
-            $queueStatus = $this->asterisk_manager->queue_status($queue->name);
-    
-            // Check if $queueStatus has the 'data' key before accessing it
-            if (isset($queueStatus['data'])) 
-            {
-                $this->r->data = $queueStatus;
-            }
-        }
-    
+	public function get_all_cached() {
+        // Generate a random sleep time between 0 to 500 milliseconds
+        //$milliseconds = rand(0, 500);
+
+        // Sleep for the randomly generated time
+        //usleep($milliseconds * 1000); // usleep takes microseconds
+        
+		$this->load->library('asterisk_manager');
+		
+		$all_agents = $this->Agent_model->get_all();
+		$all_queues = $this->Queue_model->get_all();
+		
+		$extensions   = [];
+        foreach ($all_agents as $a)
+		{
+			if ($a->extension !=""){array_push($extensions,$a->extension);}
+        }		
+
+		$all = $this->asterisk_manager->get_all($all_queues,$extensions);
+		$this->r->data = $all['queue'];
+		
+		$all_final = array();
+		
         $queueData = $this->Queue_model->get_queue_entries();
     
         foreach ($this->r->data as &$queueStatus) {
@@ -238,19 +225,95 @@ class Tools extends CI_Controller {
                 }
             }
         }
+		// Set get_realtime_data
+		$all_final['queue'] = $this->r->data;
+		// Set get_stats_for_all_queues
+		$all_final['queue_stats'] = $this->get_stats_for_all_queues(false);
+		
+		$all_calls = array();
+        foreach ($all['status'] as $r) {
+            if (array_key_exists('Channel', $r)) {
+                if (array_key_exists('Seconds', $r) && ($r['Context'] == 'macro-dial-one' || $r['Context'] == 'macro-dialout-trunk')) {
+                    $r['second_party'] = '';
+                    $r['agent_exten'] = '';
+                    $r['duration'] = $r['Seconds'];
+                    $r['direction'] = '';
+                    if ($r['Context'] == 'macro-dial-one') {
+                        $r['direction'] = 'down';
+                        $r['second_party'] = $r['ConnectedLineNum'];
+                        $r['agent_exten'] = $r['CallerIDNum'];
+                    }
+                    if ($r['Context'] == 'macro-dialout-trunk') {
+                        $r['direction'] = 'up';
+                        $r['second_party'] = $r['ConnectedLineNum'];
+                        $num = explode('/', $r['Channel']);
+                        $num = explode('-', $num[1]);
+                        $r['agent_exten'] = $num[0];
+                    }
+                    $all_calls[$r['agent_exten']] = $r;
+                }
+            }
+        }
+		
+		// Set get_current_calls_for_all_agents
+		$all_final['all_calls'] = $all_calls;
 
-		// Load existing data from cache file if it exists, or create it with the new data
-		$existingData = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : null;
+		$extensions_line = array();		
+		$statuses_line = array();
+		$agent_statuses = array();
+		$status = $all['extensions'];
+		$extensions_line = $all['sip_status'];
+		
+		foreach ($extensions_line as $extensionData) {
+			$extension = isset($extensionData["ObjectName"]) ? $extensionData["ObjectName"] : null;
+			$ipStatus = isset($extensionData["Address-IP"]) ? $extensionData["Address-IP"] : null;
+			$statusInfo = [
+				"extension" => $extension,
+				"ip_status" => $ipStatus,
+			];
+			$statuses_line[] = $statusInfo;
+		}		
+		
+        foreach ($status as $ar) {
+            $state_colors = get_extension_state_colors();
+            if (array_key_exists('Context', $ar)) {
+                if ($ar['Context'] == QQ_AGENT_CONTEXT) {
+                    if (in_array($ar['Exten'], $extensions)) {
+                        $ar['status_color'] = $state_colors[$ar['Status']];
+                        $agent_statuses[$ar['Exten']] = $ar;
+                    }
+                }
+            }
+        }
+		
+		foreach ($agent_statuses as &$agentStatus) {
+			$exten = $agentStatus["Exten"];
+			$matchingStatus = null;
+			foreach ($statuses_line as $statusInfo) {
+				if ($statusInfo["extension"] === $exten) {
+					$matchingStatus = $statusInfo;
+					break;
+				}
+			}
+			if ($matchingStatus !== null && $matchingStatus["ip_status"] === "(null)") {
+				$agentStatus["StatusText"] = "Unavailable";
+				$agentStatus["status_color"] = "secondary";
+			}
+		}		
 
-		// Compare new data with existing data to avoid unnecessary writes
-		if ($this->r->data != $existingData) {
-			// Data has changed, update the cache file
-			file_put_contents($cacheFile, json_encode($this->r->data, JSON_PRETTY_PRINT));
-		}
-    }
-
+		// Set get_realtime_status_for_all_agents
+		$all_final['agent_statuses'] = $agent_statuses;	
+		
+		//// Extensions update end
+		$cacheFile = './json/get_all.json';
+		file_put_contents($cacheFile, json_encode($all_final, JSON_PRETTY_PRINT));		
+	}	
+	
+	
     public function get_stats_for_all_queues($queue_id = false) {
-		$cacheFile = './json/get_stats_for_all_queues.json'; // Define the cache file path for stats
+		$this->data->user_queues = $this->Queue_model->get_all();
+		$this->data->user_agents = $this->Agent_model->get_all();
+		
         foreach ($this->data->user_queues as $q) {
             $queue_ids[] = $q->id;
         }
@@ -301,143 +364,9 @@ class Tools extends CI_Controller {
                 $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
             }
         }
-
-		// Load existing data from cache file if it exists, or create it with the new data
-		$existingData = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : null;
-
-		// Compare new data with existing data to avoid unnecessary writes
-		if ($agent_stats != $existingData) {
-			// Data has changed, update the cache file
-			file_put_contents($cacheFile, json_encode($agent_stats, JSON_PRETTY_PRINT));
-		}
+		
+		return $agent_stats;
     }
-
-    public function get_current_calls_for_all_agents()
-    {
-        $all_calls = array();
-
-        $this->load->library('asterisk_manager');
-        $this->r->status = 'OK';
-        $this->r->message = 'Agent current call will follow';
-        $ami_response = $this->asterisk_manager->get_status();
-		
-		$cacheFile = './json/get_current_calls_for_all_agents.json'; // Define the cache file path
-
-        foreach ($ami_response as $r) {
-            if (array_key_exists('Channel', $r)) {
-                if (array_key_exists('Seconds', $r) && ($r['Context'] == 'macro-dial-one' || $r['Context'] == 'macro-dialout-trunk')) {
-                    $r['second_party'] = '';
-                    $r['agent_exten'] = '';
-                    $r['duration'] = $r['Seconds'];
-                    $r['direction'] = '';
-                    if ($r['Context'] == 'macro-dial-one') {
-                        $r['direction'] = 'down';
-                        $r['second_party'] = $r['ConnectedLineNum'];
-                        $r['agent_exten'] = $r['CallerIDNum'];
-                    }
-                    if ($r['Context'] == 'macro-dialout-trunk') {
-                        $r['direction'] = 'up';
-                        $r['second_party'] = $r['ConnectedLineNum'];
-                        $num = explode('/', $r['Channel']);
-                        $num = explode('-', $num[1]);
-                        $r['agent_exten'] = $num[0];
-                    }
-                    $all_calls[$r['agent_exten']] = $r;
-                }
-            }
-        }
-		
-		// Load existing data from cache file if it exists, or create it with the new data
-		$existingData = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : null;
-
-		// Compare new data with existing data to avoid unnecessary writes
-		if ($all_calls != $existingData) {
-			echo "1";
-			// Data has changed, update the cache file
-			file_put_contents($cacheFile, json_encode($all_calls, JSON_PRETTY_PRINT));
-		}
-    }
-
-    public function get_realtime_status_for_all_agents()
-    {
-        $agent_statuses = array();
-        $agents = array();
-
-        $this->load->library('asterisk_manager');
-        $this->r->status = 'OK';
-        $this->r->message = 'Realtime status for all agents will follow';		
-        $ami_response = $this->asterisk_manager->get_extension_state_list();
-		
-		$cacheFile = './json/get_realtime_status_for_all_agents.json'; // Define the cache file path
-
-        $extensions = array();
-		$extensions_line = array();
-		$statuses_line = array();		
-        foreach ($this->data->user_agents as $a) {
-			if ($a->extension !="") {
-				$extensions[] = $a->extension;
-				$extensions_line[] = $this->asterisk_manager->sip_show_peer($a->extension);
-			}
-        }
-		
-		foreach ($extensions_line as $extensionData) {
-			// Check if 'ObjectName' exists before accessing it
-			$extension = isset($extensionData["ObjectName"]) ? $extensionData["ObjectName"] : null;
-
-			// Check if 'Address-IP' exists before accessing it
-			$ipStatus = isset($extensionData["Address-IP"]) ? $extensionData["Address-IP"] : null;
-
-			// Create a new array with the desired structure
-			$statusInfo = [
-				"extension" => $extension,
-				"ip_status" => $ipStatus,
-			];
-
-			// Add the new array to the statuses_line array
-			$statuses_line[] = $statusInfo;
-		}		
-
-        foreach ($ami_response as $ar) {
-            $state_colors = get_extension_state_colors();
-            if (array_key_exists('Context', $ar)) {
-                if ($ar['Context'] == QQ_AGENT_CONTEXT) {
-                    if (in_array($ar['Exten'], $extensions)) {
-                        $ar['status_color'] = $state_colors[$ar['Status']];
-                        $agent_statuses[$ar['Exten']] = $ar;
-                    }
-                }
-            }
-        }
-		
-		foreach ($agent_statuses as &$agentStatus) {
-			$exten = $agentStatus["Exten"];
-
-			// Find the corresponding entry in $statuses_line based on "extension" value
-			$matchingStatus = null;
-			foreach ($statuses_line as $statusInfo) {
-				if ($statusInfo["extension"] === $exten) {
-					$matchingStatus = $statusInfo;
-					break;
-				}
-			}
-
-			// Check if a matching status was found and its "ip_status" is (null)
-			if ($matchingStatus !== null && $matchingStatus["ip_status"] === "(null)") {
-				// Update both "StatusText" and "status_color" in $agentStatus
-				$agentStatus["StatusText"] = "Unavailable";
-				$agentStatus["status_color"] = "secondary";
-			}
-		}
-		
-		// Load existing data from cache file if it exists, or create it with the new data
-		$existingData = file_exists($cacheFile) ? json_decode(file_get_contents($cacheFile), true) : null;
-
-		// Compare new data with existing data to avoid unnecessary writes
-		if ($agent_statuses != $existingData) {
-			// Data has changed, update the cache file
-			file_put_contents($cacheFile, json_encode($agent_statuses, JSON_PRETTY_PRINT));
-		}
-    }    
 
     /** Parse queue log file */
     public function parse_queue_log()

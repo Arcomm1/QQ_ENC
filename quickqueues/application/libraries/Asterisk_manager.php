@@ -693,7 +693,236 @@ class Asterisk_manager
         $this->database_del('DND', $extension);
     }
 
+	function get_all($queue = false,$extens)
+	{
+		$obj = array();
+		$socket = $this->create_socket();
 
+        if (!$socket) {
+            $this->status = 'ERR_NO_SOCKET';
+            return false;
+        }
+
+        if (!$this->authenticate($socket)) {
+            $this->status = 'ERR_QUEUESTATUS_NO_AUTH';
+            return false;
+        }
+		
+		if (is_array($queue)) {
+			$queues = [];
+			foreach ($queue as $q) {
+				$queueStatus = $this->queue_status_content($socket,$q->name);
+                if (isset($queueStatus['data'])) 
+                {
+                    $queues[] = $queueStatus;
+                }				
+			}
+			$obj['queue'] = $queues;
+		} elseif (is_string($queue)) {
+			// Assuming $queue is a single queue name string.
+			$queueStatus = $this->queue_status_content($socket, $queue);
+			if (isset($queueStatus['data'])) {
+				$obj['queue'] = [$queueStatus]; // Wrap in array for consistency.
+			} else {
+				$obj['queue'] = $this->queue_status_content($socket,false); // Get all queues as 1 array, currently not used
+			}
+		}
+
+		$obj['status'] = $this->get_status_content($socket);
+		$obj['extensions'] = $this->get_extension_state_list_content($socket);
+		$obj['sip_status'] = $this->sip_show_peer_content($socket,$extens);	
+		
+        $this->close_socket($socket);
+		
+		return $obj;
+	}
+
+    	public function sip_show_peer_content($socket, $extens)
+	{
+		$peers = [];
+		if (!$socket) {
+			return false;
+		}
+
+		foreach ($extens as $exten) {
+			$actionId = uniqid(); // Generate a unique ActionID for each request
+			$request  = "Action: SipShowPeer\r\n";
+			$request .= "ActionID: $actionId\r\n"; // Include the ActionID in the request
+			$request .= "Peer: $exten\r\n\r\n";
+
+			if (!fwrite($socket, $request)) {
+				return false;
+			}
+
+			$peer_info = []; // Initialize peer_info array for each extension
+			$isRelevantResponse = false; // Flag to track if the response is for the current request
+
+			while (!feof($socket)) {
+				$line = fgets($socket, 4096);
+				if (strpos($line, "ActionID: $actionId") !== false) {
+					$isRelevantResponse = true; // Start capturing the response
+				}
+				if ($isRelevantResponse) {
+					$response_lines[] = rtrim($line);
+					if ($line == "\r\n") {
+						break; // End of the current response
+					}
+				}
+			}
+
+			// Process the response lines relevant to the current request
+			foreach ($response_lines as $l) {
+				if (empty($l)) {
+					continue;
+				}
+				$params = explode(": ", $l, 2);
+				if (count($params) == 2) {
+					$peer_info[$params[0]] = $params[1];
+				}
+			}
+
+			$peers[$exten] = $peer_info; // Assign peer info to the extension key
+		}
+
+		return $peers;
+	}
+	
+    function get_extension_state_list_content($socket) {
+
+        $request  = "Action: ExtensionStateList\r\n";
+        $request .= "\r\n";
+
+        if (!fwrite($socket, $request)) {
+            return FALSE;
+        }
+
+        $line               = "";
+        $response_lines     = array();
+        $response_chunks    = array();
+        $channels           = array();
+
+        // parse till event end
+        while ($line != "Event: ExtensionStateListComplete\r\n") {
+            $line = fgets($socket,128);
+            $response_lines[]= rtrim($line);
+        }
+
+        // put each event into separate array
+        foreach ($response_lines as $l) {
+            if ($l == FALSE) {
+                $channels[] = $chunk;
+                $chunk = array();
+                continue;
+            }
+            $params = explode(":",$l);
+            if (count($params) > 1) {
+                $chunk[$params[0]] = preg_replace('/\s/', '', $params[1]);
+            }
+        }
+
+        return $channels;
+    }
+
+
+    function get_status_content($socket) {
+
+        $request  = "Action: Status\r\n";
+        $request .= "\r\n";
+
+        if (!fwrite($socket, $request)) {
+            return FALSE;
+        }
+
+        $line               = "";
+        $response_lines     = array();
+        $response_chunks    = array();
+        $channels           = array();
+
+        // parse till event end
+        while ($line != "Event: StatusComplete\r\n") {
+            $line = fgets($socket,128);
+            $response_lines[]= rtrim($line);
+        }
+
+        // put each event into separate array
+        foreach ($response_lines as $l) {
+            if ($l == FALSE) {
+                $channels[] = $chunk;
+                $chunk = array();
+                continue;
+            }
+            $params = explode(": ",$l);
+            if (count($params) > 1) {
+                $chunk[$params[0]] = rtrim($params[1]);
+            }
+        }
+
+        return $channels;
+
+    }
+	
+	function queue_status_content($socket,$queue = false)
+	{
+		/// queue status start 
+		$request  = "Action: QueueStatus\r\n";
+		if($queue)
+		{
+			$request .= "Queue: $queue\r\n";
+		}
+        $request .= "\r\n";
+
+        if (!fwrite($socket, $request)) {
+            $this->status = 'ERR_SOCKET_NO_WRITE';
+            return FALSE;
+        }
+
+        $line = "";
+        $response_lines  = array();
+        $response_chunks = array();
+        $queue = array();
+        $queue['agents'] = array();
+        $queue['data'] = array();
+        $queue['callers'] = array();
+
+
+        // Read until event end
+        while ($line != "Event: QueueStatusComplete\r\n") {
+            $line = fgets($socket,128);
+            $response_lines[]= rtrim($line);
+        }
+
+        // Put separate event into respective array
+        foreach ($response_lines as $l) {
+            if ($l == false) {
+                $response_chunks[] = $chunk;
+                $chunk = array();
+                continue;
+            }
+            $params = explode(": ",$l);
+            if (count($params) == 2) {
+                $chunk[$params[0]] = rtrim($params[1]);
+
+            }
+        }
+
+        // Organize data
+        foreach ($response_chunks as $c) {
+            if (array_key_exists('Event', $c)) {
+                if (trim($c['Event']) == 'QueueMember') {
+                    $queue['agents'][] = $c;
+                }
+                if (trim($c['Event']) == 'QueueParams') {
+                    $queue['data'] = $c;
+                }
+                if (trim($c['Event']) == 'QueueEntry') {
+                    $queue['callers'][] = $c;
+                }
+            }
+        }
+        $this->status = 'OK_QUEUESTATUS';
+		
+		return $queue;
+	}
 
     /**
      * Get list of extension states - Status

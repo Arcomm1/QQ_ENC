@@ -94,7 +94,7 @@ class User_model extends MY_Model {
             foreach ($agent_queues as $q) {
                 $queue_agents = $this->Queue_model->get_agents($q->id);
                 foreach ($queue_agents as $qa) {
-                    if ($qa->deleted == '0') {
+                    if (is_object($qa) && $qa->deleted == '0') {
                         $agents[$qa->id] = $qa;
                     }
                 }
