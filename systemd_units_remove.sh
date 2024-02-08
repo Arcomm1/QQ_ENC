@@ -8,9 +8,12 @@ systemctl disable QQclearcache_get_all_cached.timer
 rm /etc/systemd/system/QQclearcache_get_all_cached.service
 rm /etc/systemd/system/QQclearcache_get_all_cached.timer
 
-# Reverse operation
-mv /usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js /usr/src/QQ/quickqueues/assets/js/components/monitoring/index_for_service.js
-mv /usr/src/QQ/quickqueues/assets/js/components/monitoring/index_old.js /usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js
+# Define file paths and names as variables
+source_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index_for_normal.js"
+target_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js"
+
+# Copy the source file to the target file with force overwrite
+cp -f "$source_file" "$target_file"
 
 # Reload systemd
 systemctl daemon-reload
