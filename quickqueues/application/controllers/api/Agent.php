@@ -1579,36 +1579,20 @@ class Agent extends MY_Controller {
     
 	public function get_cached_realtime_all()
 	{
-		$filePaths = [
-			'./json/get_current_calls_for_all_agents.json',
-			'./json/get_realtime_data.json',
-			'./json/get_realtime_status_for_all_agents.json',
-			'./json/get_stats_for_all_queues.json',
-		];
+		$filePath = './json/get_all.json';
 
-		$combinedData = [];
-
-		foreach ($filePaths as $filePath) {
-			if (file_exists($filePath)) {
-				$jsonData = file_get_contents($filePath);
-				// Directly use the JSON data without decoding into an array
-				$combinedData[] = $jsonData;
-			} else {
-				// If a file does not exist, add an empty object or array as a placeholder
-				$combinedData[] = '[]'; // Using an empty array as a placeholder
-			}
+		if (file_exists($filePath)) {
+			$jsonData = file_get_contents($filePath);
+			header('Content-Type: application/json');
+			echo $jsonData; // Directly output the JSON data from the file
+		} else {
+			// Handle the case where the file does not exist
+			header('Content-Type: application/json');
+			echo json_encode([
+				'status' => 'Error',
+				'message' => 'File not found',
+			]);
 		}
-
-		// Combine data with $$$ as a delimiter
-		$responseString = implode('$$$', $combinedData);
-
-		// Assuming you're outputting directly for an AJAX call
-		header('Content-Type: application/json');
-		echo json_encode([
-			'data' => $responseString,
-			'status' => 'OK',
-			'message' => 'Combined JSON data',
-		]);
 	}
 
 }
