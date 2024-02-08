@@ -41,15 +41,5 @@ target_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js"
 # Copy the source file to the target file with force overwrite
 cp -f "$source_file" "$target_file"
 
-# Check if the source file exists
-if [ -f "$source_file" ]; then
-  # Rename the target file to the backup file
-  mv "$target_file" "$backup_file"
-  # Rename the source file to the target file
-  mv "$source_file" "$target_file"
-else
-  echo "The file $source_file does not exist."
-fi
-
 # Display status
 systemctl status QQclearcache_${function}.timer
