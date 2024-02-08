@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Migration_update_settings_logs_5 extends CI_Migration 
+class Migration_update_settings_logs_4 extends CI_Migration 
 {
     public function up()
     {
@@ -11,7 +11,7 @@ class Migration_update_settings_logs_5 extends CI_Migration
                 'constraint' => 11,
             ),
         );
-        $this->dbforge->add_column('qq_settings_logs', $fields);
+        $this->dbforge->modify_column('qq_settings_logs', $fields);
 
         if ($this->dbforge->field_exists('calls_without_service_queue_id', 'qq_settings_logs')) 
         {
