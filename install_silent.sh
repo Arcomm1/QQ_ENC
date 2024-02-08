@@ -179,6 +179,12 @@ ln -s $(pwd)/quickqueues/assets/img/favicon.ico /var/www/html/favicon.ico
 # Permissions for local key store for JS
 # sudo chown asterisk:asterisk $(pwd)/quickqueues/json/get_all.json
 
+# Allow Execution
+chmod +x $(pwd)/install.sh
+chmod +x $(pwd)/install_silent.sh
+chmod +x $(pwd)/systemd_units_create.sh
+chmod +x $(pwd)/systemd_units_remove.sh
+
 echo "====== INSTALLATION SUMMARY ===================================================="
 
 echo "⠀⠀⠀⠀⢀⣀⣐⡙⠶⣿⣷⣌⡳⣿⡿⠿⢷⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
