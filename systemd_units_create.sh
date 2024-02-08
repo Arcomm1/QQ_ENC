@@ -27,12 +27,12 @@ echo "" >> "/etc/systemd/system/QQclearcache_${function}.timer"
 echo "[Install]" >> "/etc/systemd/system/QQclearcache_${function}.timer"
 echo "WantedBy=timers.target" >> "/etc/systemd/system/QQclearcache_${function}.timer"
 
-# Reload systemd
-systemctl daemon-reload
-
 # Enable and start the timer unit
 systemctl enable QQclearcache_${function}.timer
 systemctl start QQclearcache_${function}.timer
+
+# Reload systemd
+systemctl daemon-reload
 
 # Define file paths and names as variables
 source_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index_for_service.js"
