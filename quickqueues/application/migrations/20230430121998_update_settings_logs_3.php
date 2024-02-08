@@ -6,18 +6,13 @@ class Migration_update_settings_logs_3 extends CI_Migration
     public function up()
     {
 
-        $fields = array (
-            'id' => array(
-                'type'       => 'INT',
-                'constraint' => 11,
-                'unsigned' => TRUE,
-                'auto_increment' => TRUE,
-            ),
-        );
-
-        $this->dbforge->add_column('qq_settings_logs', $fields);
-        $this->dbforge->drop_column('qq_settings_logs', 'calls_without_service_queue_id');
-        $this->dbforge->drop_column('qq_settings_logs', 'date');
+        $this->dbforge->drop_column('qq_settings_logs', 'queue_id');
+        $this->dbforge->drop_column('qq_settings_logs', 'sla_callbacks');
+        $this->dbforge->drop_column('qq_settings_logs', 'timeout_callbacks');
+        $this->dbforge->drop_column('qq_settings_logs', 'sla_calls');
+        $this->dbforge->drop_column('qq_settings_logs', 'timeout_calls');
+        $this->dbforge->drop_column('qq_settings_logs', 'resolution');
+        $this->dbforge->drop_column('qq_settings_logs', 'data');
 
     }
 
