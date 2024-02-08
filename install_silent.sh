@@ -177,7 +177,7 @@ fi
 ln -s $(pwd)/quickqueues/assets/img/favicon.ico /var/www/html/favicon.ico
 
 # Permissions for local key store for JS
-# sudo chown asterisk:asterisk $(pwd)/quickqueues/persist.json
+sudo chown asterisk:asterisk $(pwd)/quickqueues/json/get_all_cached.json
 
 echo "====== INSTALLATION SUMMARY ===================================================="
 
