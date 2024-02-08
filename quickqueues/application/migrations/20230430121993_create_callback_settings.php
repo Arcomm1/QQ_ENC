@@ -39,7 +39,7 @@ class Migration_Create_callback_settings extends CI_Migration
             ),
             'date' => array(
                 'type' => 'TIMESTAMP',
-                'default' => 'CURRENT_TIMESTAMP',
+                // Removed the default attribute here to avoid the initial creation error
             ),
         );
 
@@ -47,7 +47,8 @@ class Migration_Create_callback_settings extends CI_Migration
         $this->dbforge->add_key('id', TRUE);
         $this->dbforge->create_table('qq_callback_settings', TRUE);
 
-        // Add the SQL query to modify the 'date' column
+        // After successfully creating the table, modify the 'date' column
+        // to have CURRENT_TIMESTAMP as both its default value and on update value.
         $this->db->query('ALTER TABLE qq_callback_settings MODIFY COLUMN date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
     }
 
