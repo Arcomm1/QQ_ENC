@@ -187,6 +187,12 @@ class Tools extends CI_Controller {
     }
 
 	public function get_all_cached() {
+        // Generate a random sleep time between 0 to 500 milliseconds
+        //$milliseconds = rand(0, 500);
+
+        // Sleep for the randomly generated time
+        //usleep($milliseconds * 1000); // usleep takes microseconds
+        
 		$this->load->library('asterisk_manager');
 		
 		$all_agents = $this->Agent_model->get_all();
