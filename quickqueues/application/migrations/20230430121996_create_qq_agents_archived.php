@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Migration_Create_agents_archived extends CI_Migration {
+class create_qq_agents_archived extends CI_Migration {
 
     public function up()
     {
