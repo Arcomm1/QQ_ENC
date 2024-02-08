@@ -34,5 +34,9 @@ systemctl daemon-reload
 systemctl enable QQclearcache_${function}.timer
 systemctl start QQclearcache_${function}.timer
 
+# Rename files as required
+mv /usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js /usr/src/QQ/quickqueues/assets/js/components/monitoring/index_old.js
+mv /usr/src/QQ/quickqueues/assets/js/components/monitoring/index_for_service.js /usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js
+
 # Display status
 systemctl status QQclearcache_${function}.timer
