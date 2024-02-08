@@ -5,20 +5,27 @@ class Migration_update_settings_logs_2 extends CI_Migration
 {
     public function up()
     {
+        // List of columns to potentially drop
+        $columns = [
+            'queue_id', 
+            'sla_callbacks', 
+            'timeout_callbacks', 
+            'sla_calls', 
+            'timeout_calls', 
+            'resolution', 
+            'data'
+        ];
 
-        $this->dbforge->drop_column('qq_settings_logs', 'queue_id');
-        $this->dbforge->drop_column('qq_settings_logs', 'sla_callbacks');
-        $this->dbforge->drop_column('qq_settings_logs', 'timeout_callbacks');
-        $this->dbforge->drop_column('qq_settings_logs', 'sla_calls');
-        $this->dbforge->drop_column('qq_settings_logs', 'timeout_calls');
-        $this->dbforge->drop_column('qq_settings_logs', 'resolution');
-        $this->dbforge->drop_column('qq_settings_logs', 'data');
-
+        // Check and drop each column if it exists
+        foreach ($columns as $column) {
+            if ($this->db->field_exists($column, 'qq_settings_logs')) {
+                $this->dbforge->drop_column('qq_settings_logs', $column);
+            }
+        }
     }
 
     public function down()
     {
-        $this->dbforge->drop_table('qq_settings_logs');
+        // Intentionally left empty
     }
-
 }
