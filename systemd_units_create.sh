@@ -1,45 +1,35 @@
 #!/bin/bash
 
-# Define the function and its respective timing settings
-function="get_all_cached"
-on_boot_sec="2sec"
-on_unit_active_sec="2sec"
-accuracy_sec="1ms"
+# Create Cron for Wrapper
+echo "* * * * * root /bin/bash /home/get_all_cached.sh" > /etc/cron.d/get_all_cached
 
-# Create the service unit file
-echo "[Unit]" > "/etc/systemd/system/QQclearcache_${function}.service"
-echo "Description=QQ Clear Cache ${function} Service" >> "/etc/systemd/system/QQclearcache_${function}.service"
-echo "" >> "/etc/systemd/system/QQclearcache_${function}.service"
-echo "[Service]" >> "/etc/systemd/system/QQclearcache_${function}.service"
-echo "Type=oneshot" >> "/etc/systemd/system/QQclearcache_${function}.service"
-echo "ExecStart=/bin/sh -c '/usr/bin/php /var/www/html/callcenter/index.php tools ${function}'" >> "/etc/systemd/system/QQclearcache_${function}.service"
-echo "" >> "/etc/systemd/system/QQclearcache_${function}.service"
+#!/bin/bash
 
-# Create the timer unit file
-echo "[Unit]" > "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "Description=Runs QQ Clear Cache ${function} every ${on_unit_active_sec}" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "[Timer]" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "OnBootSec=${on_boot_sec}" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "OnUnitActiveSec=${on_unit_active_sec}" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "AccuracySec=${accuracy_sec}" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "[Install]" >> "/etc/systemd/system/QQclearcache_${function}.timer"
-echo "WantedBy=timers.target" >> "/etc/systemd/system/QQclearcache_${function}.timer"
+# Target script path
+SCRIPT="/home/get_all_cached.sh"
 
-# Enable and start the timer unit
-systemctl enable QQclearcache_${function}.timer
-systemctl start QQclearcache_${function}.timer
+# Create the script with the given content
+cat << 'EOF' > $SCRIPT
+#!/bin/bash
+LOGFILE="/home/get_all_cached_log"
 
-# Reload systemd
-systemctl daemon-reload
+# Run the command 30 times with a sleep interval of 2 seconds
+for ((i=1; i<=29; i++)); do
+    /usr/bin/php /var/www/html/callcenter/index.php tools get_all_cached
+    sleep 2
+    # Store the current content of the log file
+    OLD_CONTENT=$(cat "$LOGFILE")
 
-# Define file paths and names as variables
-source_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index_for_service.js"
-target_file="/usr/src/QQ/quickqueues/assets/js/components/monitoring/index.js"
+    # Append the new entry with the current timestamp to a temporary file
+    echo "$(date '+%d-%m-%Y-%H_%M_%S')" > "$LOGFILE.tmp"
+    echo "$OLD_CONTENT" >> "$LOGFILE.tmp"
 
-# Copy the source file to the target file with force overwrite
-cp -f "$source_file" "$target_file"
+    # Replace the original log file with the temporary file
+    mv "$LOGFILE.tmp" "$LOGFILE"
+done
+EOF
 
-# Display status
-systemctl status QQclearcache_${function}.timer
+# Make the created script executable
+chmod +x $SCRIPT
+
+echo "Script $SCRIPT has been created and made executable."
