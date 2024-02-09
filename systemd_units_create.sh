@@ -39,4 +39,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 source_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index_for_service.js"
 target_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index.js"
 
+# Copy the source file to the target file with force overwrite
+cp -f "$source_file" "$target_file"
+
 echo "Script $SCRIPT has been created and made executable."
