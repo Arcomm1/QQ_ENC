@@ -8,4 +8,11 @@ LOG="/home/get_all_cached_pid"
 echo "Removing script and cron job files if they exist."
 rm -f "$SCRIPT" "$CRON_JOB" "$LOG"
 
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
+# Define file paths relative to the script's location
+source_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index_for_normal.js"
+target_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index.js"
+
 echo "Cleanup completed."
