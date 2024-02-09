@@ -12,7 +12,7 @@ echo "Description=QQ Clear Cache ${function} Service" >> "/etc/systemd/system/QQ
 echo "" >> "/etc/systemd/system/QQclearcache_${function}.service"
 echo "[Service]" >> "/etc/systemd/system/QQclearcache_${function}.service"
 echo "Type=oneshot" >> "/etc/systemd/system/QQclearcache_${function}.service"
-echo "ExecStart=/bin/sh -c '/usr/bin/php /var/www/html/callcenter/index.php tools ${function} || true'" >> "/etc/systemd/system/QQclearcache_${function}.service"
+echo "ExecStart=/bin/sh -c '/usr/bin/php /var/www/html/callcenter/index.php tools ${function}'" >> "/etc/systemd/system/QQclearcache_${function}.service"
 echo "" >> "/etc/systemd/system/QQclearcache_${function}.service"
 
 # Create the timer unit file
