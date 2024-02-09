@@ -59,8 +59,8 @@ class Recordings extends MY_Controller {
         $where['date >'] = $this->input->get('date_gt') ? $this->input->get('date_gt') : QQ_TODAY_START;
         $where['date <'] = $this->input->get('date_lt') ? $this->input->get('date_lt') : QQ_TODAY_END;
         $ring_no_answer_calls = array(); // Initialize an empty array
-        $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
-        $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : $this->data->queue_ids;
+        $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : (isset($this->data->queue_ids) ? $this->data->queue_ids : []);
+        $where['queue_id'] = $this->input->get('queue_id') ? $this->input->get('queue_id') : (isset($this->data->queue_ids) ? $this->data->queue_ids : []);
         if($this->input->get('event_type') != 'RINGNOANSWER')
         {
 
