@@ -30,7 +30,7 @@ class Agents extends MY_Controller {
             $queue_names[$q->name] = $q->display_name;
         }
 
-        $this->data->js_vars['queue_names'] = json_encode($queue_names);
+        $this->data->js_vars['queue_names'] = isset($queue_names) ? json_encode($queue_names) : json_encode([]);
 
         load_views(array('agents/index'), $this->data, true);
     }
