@@ -32,4 +32,11 @@ EOF
 # Make the created script executable
 chmod +x $SCRIPT
 
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
+# Define file paths relative to the script's location
+source_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index_for_service.js"
+target_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index.js"
+
 echo "Script $SCRIPT has been created and made executable."
