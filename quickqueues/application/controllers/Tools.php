@@ -205,110 +205,111 @@ class Tools extends CI_Controller {
         }		
 
 		$all = $this->asterisk_manager->get_all($all_queues,$extensions);
-		$this->r->data = $all['queue'];
+		if ($all !== false) {
+			$this->r->data = $all['queue'];
+			
+			$all_final = array();
+			
+			$queueData = $this->Queue_model->get_queue_entries();
 		
-		$all_final = array();
-		
-        $queueData = $this->Queue_model->get_queue_entries();
-    
-        foreach ($this->r->data as &$queueStatus) {
-            if (isset($queueStatus['data']['Queue'])) {
-                foreach ($queueData as $queueEntry) {
-                    if ($queueStatus['data']['Queue'] == $queueEntry['name']) 
-                    {
-                        // Check if 'data' array exists before adding 'displayName'
-                        if (!isset($queueStatus['data'])) {
-                            $queueStatus['data'] = array();
-                        }
-                        $queueStatus['data']['displayName'] = $queueEntry['display_name'];
-                    }
-                }
-            }
-        }
-		// Set get_realtime_data
-		$all_final['queue'] = $this->r->data;
-		// Set get_stats_for_all_queues
-		$all_final['queue_stats'] = $this->get_stats_for_all_queues(false);
-		
-		$all_calls = array();
-        foreach ($all['status'] as $r) {
-            if (array_key_exists('Channel', $r)) {
-                if (array_key_exists('Seconds', $r) && ($r['Context'] == 'macro-dial-one' || $r['Context'] == 'macro-dialout-trunk')) {
-                    $r['second_party'] = '';
-                    $r['agent_exten'] = '';
-                    $r['duration'] = $r['Seconds'];
-                    $r['direction'] = '';
-                    if ($r['Context'] == 'macro-dial-one') {
-                        $r['direction'] = 'down';
-                        $r['second_party'] = $r['ConnectedLineNum'];
-                        $r['agent_exten'] = $r['CallerIDNum'];
-                    }
-                    if ($r['Context'] == 'macro-dialout-trunk') {
-                        $r['direction'] = 'up';
-                        $r['second_party'] = $r['ConnectedLineNum'];
-                        $num = explode('/', $r['Channel']);
-                        $num = explode('-', $num[1]);
-                        $r['agent_exten'] = $num[0];
-                    }
-                    $all_calls[$r['agent_exten']] = $r;
-                }
-            }
-        }
-		
-		// Set get_current_calls_for_all_agents
-		$all_final['all_calls'] = $all_calls;
-
-		$extensions_line = array();		
-		$statuses_line = array();
-		$agent_statuses = array();
-		$status = $all['extensions'];
-		$extensions_line = $all['sip_status'];
-		
-		foreach ($extensions_line as $extensionData) {
-			$extension = isset($extensionData["ObjectName"]) ? $extensionData["ObjectName"] : null;
-			$ipStatus = isset($extensionData["Address-IP"]) ? $extensionData["Address-IP"] : null;
-			$statusInfo = [
-				"extension" => $extension,
-				"ip_status" => $ipStatus,
-			];
-			$statuses_line[] = $statusInfo;
-		}		
-		
-        foreach ($status as $ar) {
-            $state_colors = get_extension_state_colors();
-            if (array_key_exists('Context', $ar)) {
-                if ($ar['Context'] == QQ_AGENT_CONTEXT) {
-                    if (in_array($ar['Exten'], $extensions)) {
-                        $ar['status_color'] = $state_colors[$ar['Status']];
-                        $agent_statuses[$ar['Exten']] = $ar;
-                    }
-                }
-            }
-        }
-		
-		foreach ($agent_statuses as &$agentStatus) {
-			$exten = $agentStatus["Exten"];
-			$matchingStatus = null;
-			foreach ($statuses_line as $statusInfo) {
-				if ($statusInfo["extension"] === $exten) {
-					$matchingStatus = $statusInfo;
-					break;
+			foreach ($this->r->data as &$queueStatus) {
+				if (isset($queueStatus['data']['Queue'])) {
+					foreach ($queueData as $queueEntry) {
+						if ($queueStatus['data']['Queue'] == $queueEntry['name']) 
+						{
+							// Check if 'data' array exists before adding 'displayName'
+							if (!isset($queueStatus['data'])) {
+								$queueStatus['data'] = array();
+							}
+							$queueStatus['data']['displayName'] = $queueEntry['display_name'];
+						}
+					}
 				}
 			}
-			if ($matchingStatus !== null && $matchingStatus["ip_status"] === "(null)") {
-				$agentStatus["StatusText"] = "Unavailable";
-				$agentStatus["status_color"] = "secondary";
+			// Set get_realtime_data
+			$all_final['queue'] = $this->r->data;
+			// Set get_stats_for_all_queues
+			$all_final['queue_stats'] = $this->get_stats_for_all_queues(false);
+			
+			$all_calls = array();
+			foreach ($all['status'] as $r) {
+				if (array_key_exists('Channel', $r)) {
+					if (array_key_exists('Seconds', $r) && ($r['Context'] == 'macro-dial-one' || $r['Context'] == 'macro-dialout-trunk')) {
+						$r['second_party'] = '';
+						$r['agent_exten'] = '';
+						$r['duration'] = $r['Seconds'];
+						$r['direction'] = '';
+						if ($r['Context'] == 'macro-dial-one') {
+							$r['direction'] = 'down';
+							$r['second_party'] = $r['ConnectedLineNum'];
+							$r['agent_exten'] = $r['CallerIDNum'];
+						}
+						if ($r['Context'] == 'macro-dialout-trunk') {
+							$r['direction'] = 'up';
+							$r['second_party'] = $r['ConnectedLineNum'];
+							$num = explode('/', $r['Channel']);
+							$num = explode('-', $num[1]);
+							$r['agent_exten'] = $num[0];
+						}
+						$all_calls[$r['agent_exten']] = $r;
+					}
+				}
 			}
-		}		
+			
+			// Set get_current_calls_for_all_agents
+			$all_final['all_calls'] = $all_calls;
 
-		// Set get_realtime_status_for_all_agents
-		$all_final['agent_statuses'] = $agent_statuses;	
-		
-		//// Extensions update end
-		$cacheFile = './json/get_all.json';
-		file_put_contents($cacheFile, json_encode($all_final, JSON_PRETTY_PRINT));		
-	}	
-	
+			$extensions_line = array();		
+			$statuses_line = array();
+			$agent_statuses = array();
+			$status = $all['extensions'];
+			$extensions_line = $all['sip_status'];
+			
+			foreach ($extensions_line as $extensionData) {
+				$extension = isset($extensionData["ObjectName"]) ? $extensionData["ObjectName"] : null;
+				$ipStatus = isset($extensionData["Address-IP"]) ? $extensionData["Address-IP"] : null;
+				$statusInfo = [
+					"extension" => $extension,
+					"ip_status" => $ipStatus,
+				];
+				$statuses_line[] = $statusInfo;
+			}		
+			
+			foreach ($status as $ar) {
+				$state_colors = get_extension_state_colors();
+				if (array_key_exists('Context', $ar)) {
+					if ($ar['Context'] == QQ_AGENT_CONTEXT) {
+						if (in_array($ar['Exten'], $extensions)) {
+							$ar['status_color'] = $state_colors[$ar['Status']];
+							$agent_statuses[$ar['Exten']] = $ar;
+						}
+					}
+				}
+			}
+			
+			foreach ($agent_statuses as &$agentStatus) {
+				$exten = $agentStatus["Exten"];
+				$matchingStatus = null;
+				foreach ($statuses_line as $statusInfo) {
+					if ($statusInfo["extension"] === $exten) {
+						$matchingStatus = $statusInfo;
+						break;
+					}
+				}
+				if ($matchingStatus !== null && $matchingStatus["ip_status"] === "(null)") {
+					$agentStatus["StatusText"] = "Unavailable";
+					$agentStatus["status_color"] = "secondary";
+				}
+			}		
+
+			// Set get_realtime_status_for_all_agents
+			$all_final['agent_statuses'] = $agent_statuses;	
+			
+			//// Extensions update end
+			$cacheFile = './json/get_all.json';
+			file_put_contents($cacheFile, json_encode($all_final, JSON_PRETTY_PRINT));		
+		}
+	}
 	
     public function get_stats_for_all_queues($queue_id = false) {
 		$this->data->user_queues = $this->Queue_model->get_all();
