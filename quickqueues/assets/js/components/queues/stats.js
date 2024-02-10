@@ -291,7 +291,7 @@ var queue_stats = new Vue({
         /* --- End Of ATA Hold Time --- */
 
         all_incoming_calls: function() {
-            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered) +  parseInt(this.total_stats.callback_request);
+            return parseInt(this.total_stats.calls_answered ) + parseInt(this.total_stats.calls_unanswered);
         },
 
         call_time_avg:  function() {
