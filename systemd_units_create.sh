@@ -19,7 +19,7 @@ if [ -f "$PHP_SCRIPT" ]; then
 		/usr/bin/php "$PHP_SCRIPT" tools get_all_cached
 		sleep 2
 		# Store the current content of the log file
-		OLD_CONTENT=$(cat "$LOGFILE")
+		OLD_CONTENT=$(tail -n 100 "$LOGFILE") # Retrieve only the last 100 entries
 
 		# Append the new entry with the current timestamp to a temporary file
 		echo "$(date '+%d-%m-%Y-%H_%M_%S')" > "$LOGFILE.tmp"
