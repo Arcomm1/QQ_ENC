@@ -7,26 +7,28 @@ echo "* * * * * root /bin/bash /home/get_all_cached.sh" > /etc/cron.d/get_all_ca
 
 # Target script path
 SCRIPT="/home/get_all_cached.sh"
+PHP_SCRIPT="/var/www/html/callcenter/index.php"
 
 # Create the script with the given content
 cat << 'EOF' > $SCRIPT
 #!/bin/bash
 LOGFILE="/home/get_all_cached_log"
+if [ -f "$PHP_SCRIPT" ]; then
+	# Run the command 30 times with a sleep interval of 2 seconds
+	for ((i=1; i<=29; i++)); do
+		/usr/bin/php "$PHP_SCRIPT" tools get_all_cached
+		sleep 2
+		# Store the current content of the log file
+		OLD_CONTENT=$(cat "$LOGFILE")
 
-# Run the command 30 times with a sleep interval of 2 seconds
-for ((i=1; i<=29; i++)); do
-    /usr/bin/php /var/www/html/callcenter/index.php tools get_all_cached
-    sleep 2
-    # Store the current content of the log file
-    OLD_CONTENT=$(cat "$LOGFILE")
+		# Append the new entry with the current timestamp to a temporary file
+		echo "$(date '+%d-%m-%Y-%H_%M_%S')" > "$LOGFILE.tmp"
+		echo "$OLD_CONTENT" >> "$LOGFILE.tmp"
 
-    # Append the new entry with the current timestamp to a temporary file
-    echo "$(date '+%d-%m-%Y-%H_%M_%S')" > "$LOGFILE.tmp"
-    echo "$OLD_CONTENT" >> "$LOGFILE.tmp"
-
-    # Replace the original log file with the temporary file
-    mv "$LOGFILE.tmp" "$LOGFILE"
-done
+		# Replace the original log file with the temporary file
+		mv "$LOGFILE.tmp" "$LOGFILE"
+	done
+fi	
 EOF
 
 # Make the created script executable
