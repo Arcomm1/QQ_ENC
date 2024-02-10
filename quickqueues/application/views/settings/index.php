@@ -160,6 +160,20 @@
                     </select>
                 </div>
             </div>
+            <hr>
+            <div class="form-group row">
+                <label for="app_track_ringnoanswer" class="col-sm-2 col-form-label">App track ringnoanswer</label>
+                <div class="col-sm-10">
+                    <select name="app_track_ringnoanswer" class="form-control">
+                        <option value="no" <?php echo isset($this->data->duplicateSettings['app_track_ringnoanswer']) && $this->data->duplicateSettings['app_track_ringnoanswer'] == 'no' ? "selected" : ""; ?>>
+                            no
+                        </option>
+                        <option value="yes" <?php echo isset($this->data->duplicateSettings['app_track_ringnoanswer']) && $this->data->duplicateSettings['app_track_ringnoanswer'] == 'yes' ? "selected" : ""; ?>>
+                            yes
+                        </option>
+                    </select>
+                </div>
+            </div>
         </section>
     </div>
         <!-- Duplicate calls settings end here -->
