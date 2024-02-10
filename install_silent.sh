@@ -184,6 +184,7 @@ chmod +x $(pwd)/install.sh
 chmod +x $(pwd)/install_silent.sh
 chmod +x $(pwd)/systemd_units_create.sh
 chmod +x $(pwd)/systemd_units_remove.sh
+chmod +x $(pwd)/DB_queuelog.sh
 
 echo "====== INSTALLATION SUMMARY ===================================================="
 
