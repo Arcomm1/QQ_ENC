@@ -85,6 +85,7 @@ class Settings extends CI_Controller
                     'queue_log_fix_agent_duplicates'     => $this->input->post('fix_agent_duplicates'),
                     'app_enable_switchboard'             => $this->input->post('app_enable_switchboard'),
                     'app_track_ringnoanswer'             => $this->input->post('app_track_ringnoanswer'),
+                    'parser_type'             			 => $this->input->post('parser_type'),
                 );
                 $this->Settings_model->updateDuplicateSettings($duplicate_settings);
             } 
