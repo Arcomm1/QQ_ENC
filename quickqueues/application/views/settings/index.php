@@ -174,6 +174,20 @@
                     </select>
                 </div>
             </div>
+            <hr>
+            <div class="form-group row">
+                <label for="app_track_ringnoanswer" class="col-sm-2 col-form-label">Log Parser Type</label>
+                <div class="col-sm-10">
+                    <select name="parser_type" class="form-control">
+                        <option value="LOG" <?php echo isset($this->data->duplicateSettings['parser_type']) && $this->data->duplicateSettings['parser_type'] == 'LOG' ? "selected" : ""; ?>>
+                            LOG
+                        </option>
+                        <option value="DB" <?php echo isset($this->data->duplicateSettings['parser_type']) && $this->data->duplicateSettings['parser_type'] == 'DB' ? "selected" : ""; ?>>
+                            DB
+                        </option>
+                    </select>
+                </div>
+            </div>	            
         </section>
     </div>
         <!-- Duplicate calls settings end here -->
