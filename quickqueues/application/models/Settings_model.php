@@ -34,7 +34,7 @@ class Settings_model extends MY_Model
 
     public function getDuplicateSettings()
     {
-        $settingsToRetrieve = array('queue_log_rollback', 'queue_log_rollback_days', 'queue_log_rollback_with_deletion', 'queue_log_force_duplicate_deletion', 'queue_log_fix_agent_duplicates', 'app_enable_switchboard', 'app_track_ringnoanswer');
+        $settingsToRetrieve = array('queue_log_rollback', 'queue_log_rollback_days', 'queue_log_rollback_with_deletion', 'queue_log_force_duplicate_deletion', 'queue_log_fix_agent_duplicates', 'app_enable_switchboard', 'app_track_ringnoanswer', 'parser_type');
         $retrievedSettings = array();
         $query             = $this->db->get('qq_config');
         if ($query->num_rows() > 0) 

@@ -186,7 +186,7 @@ class Export extends MY_Controller {
                 //$category_export_permission= $this->data->config->app_call_categories;
                 if($category_export_permission == 'yes') 
                 {
-                    if (strlen($c->subject_family) > 0) {
+                    if (isset($c->subject_family) && strlen($c->subject_family) > 0) {
                         $empty_subject_family = ['', '', '', ''];
                         $subject_family_array = explode('|', $c->subject_family);
 
