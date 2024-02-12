@@ -5,12 +5,12 @@ class Migration_add_calltype_to_calls extends CI_Migration {
 
     public function up()
     {
-        // Check if the column 'calltype' already exists in the 'qq_calls' table
-        if (!$this->db->field_exists('calltype', 'qq_calls')) {
+        // Check if the column 'call_type' already exists in the 'qq_calls' table
+        if (!$this->db->field_exists('call_type', 'qq_calls')) {
             $fields = array(
-                'calltype' => array(
+					'call_type' => array(
                     'type' => 'VARCHAR',
-                    'constraint' => 30, // Updated constraint to 30
+                    'constraint' => 10, // Updated constraint to 10
                     'null' => TRUE, // To allow NULL values
                 )
             );
