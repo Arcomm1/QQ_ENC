@@ -83,7 +83,7 @@
                                             <i class="cil-list-rich text-primary mr-2"></i>
                                             <a class="text-decoration-none link-dark">{{ lang['calls_unique_in'] }}</a>
                                         </span>
-                                        <span>{{ unique_incoming_calls }}</span>
+                                        <span>{{ all_incoming_calls }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>

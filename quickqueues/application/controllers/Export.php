@@ -704,7 +704,7 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
         
         // Unique Incoming Calls
-        $rows_overview[] = array(lang('calls_unique_in'), ($total_stats->unique_incoming_calls_answered + $total_stats->unique_incoming_calls_unanswered));
+        $rows_overview[] = array(lang('calls_unique_in'), ($total_stats->calls_answered + $total_stats->calls_unanswered));
         
         // Unique Users
         $rows_overview[] = array(lang('calls_unique_users'), $total_stats->unique_incoming_calls_answered);
@@ -1163,7 +1163,7 @@ class Export extends MY_Controller {
             $queue_stats[$s->queue_id]['calls_total']           = $s->calls_answered + $s->calls_unanswered + $s->calls_outgoing_answered + $s->calls_outgoing_unanswered;
            
            //Unique Incoming Calls
-            $queue_stats[$s->queue_id]['unique_incoming_calls'] = $s->unique_incoming_calls_answered + $s->unique_incoming_calls_unanswered;
+            $queue_stats[$s->queue_id]['unique_incoming_calls'] = $s->calls_answered + $s->calls_unanswered;
             
             //Unique Users
             $queue_stats[$s->queue_id]['unique_users']          = $s->unique_incoming_calls_answered;
@@ -2867,7 +2867,7 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->callback_request + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
         
         // Unique Incoming Calls
-        $rows_overview[] = array(lang('calls_unique_in'), ($total_stats->unique_incoming_calls_answered + $total_stats->unique_incoming_calls_unanswered));
+        $rows_overview[] = array(lang('calls_unique_in'), ($total_stats->calls_answered + $total_stats->calls_unanswered));
         
         // Unique Users
         $rows_overview[] = array(lang('calls_unique_users'), $total_stats->unique_incoming_calls_answered);
