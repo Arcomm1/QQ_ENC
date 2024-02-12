@@ -34,11 +34,13 @@ case "$1" in
             echo "$QUEUE_LOG" >> "$CONFIG_FILE"
             echo "Added $SETTINGS and $QUEUE_LOG to $CONFIG_FILE"
         fi
+        asterisk -rx "core reload"
         asterisk -rx "module reload logger"
         echo "Asterisk logger module reloaded."
         ;;
     remove)
         remove_queue_log
+        asterisk -rx "core reload"
         asterisk -rx "module reload logger"
         echo "Asterisk logger module reloaded."
         ;;
