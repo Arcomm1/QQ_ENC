@@ -10,7 +10,7 @@ class Migration_add_calltype_to_calls extends CI_Migration {
             $fields = array(
                 'calltype' => array(
                     'type' => 'VARCHAR',
-                    'constraint' => 10, // Updated constraint to 10
+                    'constraint' => 30, // Updated constraint to 30
                     'null' => TRUE, // To allow NULL values
                 )
             );
