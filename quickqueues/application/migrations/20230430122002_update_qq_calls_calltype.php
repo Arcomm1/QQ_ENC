@@ -13,7 +13,7 @@ class Migration_update_qq_calls_calltype extends CI_Migration {
         // Update to 'local'
         $this->db->query("
             UPDATE qq_calls 
-            SET calltype = 'local' 
+            SET call_type = 'local' 
             WHERE 
                 $srcCondition
             AND 
@@ -25,7 +25,7 @@ class Migration_update_qq_calls_calltype extends CI_Migration {
         // Update to 'local_abandoned' (Note: src condition is already included, dst condition adapted for consistency)
         $this->db->query("
             UPDATE qq_calls 
-            SET calltype = 'local_abandoned' 
+            SET call_type = 'local_abandoned' 
             WHERE 
                 $srcCondition
                 AND (dst IS NULL OR dst = '') 
@@ -36,7 +36,7 @@ class Migration_update_qq_calls_calltype extends CI_Migration {
         // Update to 'local_queue'
         $this->db->query("
             UPDATE qq_calls 
-            SET calltype = 'local_queue' 
+            SET call_type = 'local_queue' 
             WHERE 
                 $srcCondition
                 AND dst IN (SELECT extension FROM queues_config)
@@ -45,7 +45,7 @@ class Migration_update_qq_calls_calltype extends CI_Migration {
         // Update to 'local_fcode'
         $this->db->query("
             UPDATE qq_calls 
-            SET calltype = 'local_fcode' 
+            SET call_type = 'local_fcode' 
             WHERE 
                 $srcCondition
                 AND dst LIKE '%*%'
