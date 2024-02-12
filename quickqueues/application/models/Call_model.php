@@ -483,11 +483,11 @@ class Call_model extends MY_Model {
             return false;
         }
         $this->db->select('COUNT(CASE WHEN event_type = "DID" THEN 1 END) AS calls_unique');
-        $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS unique_incoming_calls_answered');
-        $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS unique_incoming_calls_unanswered');
+        $this->db->select('COUNT(CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS unique_incoming_calls_answered');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS unique_incoming_calls_unanswered');
 		
-		$this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS unique_outgoing_calls_answered');
-        $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS unique_outgoing_calls_unanswered');
+		$this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS unique_outgoing_calls_answered');
+        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS unique_outgoing_calls_unanswered');
 		
         $this->db->select('COUNT(CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS calls_answered');
         $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS calls_outgoing_answered');
@@ -743,12 +743,12 @@ class Call_model extends MY_Model {
             return false;
         }
             $this->db->select('COUNT(CASE WHEN event_type = "DID" THEN 1 END) AS calls_unique');
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS unique_incoming_calls_answered');
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("ABANDON", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS unique_incoming_calls_unanswered');
+            $this->db->select('COUNT(CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS unique_incoming_calls_answered');
+            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS unique_incoming_calls_unanswered');
             $this->db->select('COUNT(CASE WHEN event_type IN ("EXITWITHKEY") THEN 1 END) AS callback_request');
             
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS unique_outgoing_calls_answered');
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS unique_outgoing_calls_unanswered');
+            $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS unique_outgoing_calls_answered');
+            $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS unique_outgoing_calls_unanswered');
             
 
             $this->db->select('COUNT(CASE WHEN event_type IN ("INCOMINGOFFWORK") THEN 1 END) AS calls_offwork');
