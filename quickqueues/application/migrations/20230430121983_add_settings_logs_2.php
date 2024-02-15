@@ -3,76 +3,60 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Migration_add_settings_logs_2 extends CI_Migration 
 {
-
     public function up()
     {
-        // $this->dbforge->drop_column('qq_settings_logs','calls_without_service_queue_id');
-        // $this->dbforge->drop_column('qq_settings_logs','sla_callbacks');
-        // $this->dbforge->drop_column('qq_settings_logs','timeout_callbacks');
-        // $this->dbforge->drop_column('qq_settings_logs','sla_calls');
-        // $this->dbforge->drop_column('qq_settings_logs','timeout_calls');
-        // return;
-        $fields = array (
-            'calls_without_service_queue_id' => array(
+        $columnsToAdd = [
+            'calls_without_service_queue_id' => [
                 'type' => 'INT',
                 'constraint' => 11,
                 'unsigned' => TRUE,
-            ),
-        );
-
-        $this->dbforge->add_column('qq_settings_logs', $fields);
-
-        $fields = array (
-            'sla_callbacks' => array(
+            ],
+            'sla_callbacks' => [
                 'type' => 'VARCHAR',
                 'constraint' => 10,
-            ),
-        );
-            
-        $this->dbforge->add_column('qq_settings_logs', $fields);
-
-        $fields = array (
-            'timeout_callbacks' => array(
+            ],
+            'timeout_callbacks' => [
                 'type' => 'VARCHAR',
                 'constraint' => 10,
-            ),
-        );  
-        $this->dbforge->add_column('qq_settings_logs', $fields);
-
-        $fields = array (
-            'sla_calls' => array(
+            ],
+            'sla_calls' => [
                 'type' => 'VARCHAR',
                 'constraint' => 10,
-            ),
-        );  
-        
-        $this->dbforge->add_column('qq_settings_logs', $fields);
-
-        $fields = array (
-            'timeout_calls' => array(
+            ],
+            'timeout_calls' => [
                 'type' => 'VARCHAR',
                 'constraint' => 10,
-            ),
-        );  
-            
-         $this->dbforge->add_column('qq_settings_logs', $fields);
-         $fields = array (
-            'date' => array(
+            ],
+            'date' => [
                 'type' => 'DATETIME',
+                // Note: Using '0000-00-00 00:00:00' as a default value might cause issues with strict SQL modes in MySQL 5.7+.
+                // Consider using a valid default DATETIME value or CURRENT_TIMESTAMP if appropriate for your application.
                 'default' => '0000-00-00 00:00:00',
-            ),
-        );
+            ],
+        ];
 
-        $this->dbforge->add_column('qq_settings_logs', $fields);
+        foreach ($columnsToAdd as $columnName => $columnDefinition) {
+            if (!$this->db->field_exists($columnName, 'qq_settings_logs')) {
+                $this->dbforge->add_column('qq_settings_logs', [$columnName => $columnDefinition]);
+            }
+        }
     }
 
     public function down()
     {
-        $this->dbforge->drop_column('qq_settings_logs','calls_without_service_queue_id');
-        $this->dbforge->drop_column('qq_settings_logs','sla_callbacks');
-        $this->dbforge->drop_column('qq_settings_logs','timeout_callbacks');
-        $this->dbforge->drop_column('qq_settings_logs','sla_calls');
-        $this->dbforge->drop_column('qq_settings_logs','timeout_calls');
-        $this->dbforge->drop_column('qq_settings_logs','date');
+        $columnsToDrop = [
+            'calls_without_service_queue_id',
+            'sla_callbacks',
+            'timeout_callbacks',
+            'sla_calls',
+            'timeout_calls',
+            'date',
+        ];
+
+        foreach ($columnsToDrop as $columnName) {
+            if ($this->db->field_exists($columnName, 'qq_settings_logs')) {
+                $this->dbforge->drop_column('qq_settings_logs', $columnName);
+            }
+        }
     }
 }
