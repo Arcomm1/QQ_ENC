@@ -80,10 +80,12 @@ class User_model extends MY_Model {
             foreach ($qids->result() as $qid) {
                 $queue_agents = $this->Queue_model->get_agents($qid->queue_id);
                 foreach ($queue_agents as $qa) {
-                    $agent_ids[] = $qa->id;
-                    if ($qa->deleted == '0') {
-                        $agents[$qa->id] = $qa;
-                    }
+					if (is_object($qa) && isset($qa->id)) {
+						$agent_ids[] = $qa->id;
+						if ($qa->deleted == '0') {
+							$agents[$qa->id] = $qa;
+						}
+					}
                 }
             }
             return $agents;
