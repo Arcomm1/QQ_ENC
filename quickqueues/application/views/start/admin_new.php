@@ -89,9 +89,8 @@
                                                 {{ lang['calls_total'] }}
                                             </a>
                                         </span>
-                                        <span>{{ calls_total }}</span>
-                                    </li>
-									
+                                        <span>{{ calls_total }} </span>
+                                    </li>								
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-list-rich text-primary mr-2"></i>
@@ -154,7 +153,13 @@
                                         </span>
                                         <span>{{ hold_time_avg }}</span>
                                     </li>
-									
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="cil-list-rich text-primary mr-2"></i>
+                                                {{ lang['local_calls'] }}
+                                        </span>
+                                        <span>{{ total_stats.calls_total_local }}</span>
+                                    </li>										
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-warning mr-2"></i>
