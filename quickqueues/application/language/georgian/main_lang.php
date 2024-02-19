@@ -24,6 +24,7 @@ $lang['current_call']       = "მიმდინარე ზარი";
 $lang['last']               = "ბოლო";
 $lang['last_call']          = "ბოლო ზარი";
 $lang['actions']            = "ქმედებები";
+$lang['local_calls']        = "შიდა ზარები";
 
 $lang['calls_answered']     = "შემომავალი (ნაპასუხები)";
 $lang['calls_unanswered']   = "უპასუხო";
