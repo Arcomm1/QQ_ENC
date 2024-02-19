@@ -49,6 +49,10 @@
                                     {{ agent.calls_answered }}
                                 </td>
                                 <td>
+                                    {{ agent.total_local_calls }}
+                                </td>								
+                                <td>                        
+                                <td>
                                     {{ sec_to_time(agent.incoming_total_calltime) }}
                                 </td>
                                 <td>
