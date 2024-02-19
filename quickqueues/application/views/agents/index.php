@@ -5,6 +5,7 @@
                 <div class="card-body">
                     <h4 class="card-title mb-3"><?php echo lang('agents'); ?></h4>
                     <!-- Ordering -->
+                    <div class="table-responsive">
                     <table class="table agents_table">
                         <thead class="table-light fw-semibold">
                             <tr>
@@ -86,6 +87,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                     <!--End Of Ordering-->
                 </div>
             </div>
