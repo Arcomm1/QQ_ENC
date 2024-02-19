@@ -132,10 +132,10 @@ var monitoring_dashboard = new Vue({
                 });
         },
        
-        isAgentOnCall(agentExtension) 
-        {
-            return this.agent_statuses[agentExtension]['StatusText'] === 'InUse';
-        },
+		isAgentOnCall(agentExtension) {
+			// Safely check if agentExtension exists and has a StatusText property
+			return this.agent_statuses[agentExtension] && this.agent_statuses[agentExtension]['StatusText'] === 'InUse';
+		},
 
 		updateCallDuration: function(agentExtension) {
 			// Retrieve call durations from local storage

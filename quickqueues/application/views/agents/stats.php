@@ -83,6 +83,13 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
+                                            <i class="cil-list-rich text-primary mr-2"></i>
+                                           {{ lang['local_calls'] }}
+                                        </span>
+                                        <span>{{ total_stats.calls_total_local }}</span>
+                                    </li>									
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
                                             <i class="cil-check text-success mr-4"></i>
                                             <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>">{{ lang['start_menu_calls_answered'] }}</a>
                                         </span>

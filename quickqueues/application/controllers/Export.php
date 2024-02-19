@@ -682,10 +682,8 @@ class Export extends MY_Controller {
 
         foreach ($this->data->user_queues as $q) 
         {
-            if (stripos($q->display_name, 'callback') === false) 
-            {
-                array_push($queue_ids, $q->id);
-            }
+            array_push($queue_ids, $q->id);
+
         }
 
         $rows_overview   = array();
@@ -698,10 +696,17 @@ class Export extends MY_Controller {
         ////////////////// -------- OVERVIEW SHEET ------/////////////////////////
 
         $total_stats = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
-
-
+        $local_calls = $this->Call_model->get_local_calls_for_start($date_range, false);
+       
         // Total Calls
         $rows_overview[] = array(lang('calls_total'), ($total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered));
+
+        // Local Calls
+		if (!isset($local_calls->calls_total_local)) {
+			$rows_overview[] = array(lang('local_calls'), 0);
+		}else {
+			$rows_overview[] = array(lang('local_calls'), $local_calls->calls_total_local);
+		}		
         
         // Unique Incoming Calls
         $rows_overview[] = array(lang('calls_unique_in'), ($total_stats->calls_answered + $total_stats->calls_unanswered));
@@ -874,10 +879,10 @@ class Export extends MY_Controller {
     
         $agent_call_stats  = $this->Call_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_ids, $date_range);
-        $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
+        $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);		
         
         foreach ($this->data->user_agents as $a) 
-        {
+        {			
             $agent_stats[$a->id] = array(
                 'display_name'                                           => $a->display_name,
                 'last_call'                                              => $a->last_call,
@@ -901,7 +906,8 @@ class Export extends MY_Controller {
                 'calls_outgoing_unanswered'                              => 0,
                 'outgoing_talk_time_sum'                                 => 0,
                 'outgoing_talk_time_avg'                                 => 0,  
-                'outgoing_talk_time_max'                                 => 0,  
+                'outgoing_talk_time_max'                                 => 0,
+				'calls_total_local'										 => 0,
             );
         }
     
@@ -919,7 +925,7 @@ class Export extends MY_Controller {
             }
         }
         foreach($agent_call_stats as $s) 
-        {          
+        {
             
             // Total Calls
             $totalCalls = $total_stats->calls_answered + $total_stats->calls_unanswered + $total_stats->calls_outgoing_answered + $total_stats->calls_outgoing_unanswered;
@@ -1047,6 +1053,16 @@ class Export extends MY_Controller {
             // Outgoing Talk Time Max
             $agent_stats[$s->agent_id]['outgoing_talk_time_max']   = $s->outgoing_total_calltime_count > 0 ? sec_to_time(
                 floor($s->outgoing_max_calltime)) : 0;
+
+			// Local Calls
+			$local_calls_for_start = $this->Call_model->get_local_calls_for_start($date_range, $s->agent_id);
+			
+			if (!isset($local_calls_for_start->calls_total_local)) {
+				$agent_stats[$s->agent_id]['calls_total_local'] = 0; // Set default value if the property does not exist
+			}else {
+				$agent_stats[$s->agent_id]['calls_total_local'] = $local_calls_for_start->calls_total_local;
+			}					
+				
         }
         
        
@@ -1074,6 +1090,7 @@ class Export extends MY_Controller {
             lang('outgoing_talk_time_sum_overview'),
             lang('outgoing_talk_time_avg'),
             lang('outgoing_talk_time_max'),
+			lang('local_calls'),
         );  
 
     
@@ -1104,6 +1121,7 @@ class Export extends MY_Controller {
             isset($i['outgoing_talk_time_sum']) ? $i['outgoing_talk_time_sum'] : 0,
             isset($i['outgoing_talk_time_avg']) ? $i['outgoing_talk_time_avg'] : 0,
             isset($i['outgoing_talk_time_max']) ? $i['outgoing_talk_time_max'] : 0,
+			isset($i['calls_total_local']) ? $i['calls_total_local'] : 0,
         );
         }
         ////////////////// ------ END OF AGENTS SHEET ------- /////////////////////
@@ -3030,15 +3048,17 @@ class Export extends MY_Controller {
         $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
 
         foreach ($this->Queue_model->get_agents($queue_id) as $a) {
-            $agent_stats[$a->id] = array(
-                'display_name'              => $a->display_name,
-                'calls_answered'            => 0,
-                'incoming_total_calltime'   => 0,
-                'calls_missed'              => 0,
-                'calls_outgoing_answered'   => 0,
-                'outgoing_total_calltime'   => 0,
-                'calls_outgoing_unanswered' => 0,
-            );
+            if (is_object($a) && isset($a->id)) {
+				$agent_stats[$a->id] = array(
+					'display_name'              => $a->display_name,
+					'calls_answered'            => 0,
+					'incoming_total_calltime'   => 0,
+					'calls_missed'              => 0,
+					'calls_outgoing_answered'   => 0,
+					'outgoing_total_calltime'   => 0,
+					'calls_outgoing_unanswered' => 0,
+				);
+			}
         }
 
         foreach($agent_call_stats as $s) {
@@ -3456,6 +3476,15 @@ class Export extends MY_Controller {
         $rows_overview[] = array(lang('outgoing_talk_time_max'), $total_stats->outgoing_total_calltime_count > 0 ? sec_to_time(
             floor($total_stats->outgoing_max_calltime)) : 0
         );
+		
+		// Local Calls
+		$local_calls_for_start = $this->Call_model->get_local_calls_for_start($date_range, $agent_id);
+		
+		if (!isset($local_calls_for_start->calls_total_local)) {
+			$rows_overview[] = array(lang('local_calls'),0); // Set default value if the property does not exist
+		}else {
+			$rows_overview[] = array(lang('local_calls'),$local_calls_for_start->calls_total_local);
+		}		
         
         ////////////////// ----------- END OF OVERVIEW SHEET---------------/////////////////////////
 

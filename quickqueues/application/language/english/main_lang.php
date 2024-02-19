@@ -22,6 +22,7 @@ $lang['outgoing_talk_time_avg']                                  = "Outgoing tal
 $lang['outgoing_talk_time_max']                                  = "Outgoing talk time (max)";
 $lang['start_menu_calls_offwork']                                = "Off work calls";
 $lang['start_menu_calls_waiting']                                = "Calls waiting";
+$lang['local_calls']                                             = "Local calls";
 
 $lang['recordings']         = "Recordings";
 $lang['queues']             = "Queues";

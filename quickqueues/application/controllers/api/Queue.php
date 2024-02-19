@@ -1669,7 +1669,19 @@ class Queue extends MY_Controller {
             array_push($queue_ids, $q->id);
         }
 
-        $this->r->data = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
+		$stats_for_start = $this->Call_model->get_stats_for_start($queue_ids, $date_range);
+		$local_calls_for_start = $this->Call_model->get_local_calls_for_start($date_range, false);
+		
+		$stats_for_start->calls_total_local = $local_calls_for_start->calls_total_local;
+		
+		if (!isset($local_calls_for_start->calls_total_local)) {
+			$stats_for_start->calls_total_local = 0; // Set default value if the property does not exist
+		}else {
+			$stats_for_start->calls_total_local = $local_calls_for_start->calls_total_local;
+		}
+
+		$this->r->data = $stats_for_start;
+		
         $this->r->status = 'OK';
         $this->r->message = 'Total queue stats will follow';
         $this->_respond();

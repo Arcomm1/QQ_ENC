@@ -1464,6 +1464,15 @@ class Agent extends MY_Controller {
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
 
         $agent_call_stats = $this->Call_model->get_agent_stats_for_agent_stats_page($agent_id, $date_range);
+		
+		$local_calls_for_start = $this->Call_model->get_local_calls_for_start($date_range, $agent_id);
+		
+		if (!isset($local_calls_for_start->calls_total_local)) {
+			$agent_call_stats->calls_total_local = 0; // Set default value if the property does not exist
+		}else {
+			$agent_call_stats->calls_total_local = $local_calls_for_start->calls_total_local;
+		}
+		
         $agent_event_stats = $this->Event_model->get_agent_stats_for_agent_stats_page($agent_id, $date_range);
         $agent_call_stats->calls_missed = $agent_event_stats->calls_missed;
 
@@ -1486,15 +1495,17 @@ class Agent extends MY_Controller {
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page(array($queue_id), $date_range);
 
         foreach ($this->Queue_model->get_agents($queue_id) as $a) {
-            $agent_stats[$a->id] = array(
-                'display_name'              => $a->display_name,
-                'calls_answered'            => 0,
-                'incoming_total_calltime'   => 0,
-                'calls_missed'              => 0,
-                'calls_outgoing_answered'   => 0,
-                'outgoing_total_calltime'   => 0,
-                'calls_outgoing_unanswered' => 0,
-            );
+			if (is_object($a)) {		
+				$agent_stats[$a->id] = array(
+					'display_name'              => $a->display_name,
+					'calls_answered'            => 0,
+					'incoming_total_calltime'   => 0,
+					'calls_missed'              => 0,
+					'calls_outgoing_answered'   => 0,
+					'outgoing_total_calltime'   => 0,
+					'calls_outgoing_unanswered' => 0,
+				);
+			}
         }
         foreach($agent_call_stats as $s) {
             $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
