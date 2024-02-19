@@ -70,19 +70,7 @@ class Call_model extends MY_Model {
         }
 
         // Exclude Internal Calls
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();
-		
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");
 
         return $this->db->get($this->_table)->result();
     }
@@ -131,19 +119,7 @@ class Call_model extends MY_Model {
         $this->db->from($this->_table);
 
         // Exclude Internal Calls
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();
-		
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");	
 
         return $this->db->count_all_results();
     }
@@ -546,22 +522,30 @@ class Call_model extends MY_Model {
         $this->db->where('date <', $date_range['date_lt']);
 		
         // Exclude Internal Calls
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();
-
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
 		
         return $this->db->get($this->_table)->row();
     }
+	
+	// Get local calls count for start page
+    public function get_local_calls_for_start($date_range = array(), $agent_id=false)
+    {
+        if (count($date_range) == 0) {
+            return false;
+        }
+		
+		if ($agent_id === false){
+			$this->db->select("SUM(CASE WHEN call_type LIKE '%local%' AND call_type != 'local_fcode' AND call_type != 'local_queue' THEN 1 ELSE 0 END) AS calls_total_local");
+		}
+		else {
+			$this->db->select("SUM(CASE WHEN call_type LIKE '%local%' AND agent_id='$agent_id' AND call_type != 'local_fcode' AND call_type != 'local_queue' THEN 1 ELSE 0 END) AS calls_total_local");
+		}
+		
+        $this->db->where('date >', $date_range['date_gt']);
+        $this->db->where('date <', $date_range['date_lt']);
+		
+        return $this->db->get($this->_table)->row();
+	}	
 
     /* here we are for agents*/
     public function get_agent_stats_for_agent_stats_page($agent_id = false, $date_range = array())
@@ -614,19 +598,7 @@ class Call_model extends MY_Model {
         $this->db->where('date <', $date_range['date_lt']);
 		
         // Exclude Internal Calls
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();	
-
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);        
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");      
       
         $this->db->from('qq_calls');
         return $this->db->get()->row();
@@ -650,20 +622,8 @@ class Call_model extends MY_Model {
         $this->db->group_by('agent_id');
         $this->db->from('qq_calls, qq_agents');
 		
-        // Exclude Internal Calls 1
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();	   		
-
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+        // Exclude Internal Calls
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
 		
         return $this->db->get()->result();
     }
@@ -718,20 +678,8 @@ class Call_model extends MY_Model {
         $this->db->group_by('agent_id');
         $this->db->from('qq_calls');
 		
-        // Exclude Internal Calls 2
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();			
-
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+        // Exclude Internal Calls
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
 		
         return $this->db->get()->result();
     }
@@ -823,20 +771,8 @@ class Call_model extends MY_Model {
             $this->db->group_by('queue_id');
             $this->db->from('qq_calls, qq_queues');
 			
-			// Exclude Internal Calls 3
-			$this->db->group_start()
-			->where('src NOT IN (SELECT extension FROM users)')
-			->or_where('dst NOT IN (SELECT extension FROM users)')
-			->group_end();				
-
-			// Additionally, exclude calls where src is in extensions and dst contains '*'
-			$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-			
-			// Adding the new exclusion condition for local to queue calls
-			$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-			
-			// Adding the new exclusion condition for ABANDON (local to queue calls)
-			$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);			
+			// Exclude Internal Calls
+			$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");			
 			
             return $this->db->get()->result();
     }
@@ -921,20 +857,8 @@ class Call_model extends MY_Model {
     
         $this->db->group_by('DATE_FORMAT(date, "%H")');
 
-        // Exclude Internal Calls 4
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();	
- 
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+        // Exclude Internal Calls
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
  
         return $this->db->get()->result();
     }
@@ -964,20 +888,8 @@ class Call_model extends MY_Model {
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
 
-        // Exclude Internal Calls 5
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();			
-
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+        // Exclude Internal Calls
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
 		
         return $this->db->get($this->_table)->result();
     }
@@ -1007,20 +919,8 @@ class Call_model extends MY_Model {
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
 		
-        // Exclude Internal Calls 5
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();			
-
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+        // Exclude Internal Calls
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");	
 		
         return $this->db->get($this->_table)->result();
     }
@@ -1051,20 +951,8 @@ class Call_model extends MY_Model {
         $this->db->where('date <', $date_range['date_lt']);
         $this->db->group_by('HOUR(date)');
 		
-        // Exclude Internal Calls 5
-		$this->db->group_start()
-        ->where('src NOT IN (SELECT extension FROM users)')
-        ->or_where('dst NOT IN (SELECT extension FROM users)')
-        ->group_end();			
-
-		// Additionally, exclude calls where src is in extensions and dst contains '*'
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` LIKE '%*%')");
-		
-		// Adding the new exclusion condition for local to queue calls
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` IN (SELECT extension FROM queues_config))");
-		
-		// Adding the new exclusion condition for ABANDON (local to queue calls)
-		$this->db->where("NOT (`src` IN (SELECT extension FROM users) AND `dst` = '' AND event_type = 'ABANDON' AND agent_id = 0)", NULL, FALSE);		
+        // Exclude Internal Calls
+		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
 		
         return $this->db->get($this->_table)->result();
     }
