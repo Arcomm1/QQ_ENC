@@ -5,7 +5,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-3">
                         <div>
-                            <h4 class="card-title"><?php echo lang('queue').": ".$queue->display_name; ?></h4>
+                            <h4 class="card-title"><?php echo lang('queue').": $queue->name ($queue->display_name)";?></h4>
                             <div class="small text-medium-emphasis mb-3"><?php echo lang('overview'); ?></div>
                         </div>
                         <div class="btn-toolbar d-none d-md-block" role="toolbar">
@@ -152,8 +152,8 @@
                                         </tr>
                                     </thead>
                                     <tbody class="monitoring-dashboard-table-body">
-                                        <tr v-cloak v-for="agent in freepbx_agents" class="align-middle">
-                                            <td v-bind:id="'agent_status_'+agent.agent_id" scope="row">
+                                        <tr v-cloak v-for="agent in freepbx_agents" class="align-middle" >
+                                            <td v-bind:id="'agent_status_'+agent.agent_id" scope="row" style="width: 500px;">
                                                 <div>
                                                     <span>
                                                         <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-'+agent_statuses[agent.extension].status_color"></i>
@@ -163,7 +163,11 @@
                                                     <span v-if="agent_current_calls[agent.extension]">
                                                         <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
                                                         {{ agent_current_calls[agent.extension].second_party }}
-                                                    </span>
+														<img src="<?php echo base_url('assets/img/copy.png'); ?>" width="20" height="20" alt="" @click="copyToClipboard(agent_current_calls[agent.extension].second_party)">
+												   </span>
+													<span v-if="sec_to_time(callDurations[agent.extension]) !== '00:00:00'">
+														{{ sec_to_time(callDurations[agent.extension]) }}
+													</span>													   
                                                     <span v-else></span>
                                                 </div>
                                                 <div class="small text-medium-emphasis">
@@ -173,13 +177,28 @@
                                                     {{ " | "+agent.last_call }}
                                                 </div>
                                             </td>
-                                            <td>--</td>
-                                            <td>{{ agent_stats[agent.id].calls_answered }}</td>
-                                            <td>{{ sec_to_time(agent_stats[agent.id].incoming_total_calltime) }}</td>
-                                            <td>{{ agent_stats[agent.id].calls_missed }}</td>
-                                            <td>{{ agent_stats[agent.id].calls_outgoing_answered }} </td>
-                                            <td>{{ sec_to_time(agent_stats[agent.id].outgoing_total_calltime) }}</td>
-                                            <td>{{ agent_stats[agent.id].calls_outgoing_unanswered }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">
+												{{
+													agent_statuses[agent.extension]
+													? (
+														agent_statuses[agent.extension].StatusText === 'Idle' ? 'Available' :
+														agent_statuses[agent.extension].StatusText === 'Unavailable' ? 'Unavailable' :
+														agent_statuses[agent.extension].StatusText === 'InUse' ? 'Active' :
+														agent_statuses[agent.extension].StatusText === 'Busy' ? 'DND' :
+														agent_statuses[agent.extension].StatusText === 'Ringing' ? 'Active Ringing' :
+														agent_statuses[agent.extension].StatusText === 'Hold' ? 'Active OnHold' :														
+														agent_statuses[agent.extension].StatusText
+													  )
+													: ''
+												}}
+											 </td>
+											<!-- Using the ternary operator to display stats or a default value -->
+											<td>{{ agent_stats[agent.id] ? agent_stats[agent.id].calls_answered : 0 }}</td>
+											<td>{{ agent_stats[agent.id] ? sec_to_time(agent_stats[agent.id].incoming_total_calltime) : '0:00' }}</td>
+											<td>{{ agent_stats[agent.id] ? agent_stats[agent.id].calls_missed : 0 }}</td>
+											<td>{{ agent_stats[agent.id] ? agent_stats[agent.id].calls_outgoing_answered : 0 }}</td>
+											<td>{{ agent_stats[agent.id] ? sec_to_time(agent_stats[agent.id].outgoing_total_calltime) : '0:00' }}</td>
+											<td>{{ agent_stats[agent.id] ? agent_stats[agent.id].calls_outgoing_unanswered : 0 }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -192,7 +211,7 @@
         <div class="col">
             <div class="card border-top-danger border-danger border-top-3">
                 <div class="card-body">
-                    <h5 class="card-title"><?php echo lang('callers'); ?></h5>
+                    <h5 class="card-title" style="text-align: center;"><?php echo lang('queue').": $queue->name ($queue->display_name)";?></h5>
                     <table class="table table-sm">
                         <thead class="table-light fw-semibold">
                             <tr class="align-middle">
@@ -214,3 +233,14 @@
         </div>
     </div>
 </div>
+<style>
+#queue_realtime {
+    width: 100%;
+    max-width: none;
+}
+
+.paused-text {
+    display: block; /* This will put the text on a new line */
+    color: red;     /* This will make the text red */
+}
+</style>
