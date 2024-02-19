@@ -4,9 +4,9 @@
             <div class="row mb-2">
                 <div class="col">
                     <div class="input-group">
-                        <input class="form-control" autocomplete="off" tupe="text" id="date_gt" name="date_gt" 
+                        <input class="form-control" autocomplete="off" type="text" id="date_gt" name="date_gt" 
                             placeholder="<?php echo lang('date_gt'); ?>" value="<?php echo $this->input->get('date_gt'); ?>">
-                        <input class="form-control" autocomplete="off" tupe="text" id="date_lt" name="date_lt" 
+                        <input class="form-control" autocomplete="off" type="text" id="date_lt" name="date_lt" 
                             placeholder="<?php echo lang('date_lt'); ?>" value="<?php echo $this->input->get('date_gt'); ?>">
                         <div class="btn-group">
                             <button id="predefined_periods" type="button" class="btn btn-primary dropdown-toggle" 

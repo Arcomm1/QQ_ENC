@@ -421,4 +421,4 @@ var start = new Vue({
 });
 
 $('#date_gt').datetimepicker({format: 'Y-m-d H:i:00', defaultTime: '00:00:00'});
-$('#date_lt').datetimepicker({format: 'Y-m-d H:i:00', defaultTime: '23:59:59'});
+$('#date_lt').datetimepicker({format: 'Y-m-d H:i:59', defaultTime: '23:59:59'});
