@@ -442,13 +442,15 @@ class Tools extends CI_Controller {
 							  ->limit(1)
 							  ->get();
 
-			// Check for errors
-			if ($query === FALSE or empty($result)) {
-				log_message('error', 'Error fetching timestamp: ' . $this->db->error()['message']);
-				$last_parsed_event = 1;  // or some other default value
+			// Fetch the result
+			$result = $query->row_array();
+
+			// Check for errors and result
+			if ($query === FALSE || empty($result)) {
+				log_message('error', 'Error fetching timestamp: ' . (isset($this->db->error()['message']) ? $this->db->error()['message'] : 'Unknown error'));
+				$last_parsed_event = 1; // or some other default value
 				echo "Timestamp from $queue_log_rollback_days days ago: NOT FOUND - NO DELETION \n";
 			} else {
-				$result = $query->row_array();
 				echo "Timestamp from $queue_log_rollback_days days ago: " . $result['timestamp'] . "\n";
 				$last_parsed_event = $result['timestamp'];
 			}
@@ -943,13 +945,14 @@ class Tools extends CI_Controller {
 						// Extension not found in CRD, possible CDR Database was deleted
 						// Selecting from qq_agents by Name may lead to incorrect agent statistics assigment
 						// Checking by name - if there are multiple entries of people
-						$query = $this->db->query("SELECT id FROM asterisk.qq_agents WHERE name = ?", array($name));
+						$query = $this->db->query("SELECT id, extension FROM asterisk.qq_agents WHERE name = ?", array($name));
 
 						// Check if there is exactly one row returned
 						if ($query->num_rows() === 1) {
 							// One occurrence found, fetch the result
 							$result = $query->row();
 							$agent_id = $result->id;
+							$agent_extension = $result->extension;
 						} else {
 							// Either no occurrences or multiple occurrences found
 							log_to_file('NOTICE', 'Data in cdr for agent is missing, assigning to DUMMY Agent');
