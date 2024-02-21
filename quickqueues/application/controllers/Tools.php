@@ -1565,7 +1565,20 @@ class Tools extends CI_Controller {
 					// Update the rows where agent_id is equal to $originalId
 					$updateQuery = "UPDATE qq_agent_last_call SET src = ?, uniqueid = ? WHERE agent_id = ?";
 					$updateResult = $this->db->query($updateQuery, [$row->src, $row->uniqueid, $originalId]);
-				} 			
+				}
+
+					// Fetch the last_call value from qq_agents where agent_id is equal to $maxIDValue
+					$agentLastCallQuery = $this->db->select('last_call')
+						->from('qq_agents')
+						->where('id', $maxIDValue)
+						->get();
+					
+					// Update qq_agents last_call value based on last_call from agent with maxIDValue
+					if ($agentLastCallQuery && $agentLastCallRow = $agentLastCallQuery->row()) {
+						// Update the qq_agents table to set last_call value for $originalId
+						$updateAgentsQuery = "UPDATE qq_agents SET last_call = ? WHERE id = ?";
+						$this->db->query($updateAgentsQuery, [$agentLastCallRow->last_call, $originalId]);
+					}	                
 
 				// Step 3: Update and delete duplicates
 				foreach ($ids as $id) {
