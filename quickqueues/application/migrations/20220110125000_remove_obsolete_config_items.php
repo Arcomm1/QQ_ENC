@@ -1,46 +1,53 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-
 class Migration_remove_obsolete_config_items extends CI_Migration {
-
 
     public function up()
     {
-        $this->db->query("DELETE from qq_config WHERE name = 'app_application_name'");
-        $this->db->query("DELETE from qq_config WHERE name = 'app_track_incoming'");
-        $this->db->query("DELETE from qq_config WHERE name = 'app_archive_calls'");
-        $this->db->query("DELETE from qq_config WHERE name = 'app_archive_calls_older_than'");
-        $this->db->query("DELETE from qq_config WHERE name = 'app_archive_calls_dest'");
-        $this->db->query("DELETE from qq_config WHERE name = 'app_archive_calls_action'");
-        $this->db->query("DELETE from qq_config WHERE name = 'app_time_distribution_map'");
-        $this->db->query("DELETE from qq_config WHERE name = 'app_holdtime_distribution_map'");
-        $this->db->query("DELETE from qq_config WHERE name = 'agent_show_other_agent_status'");
-        $this->db->query("DELETE from qq_config WHERE name = 'agent_download_calls'");
-        $this->db->query("DELETE from qq_config WHERE name = 'agent_listen_calls'");
+        // Config items deletion
+        $configItems = [
+            'app_application_name',
+            'app_track_incoming',
+            'app_archive_calls',
+            'app_archive_calls_older_than',
+            'app_archive_calls_dest',
+            'app_archive_calls_action',
+            'app_time_distribution_map',
+            'app_holdtime_distribution_map',
+            'agent_show_other_agent_status',
+            'agent_download_calls',
+            'agent_listen_calls',
+        ];
 
-        $this->db->query("DELETE from qq_event_types WHERE name = 'INC_ANSWERED'");
-        $this->db->query("DELETE from qq_event_types WHERE name = 'INC_NOANSWER'");
-        $this->db->query("DELETE from qq_event_types WHERE name = 'INC_BUSY'");
-        $this->db->query("DELETE from qq_event_types WHERE name = 'INC_FAILED'");
+        foreach ($configItems as $item) {
+            $this->db->query("DELETE FROM qq_config WHERE name = '{$item}'");
+        }
 
-        $this->db->query("DELETE from qq_events WHERE event_type = 'INC_ANSWERED'");
-        $this->db->query("DELETE from qq_events WHERE event_type = 'INC_NOANSWER'");
-        $this->db->query("DELETE from qq_events WHERE event_type = 'INC_BUSY'");
-        $this->db->query("DELETE from qq_events WHERE event_type = 'INC_FAILED'");
+        // Event types deletion
+        $eventTypes = [
+            'INC_ANSWERED',
+            'INC_NOANSWER',
+            'INC_BUSY',
+            'INC_FAILED',
+        ];
 
-        $this->db->query("DELETE from qq_calls WHERE event_type = 'INC_ANSWERED'");
-        $this->db->query("DELETE from qq_calls WHERE event_type = 'INC_NOANSWER'");
-        $this->db->query("DELETE from qq_calls WHERE event_type = 'INC_BUSY'");
-        $this->db->query("DELETE from qq_calls WHERE event_type = 'INC_FAILED'");
+        foreach ($eventTypes as $eventType) {
+            $this->db->query("DELETE FROM qq_event_types WHERE name = '{$eventType}'");
+            $this->db->query("DELETE FROM qq_events WHERE event_type = '{$eventType}'");
+            $this->db->query("DELETE FROM qq_calls WHERE event_type = '{$eventType}'");
+        }
 
-        $this->dbforge->drop_column('qq_calls', 'archived');
+        // Check if the column exists before attempting to drop it
+        if ($this->db->field_exists('archived', 'qq_calls')) {
+            $this->dbforge->drop_column('qq_calls', 'archived');
+        }
     }
-
 
     public function down()
     {
-        return true();
+        // Rollback actions if necessary
+        // This example simply returns true, indicating no rollback actions are defined
+        return true;
     }
-
 }

@@ -35,8 +35,6 @@ class Migration_create_dnd_subjects extends CI_Migration {
             ));
             $this->dbforge->add_key('id', TRUE);
             $this->dbforge->create_table('qq_dnd_subjects');
-        } else {
-            echo "The table 'qq_dnd_subjects' already exists";
         }
     }
 
