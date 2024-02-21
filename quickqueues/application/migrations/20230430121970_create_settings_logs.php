@@ -43,8 +43,6 @@ class Migration_Create_settings_logs extends CI_Migration
             ));
             $this->dbforge->add_key('id', TRUE);
             $this->dbforge->create_table('qq_settings_logs');
-        } else {
-            echo "The table 'qq_settings_logs' already exists.";
         }
     }
 
