@@ -1710,33 +1710,26 @@ class Tools extends CI_Controller {
 						$mark_from = date('Y-m-d H:i:s', (time() - $mark_called_back * 60));
 					}
 
-                    if (strlen($call_data['dst']) > 5) {
-                        if ($call_data['event_type'] == 'OUT_ANSWERED') {
-                            $sanitized_dst = substr($call_data['dst'], -9);
-                            $calls_to_mark = $this->Call_model->get_many_by_complex(
-                                array(
-                                    'src' => $sanitized_dst,
-                                    'date >' => $mark_from,
-                                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT', 'INCOMINGOFFWORK'),
-                                )
-                            );
+					if ($call_data['event_type'] == 'OUT_ANSWERED') {
+						$calls_to_mark = $this->Call_model->get_many_by_complex(
+							array(
+								'src' => $call_data['dst'],
+								'date >' => $mark_from,
+								'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT', 'INCOMINGOFFWORK'),
+							)
+						);
 
-                            log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as called_back');
+						log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as called_back');
 
-                            foreach ($calls_to_mark as $ctm) {
-                                log_to_file('DEBUG', 'Marking '.$ctm->id.' as called_back');
-                                $this->Call_model->update($ctm->id, array('called_back' => 'yes'));
-                            }
+						foreach ($calls_to_mark as $ctm) {
+							log_to_file('DEBUG', 'Marking '.$ctm->id.' as called_back');
+							$this->Call_model->update($ctm->id, array('called_back' => 'yes'));
+						}
 
-                            unset($calls_to_mark);
-                            unset($mark_from);
-                        }
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong or call is internal, not searching for calls to mark as called_back, uniqueid '.$call_data['uniqueid']);
-                    }
-
+						unset($calls_to_mark);
+						unset($mark_from);
+					}
                 }
-
 
                 $this->cdrdb->update('cdr', array('userfield' => 'QQCOLLECTED'), array('uniqueid' => $c->uniqueid));
                 log_to_file('NOTICE', "Creating event and call ".$event_data['event_type']." for CDR with uniqueid ".$c->uniqueid);
