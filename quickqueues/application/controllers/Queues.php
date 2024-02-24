@@ -10,6 +10,7 @@ class Queues extends MY_Controller {
     {
         parent::__construct();
         $this->data->page_title = lang('queues');
+        $this->load->model('./../models/Settings_model', 'globalSettings');
     }
 
 
@@ -34,6 +35,7 @@ class Queues extends MY_Controller {
 
         $this->data->js_vars['queue_id'] = $id;
         $this->data->js_include = base_url('assets/js/components/queues/realtime.js');
+        $this->data->global_settings = $this->globalSettings->getSettings();
         load_views('queues/realtime', $this->data, true);
     }
 
