@@ -205,29 +205,29 @@
                 </div>
             </div>
         </div>
-        <div class="col">
-            <div class="card border-top-danger border-danger border-top-3">
-                <div class="card-body">
-                    <h5 class="card-title" style="text-align: center;"><?php echo lang('queue').": $queue->name ($queue->display_name)";?></h5>
-                    <table class="table table-sm">
-                        <thead class="table-light fw-semibold">
-                            <tr class="align-middle">
-                                <th scope="col"></th>
-                                <th scope="col"><?php echo lang('number'); ?></th>
-                                <th scope="col"><?php echo lang('time'); ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="caller in realtime_data.callers">
-                                <td>{{ caller.Position }}</td>
-                                <td>{{ caller.CallerIDNum }}</td>
-                                <td>{{ sec_to_min(caller.Wait) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+		<div class="col">
+			<div class="card border-top-danger border-danger border-top-3">
+				<div class="card-body">
+					<h5 class="card-title" style="text-align: center;"><?php echo lang('queue').": $queue->name ($queue->display_name)";?></h5>
+					<table class="table table-sm">
+						<thead class="table-light fw-semibold">
+							<tr class="align-middle">
+								<th scope="col"></th>
+								<th scope="col"><?php echo lang('number'); ?></th>
+								<th scope="col"><?php echo lang('time'); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="caller in realtime_data[0].callers">
+								<td>{{ caller.Position }}</td>
+								<td>{{ caller.CallerIDNum }}</td>
+								<td>{{ sec_to_min(caller.Wait) }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
     </div>
 </div>
 <style>
