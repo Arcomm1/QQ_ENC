@@ -1588,21 +1588,68 @@ class Agent extends MY_Controller {
         $this->_respond();
     }
     
-	public function get_cached_realtime_all()
+	public function get_cached_realtime_all($queue_id = false)
 	{
 		$filePath = './json/get_all.json';
 
-		if (file_exists($filePath)) {
-			$jsonData = file_get_contents($filePath);
-			header('Content-Type: application/json');
-			echo $jsonData; // Directly output the JSON data from the file
+		if ($queue_id === false) {
+			if (file_exists($filePath)) {
+				$jsonData = file_get_contents($filePath);
+				header('Content-Type: application/json');
+				echo $jsonData; // Directly output the JSON data from the file
+			} else {
+				// Handle the case where the file does not exist
+				header('Content-Type: application/json');
+				echo json_encode([
+					'status' => 'Error',
+					'message' => 'File not found',
+				]);
+			}
 		} else {
-			// Handle the case where the file does not exist
-			header('Content-Type: application/json');
-			echo json_encode([
-				'status' => 'Error',
-				'message' => 'File not found',
-			]);
+			// Attempt to fetch the queue name based on provided ID
+			$query = $this->db->query("SELECT name FROM qq_queues WHERE id = " . $this->db->escape($queue_id) . " LIMIT 1");
+			if ($query->num_rows() > 0) {
+				$queue_name = $query->row()->name;
+
+				if (file_exists($filePath)) {
+				$jsonData = file_get_contents($filePath);
+				$data = json_decode($jsonData, true); // Decode as associative array
+
+				// Filter the 'queue' array to only include the specified queue
+				$data['queue'] = array_values(array_filter($data['queue'], function($queue) use ($queue_name) {
+					return $queue['data']['Queue'] == $queue_name;
+				}));
+
+				// Check if 'queue_stats_detailed' exists and has the specific queue's data
+				if (isset($data['queue_stats_detailed'][$queue_name])) {
+					// Remove original 'queue_stats' if it exists
+					unset($data['queue_stats']);
+					// Rename 'queue_stats_detailed' for the specific queue to 'queue_stats'
+					$data['queue_stats'] = $data['queue_stats_detailed'][$queue_name];
+				} else {
+					// If there's no detailed stats for the queue, ensure 'queue_stats' is empty or reset
+					$data['queue_stats'] = [];
+				}
+				// Remove 'queue_stats_detailed' to avoid confusion and redundancy
+				unset($data['queue_stats_detailed']);
+
+				header('Content-Type: application/json');
+				echo json_encode($data);
+				} else {
+					header('Content-Type: application/json');
+					echo json_encode([
+						'status' => 'Error',
+						'message' => 'File not found',
+					]);
+				}
+			} else {
+				// Handle case for queue ID not found
+				header('Content-Type: application/json');
+				echo json_encode([
+					'status' => 'Error',
+					'message' => 'Queue ID not found',
+				]);
+			}
 		}
 	}
 
