@@ -1594,10 +1594,15 @@ class Agent extends MY_Controller {
 
 		if ($queue_id === false) {
 			if (file_exists($filePath)) {
-				$jsonData = file_get_contents($filePath);
-				header('Content-Type: application/json');
-				echo $jsonData; // Directly output the JSON data from the file
-			} else {
+            $jsonData = file_get_contents($filePath);
+            $data = json_decode($jsonData, true); // Decode as associative array
+
+            // Optionally remove 'queue_stats_detailed' from the data
+            unset($data['queue_stats_detailed']);
+
+            header('Content-Type: application/json');
+            echo json_encode($data); // Output the JSON data without 'queue_stats_detailed'
+        } else {
 				// Handle the case where the file does not exist
 				header('Content-Type: application/json');
 				echo json_encode([
