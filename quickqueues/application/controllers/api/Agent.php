@@ -1602,7 +1602,8 @@ class Agent extends MY_Controller {
 
             header('Content-Type: application/json');
             echo json_encode($data); // Output the JSON data without 'queue_stats_detailed'
-        } else {
+        } 
+		else {
 				// Handle the case where the file does not exist
 				header('Content-Type: application/json');
 				echo json_encode([
@@ -1617,30 +1618,31 @@ class Agent extends MY_Controller {
 				$queue_name = $query->row()->name;
 
 				if (file_exists($filePath)) {
-				$jsonData = file_get_contents($filePath);
-				$data = json_decode($jsonData, true); // Decode as associative array
+					$jsonData = file_get_contents($filePath);
+					$data = json_decode($jsonData, true); // Decode as associative array
+					
+					// Filter the 'queue' array to only include the specified queue
+					$data['queue'] = array_values(array_filter($data['queue'], function($queue) use ($queue_name) {
+						return $queue['data']['Queue'] == $queue_name;
+					}));
 
-				// Filter the 'queue' array to only include the specified queue
-				$data['queue'] = array_values(array_filter($data['queue'], function($queue) use ($queue_name) {
-					return $queue['data']['Queue'] == $queue_name;
-				}));
+					// Check if 'queue_stats_detailed' exists and has the specific queue's data
+					if (isset($data['queue_stats_detailed'][$queue_name])) {
+						// Remove original 'queue_stats' if it exists
+						unset($data['queue_stats']);
+						// Rename 'queue_stats_detailed' for the specific queue to 'queue_stats'
+						$data['queue_stats'] = $data['queue_stats_detailed'][$queue_name];
+					} else {
+						// If there's no detailed stats for the queue, ensure 'queue_stats' is empty or reset
+						$data['queue_stats'] = [];
+					}
+					// Remove 'queue_stats_detailed' to avoid confusion and redundancy
+					unset($data['queue_stats_detailed']);
 
-				// Check if 'queue_stats_detailed' exists and has the specific queue's data
-				if (isset($data['queue_stats_detailed'][$queue_name])) {
-					// Remove original 'queue_stats' if it exists
-					unset($data['queue_stats']);
-					// Rename 'queue_stats_detailed' for the specific queue to 'queue_stats'
-					$data['queue_stats'] = $data['queue_stats_detailed'][$queue_name];
-				} else {
-					// If there's no detailed stats for the queue, ensure 'queue_stats' is empty or reset
-					$data['queue_stats'] = [];
-				}
-				// Remove 'queue_stats_detailed' to avoid confusion and redundancy
-				unset($data['queue_stats_detailed']);
-
-				header('Content-Type: application/json');
-				echo json_encode($data);
-				} else {
+					header('Content-Type: application/json');
+					echo json_encode($data);
+				} 
+				else {
 					header('Content-Type: application/json');
 					echo json_encode([
 						'status' => 'Error',
