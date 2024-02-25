@@ -218,7 +218,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="caller in realtime_data[0].callers">
+							<tr v-for="caller in realtime_data[0]?.callers" v-if="realtime_data.length > 0 && realtime_data[0].callers">
 								<td>{{ caller.Position }}</td>
 								<td>{{ caller.CallerIDNum }}</td>
 								<td>{{ sec_to_min(caller.Wait) }}</td>
