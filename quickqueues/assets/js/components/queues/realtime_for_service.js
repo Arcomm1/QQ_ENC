@@ -1,395 +1,243 @@
-var monitoring_dashboard = new Vue({
+<script>
+        window.globalSettings = <?php echo json_encode($this->data->global_settings); ?>;
+</script>
+<div class="container-lg mt-3" id="monitoring_dashboard">
+    <div class="row mb-3">
+        <div class="col">
+            <div class="card border-top-info border-info border-top-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-3 col-lg-3">
+                            <div class="card overflow-hidden">
+                                <div class="card-body p-0 d-flex align-items-center">
+                                    <div class="bg-success text-white text-strong py-4 px-5 me-3">
+                                        <svg class="icon icon-xxl">
+                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-check'); ?>"></use>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="fs-2 fw-semibold text-success">
+                                            <span v-cloak v-if="!basic_stats_loading">
+                                                {{ basic_stats.calls_answered }}
+                                            </span>
+                                            <span v-else>
+                                                <div class="spinner-border text-success" role="status">
+                                                    <span class="visually-hidden"></span>
+                                                </div>
+                                            </span>
+                                        </div>
+                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('calls_answered'); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3 col-lg-3">
+                            <div class="card overflow-hidden">
+                                <div class="card-body p-0 d-flex align-items-center">
+                                    <div class="bg-warning text-white text-strong py-4 px-5 me-3">
+                                        <svg class="icon icon-xxl">
+                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-bell-exclamation'); ?>"></use>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="fs-2 fw-semibold text-warning">
+                                            <span v-cloak v-if="!basic_stats_loading">
+                                                {{ basic_stats.calls_unanswered }}
+                                            </span>
+                                            <span v-else>
+                                                <div class="spinner-border text-warning" role="status">
+                                                    <span class="visually-hidden"></span>
+                                                </div>
+                                            </span>
+                                        </div>
+                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('calls_unanswered'); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3 col-lg-3">
+                            <div class="card overflow-hidden">
+                                <div class="card-body p-0 d-flex align-items-center">
+                                    <div class="bg-danger text-white text-strong py-4 px-5 me-3">
+                                        <svg class="icon icon-xxl">
+                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-x'); ?>"></use>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="fs-2 fw-semibold text-danger">
+                                            <span v-cloak v-if="!basic_stats_loading">
+                                                {{ basic_stats.calls_without_service }}
+                                            </span>
+                                            <span v-else>
+                                                <div class="spinner-border text-danger" role="status">
+                                                    <span class="visually-hidden"></span>
+                                                </div>
+                                            </span>
+                                        </div>
+                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('calls_without_service'); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3 col-lg-3">
+                            <div class="card overflow-hidden">
+                                <div class="card-body p-0 d-flex align-items-center">
+                                    <div class="bg-info text-white text-strong py-4 px-5 me-3">
+                                        <svg class="icon icon-xxl">
+                                            <use xlink:href="<?php echo base_url('assets/v6/vendors/@coreui/icons/svg/free.svg#cil-people'); ?>"></use>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="fs-2 fw-semibold text-info">{{ total_callers }}</div>
+                                        <div class="text-medium-emphasis text-uppercase fw-semibold small"><?php echo lang('calls_waiting'); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    el: '#monitoring_dashboard',
-    data () {
-        return {
-            freepbx_agents             : {},
-            freepbx_agents_loading     : true,
-     
-            basic_stats                : false,
-            basic_stats_loading        : true,
+    <div class="row">
+        <div class="col-lg-8 col-md-12 col-xs-12 col-sm-12 mb-3 monitoring_dashboard_table">
+            <div class="card border-top-primary border-primary border-top-3">
+                <div class="card-body">
+                    <div class="row agent-stat-numbers">
+                        <div class="col">
+                            <div class="border-start border-start-4 border-start-success px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('available'); ?></small>
+                                <div class="fs-5 fw-semibold">{{ agents_free }}</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-start-4 border-start-info px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('on_call'); ?></small>
+                                <div class="fs-5 fw-semibold">{{ agents_on_call }}</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-start-4 border-start-danger px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('paused'); ?></small> 
+                                <div class="fs-5 fw-semibold">{{ agents_busy }}</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="border-start border-start-4 border-start-dark px-3 mb-3"  style="text-align: center;"><small class="text-medium-emphasis"><?php echo lang('logged_out'); ?></small>
+                                <div class="fs-5 fw-semibold">{{ agents_unavailable }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="table-responsive">
+                                <table class="table table-border mb-0">
+                                    <thead class="table-light fw-semibold">
+                                        <tr class="align-middle monitoring-table-head">
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('agent'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('status'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('calls_answered'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('incoming_talk_time_sum'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('ringnoanswer'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('calls_outgoing_answered'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('outgoing_talk_time_sum'); ?></th>
+                                            <th scope="col" style="font-size: 0.85em; text-align: center;"><?php echo lang('calls_outgoing_failed'); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="monitoring-dashboard-table-body">
+                                        <tr v-for="agent in freepbx_agents">
+                                            <td  v-bind:id="'agent_status_'+agent.id"
+                                                 v-if="agent_statuses[agent.extension]"
+												 style="width: 500px;">
+                                                <div>
+                                                    <span>
+                                                        <i v-if="agent_statuses[agent.extension]" v-bind:class="'cil-phone mr-3 text-white bg-' + agent_statuses[agent.extension].status_color"></i>
+                                                        <i v-else class="cil-phone mr-3 text-dark"></i>
+                                                    </span>
+                                                    <a v-bind:href="'agents/stats/'+agent.id" class="ml-3 link-dark">{{ agent.display_name }}</a>
+                                                    <span v-if="agent_current_calls[agent.extension]">
+                                                        <i v-bind:class="'cil-chevron-double-'+agent_current_calls[agent.extension].direction+' mr-3 text-primary'"></i>
+                                                        {{ agent_current_calls[agent.extension].second_party }}
+                                                        <img src="<?php echo base_url('assets/img/copy.png'); ?>" width="20" height="20" alt="" @click="copyToClipboard(agent_current_calls[agent.extension].second_party)">
+                                                    </span>
+													<span v-if="sec_to_time(callDurations[agent.extension]) !== '00:00:00'">
+														{{ sec_to_time(callDurations[agent.extension]) }}
+													</span>
+													<span v-if="isAgentPaused(agent.display_name)" class="paused-text">
+														Queue Paused
+													</span>                                                        
+                                                    <span v-else></span> 
+                                                </div>
+                                                <div class="small text-medium-emphasis monitoring-dashboard-small-text">
+                                                    <span>
+                                                        <span>{{ agent.extension }}</span>
+                                                    </span>
+                                                    {{ " | "+agent.last_call }}
+                                                </div>
+                                            </td>
 
-            realtime_data              : {},
-            realtime_data_loading      : true,
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">
+												{{
+													agent_statuses[agent.extension]
+													? (
+														agent_statuses[agent.extension].StatusText === 'Idle' ? 'Available' :
+														agent_statuses[agent.extension].StatusText === 'Unavailable' ? 'Unavailable' :
+														agent_statuses[agent.extension].StatusText === 'InUse' ? 'Active' :
+														agent_statuses[agent.extension].StatusText === 'Busy' ? 'DND' :
+														agent_statuses[agent.extension].StatusText === 'Ringing' ? 'Active Ringing' :
+														agent_statuses[agent.extension].StatusText === 'Hold' ? 'Active OnHold' :														
+														agent_statuses[agent.extension].StatusText
+													  )
+													: ''
+												}}
+												 </td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_answered }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id]?.incoming_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_missed }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_outgoing_answered }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id]?.outgoing_total_calltime) }}</td>
+                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_outgoing_unanswered }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div class="col">
+			<div class="card border-top-danger border-danger border-top-3">
+				<div class="card-body">
+					<h5 class="card-title" style="text-align: center;"><?php echo lang('queue').": $queue->name ($queue->display_name)";?></h5>
+					<table class="table table-sm">
+						<thead class="table-light fw-semibold">
+							<tr class="align-middle">
+								<th scope="col"></th>
+								<th scope="col"><?php echo lang('number'); ?></th>
+								<th scope="col"><?php echo lang('time'); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="caller in realtime_data[0]?.callers" v-if="realtime_data.length > 0 && realtime_data[0].callers">
+								<td>{{ caller.Position }}</td>
+								<td>{{ caller.CallerIDNum }}</td>
+								<td>{{ sec_to_min(caller.Wait) }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>
+<style>
+#monitoring_dashboard {
+    width: 100%;
+    max-width: none;
+}
 
-            agent_stats                : {},
-            agent_stats_loading        : true,
-
-            agent_statuses             : {},
-            agent_statuses_loading     : true,
-
-            agent_current_calls        : {},
-            agent_current_calls_loading: true,
-
-            overal                     :{},
-            overal_loading             : true,
-
-            agents_free                : 0,
-            agents_busy                : 0,
-            agents_on_call             : 0,
-            agents_unavailable         : 0,
-            total_callers              : 0,
-
-            callDurations              : {},
-
-            queueStats                 : {},
-            queueStats_loading         : false,
-            totalCallsByQueue          : {},
-            form_data                  : new FormData,
-			
-			uniqueAgentsArray: [],
-        }
-    },
-
-    methods: {
-        get_basic_stats: function() 
-        {
-            axios.get(api_url+'queue/get_basic_stats_for_today/' + queue_id)
-                .then(response => {
-                    this.basic_stats         = response.data.data;
-                    this.basic_stats_loading = false;
-                });
-        },
-
-        get_queue_stats: function() 
-        {
-            this.queueStats_loading = true;
-            axios
-              .get(api_url + 'queue/get_stats_by_queue/', this.form_data)
-              .then((response) => {
-                this.queueStats = response.data.data;
-      
-                // Calculate total calls for each queue
-                const totalCallsByQueue = {};
-      
-                for (const queueId in this.queueStats) 
-                {
-                  if (this.queueStats.hasOwnProperty(queueId)) 
-                  {
-                    const queueData  = this.queueStats[queueId];
-                    const totalCalls =
-                      queueData.calls_answered +
-                      queueData.calls_unanswered +
-                      queueData.calls_outgoing;
-                    totalCallsByQueue[queueId] = totalCalls;
-                  }
-                }
-      
-                // Assign the total calls by queue to a variable or update  component's state
-                this.totalCallsByQueue = totalCallsByQueue;
-      
-                // Debugging: log the calculated totals
-      
-                this.queueStats_loading = false;
-              });
-          },
-        
-
-        get_freepbx_agents: function() 
-        {
-            axios.get(api_url+'queue/get_freepbx_agents/' + queue_id)
-                .then(response => {
-                    this.freepbx_agents         = response.data.data;
-                    this.freepbx_agents_loading = false;
-            });
-        },
-		
-		/////////////////////////////////////
-		get_combined_data: function() {
-			axios.get(api_url + 'agent/get_cached_realtime_all/' + queue_id) // Adjust the endpoint as necessary
-			.then(response => {
-				// Split the combined string into individual JSON strings
-				let combinedData = response;
-
-				// Directly access data from the response
-				let agentStatusesData = response.data.agent_statuses; // Correctly access `queue` data
-				let realtimeData = response.data.queue; // Assuming `queue_stats` holds what you refer to as realtimeData
-				let agentCurrentCalls = response.data.all_calls; // Correctly access `status`
-				let agentStats = response.data.queue_stats; // Correctly access `extensions`
-
-				// Process agent statuses
-				if (typeof(agentStatusesData) == 'object') {
-					this.agent_statuses = agentStatusesData;
-					this.agent_statuses_loading = false;
-					// Initialize counters
-					this.agents_busy = 0;
-					this.agents_on_call = 0;
-					this.agents_free = 0;
-					this.agents_unavailable = 0;
-					// Count agents based on status
-					for (let fa in this.freepbx_agents) {
-						// Check if the agent extension exists in agent_statuses and has a StatusText property
-						let agentExtension = this.freepbx_agents[fa].extension;
-						let agentStatus = this.agent_statuses[agentExtension];
-						
-						if (agentStatus && 'StatusText' in agentStatus) {
-							let status = agentStatus['StatusText'];
-							
-							if (status == 'Idle') {
-								this.agents_free++;
-							} else if (status == 'Unavailable') {
-								this.agents_unavailable++;
-							} else if (status == 'InUse') {
-								this.agents_on_call++;
-							} else if (status == 'Busy') {
-								this.agents_busy++;
-							}
-						} else {
-							// Handle the case where the status is not available
-							//console.log(`Status not available for agent extension: ${agentExtension}`);
-						}
-					}
-				}
-
-				// Process realtime queue data
-				this.realtime_data = realtimeData;
-				this.realtime_data_loading = false;
-				this.total_callers = 0;
-				this.uniqueAgentsArray = this.processQueueData(realtimeData);
-				for (let queue in realtimeData) {
-					this.total_callers += Object.keys(realtimeData[queue]['callers']).length;
-				}
-
-				// Process current calls
-				this.agent_current_calls = agentCurrentCalls;
-				this.agent_current_calls_loading = false;
-
-				// Process agent stats
-				this.agent_stats = agentStats;
-				this.agent_stats_loading = false;
-			});
-		},
-		////////////////////////////////////
-       
-		isAgentOnCall(agentExtension) {
-			// Safely check if agentExtension exists and has a StatusText property
-			return this.agent_statuses[agentExtension] && this.agent_statuses[agentExtension]['StatusText'] === 'InUse';
-		},
-
-		updateCallDuration: function(agentExtension) {
-			// Retrieve call durations from local storage
-			this.callDurations = JSON.parse(localStorage.getItem('callDurations')) || {};
-
-			if (this.isAgentOnCall(agentExtension)) {
-				if (!this.callDurations[agentExtension]) {
-					this.callDurations[agentExtension] = 0;
-				}
-				this.callDurations[agentExtension]++;
-			}
-			else {
-				this.callDurations[agentExtension] = 0;
-			}
-
-			// Save the updated call durations back to local storage
-			localStorage.setItem('callDurations', JSON.stringify(this.callDurations));
-		},
-
-        queueIsOverloaded: function(queue) 
-        {
-            const callers = queue.callers;
-            
-            if (callers && Object.keys(callers).length > Number.parseInt(window.globalSettings.call_overload)) 
-            {
-                return true;
-            }
-            return false;
-        },
-
-        queueIdContainsCallback(queueId) 
-        {
-            return queueId.toLowerCase().includes('callback');
-        },
-
-		copyToClipboard(text) {
-			const input = document.createElement('textarea');
-			input.value = text;
-			document.body.appendChild(input);
-			input.select();
-			document.execCommand('copy');
-			document.body.removeChild(input);
-
-			// Optionally, you can show a message to indicate that the text has been copied.
-			// Example: alert('Copied to clipboard: ' + text);
-		},
-
-        processQueueData: function(data) {
-            const agentsData = {};
-
-            // Processing each queue
-            for (const queueKey in data) {
-                const queue = data[queueKey];
-                if (queue.agents) {
-                    for (const agentKey in queue.agents) {
-                        const agent = queue.agents[agentKey];
-                        const agentName = agent.Name;
-                        const agentStatus = agent.Paused;
-
-                        // Creating a unique key for each agent
-                        if (!agentsData[agentName]) {
-                            agentsData[agentName] = agentStatus;
-                        }
-                    }
-                }
-            }
-
-            // Converting the unique agents data into the desired array format
-            const uniqueAgentsArray = Object.keys(agentsData).map(name => ({
-                Name: name,
-                Paused: agentsData[name]
-            }));
-
-            return uniqueAgentsArray;
-        },
-
-		isAgentPaused(agentName) {
-			const agent = this.uniqueAgentsArray.find(a => a.Name === agentName);
-			return agent && agent.Paused === '1';
-		},	
-        
-    },
-
-    computed: 
-    {
-        sortedQueueData: function() 
-        {
-            const sortedQueueIds = Object.keys(this.totalCallsByQueue).sort((a, b) => 
-            {
-              return this.totalCallsByQueue[b] - this.totalCallsByQueue[a];
-            });  
-    
-            const queuesArray = sortedQueueIds.map(queueId => 
-            {
-                if (this.queueIdContainsCallback(queueId)) 
-                {
-                    return null; // Skip this queue
-                }
-                let realtimeData = {};
-                for (const key in this.realtime_data) 
-                {
-                    if (this.realtime_data.hasOwnProperty(key) && this.realtime_data[key].data.displayName === queueId) 
-                    {
-                    realtimeData = this.realtime_data[key];
-                    }
-                }
-                const queueName = realtimeData.data ? realtimeData.data.Queue : "";
-            
-            
-                return {
-                    queueId: queueId,
-                    totalCalls: this.totalCallsByQueue[queueId],
-                    callers: realtimeData.callers || {},
-                    queue: queueName,
-                };
-            });
-            const filteredQueuesArray = queuesArray.filter(queue => queue !== null);
-            return filteredQueuesArray;
-          },
-          
-
-        total_callers: function() 
-        {
-            a = 0;
-            for (queue in this.realtime_data) 
-            {
-                // a = a + Object.keys(this.realtime_data[queue]['callers'].length);
-            }
-            return a;
-        },
-    },
-
-    created () 
-    {
-        $('#nav_queues').addClass('active text-primary');
-
-		//This must be executes first, as it draws the page
-		this.get_basic_stats();
-		this.get_freepbx_agents();
-		this.get_queue_stats();	
-
-
-		function getRandomDelay(min, max) {
-			return Math.floor(Math.random() * (max - min + 1)) + min;
-		}
-
-		// Recursive setTimeout for each function
-
-		const scheduleBasicStats = () => {
-			this.get_basic_stats();
-			setTimeout(scheduleBasicStats, 60000 + getRandomDelay(500, 2000));
-		};
-
-		const scheduleFreePBXAgents = () => {
-			this.get_freepbx_agents();
-			setTimeout(scheduleFreePBXAgents, 3000 + getRandomDelay(500, 2000));
-		};
-
-		const schedulecombined_data = () => {
-			this.get_combined_data();
-            setTimeout(schedulecombined_data, 2000); // Keeping this interval constant as it's a frequent update
-		};
-
-		const scheduleQueueStats = () => {
-			this.get_queue_stats();
-			setTimeout(scheduleQueueStats, 5000 + getRandomDelay(500, 2000));
-		};
-
-		// Updating call duration with a fixed interval
-		const updateCallDuration = () => {
-			for (const key in this.agent_statuses) {
-				this.updateCallDuration(key);
-			}
-			setTimeout(updateCallDuration, 1000); // Keeping this interval constant as it's a frequent update
-		};
-
-		// Initial calls to start the recursive scheduling;
-			scheduleBasicStats();
-			scheduleFreePBXAgents();
-			schedulecombined_data();
-			scheduleQueueStats();
-			updateCallDuration();
-    }
-
-});
-$(document).ready(function() {
-    // Get the table body
-    var tableBody = $('.monitoring-dashboard-table-body');
-
-    // Function to sort the table rows
-    function sortTable(columnIndex) {
-        var rows = tableBody.find('tr').toArray();
-
-        rows.sort(function(a, b) {
-            var cellA, cellB;
-
-            // Check if sorting based on 'Status' column
-            if (columnIndex === 1) {
-                // Get the text from the <td> element in the 'Status' column
-                cellA = $(a).find('td:eq(1)').text();
-                cellB = $(b).find('td:eq(1)').text();
-            } else {
-                // Get the text from the <td> element with Vue.js data
-                cellA = $(a).find('td:eq(2)').text();
-                cellB = $(b).find('td:eq(2)').text();
-            }
-
-            return cellA.localeCompare(cellB);
-        });
-
-        // Append the sorted rows back to the table body
-        $.each(rows, function(index, row) {
-            tableBody.append(row);
-        });
-    }
-
-    // Function to automatically sort the table every 5 seconds
-    function autoSortTable() {
-        // Assuming you want to sort by the 'Status' column (index 1)
-        sortTable(1);
-    }
-
-    // Initial sort on page load
-    autoSortTable();
-
-    // Call the autoSortTable function every 5 seconds
-    setInterval(autoSortTable, 1500);
-});
+.paused-text {
+    display: block; /* This will put the text on a new line */
+    color: red;     /* This will make the text red */
+}
+</style>
