@@ -25,4 +25,11 @@ target_file="$SCRIPT_DIR/quickqueues/assets/js/components/queues/realtime.js"
 # Copy the source file to the target file with force overwrite
 cp -f "$source_file" "$target_file"
 
+# Define file paths for queue PHP
+source_file="$SCRIPT_DIR/quickqueues/application/views/queues/realtime_for_normal.php"
+target_file="$SCRIPT_DIR/quickqueues/application/views/queues/realtime.php"
+
+# Copy the source file to the target file with force overwrite
+cp -f "$source_file" "$target_file"
+
 echo "Cleanup completed."
