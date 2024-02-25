@@ -39,9 +39,16 @@ chmod +x $SCRIPT
 # Get the directory where the script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-# Define file paths relative to the script's location
+# Define file paths for monitoring
 source_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index_for_service.js"
 target_file="$SCRIPT_DIR/quickqueues/assets/js/components/monitoring/index.js"
+
+# Copy the source file to the target file with force overwrite
+cp -f "$source_file" "$target_file"
+
+# Define file paths for queue
+source_file="$SCRIPT_DIR/quickqueues/assets/js/components/queues/realtime_for_service.js"
+target_file="$SCRIPT_DIR/quickqueues/assets/js/components/queues/realtime.js"
 
 # Copy the source file to the target file with force overwrite
 cp -f "$source_file" "$target_file"
