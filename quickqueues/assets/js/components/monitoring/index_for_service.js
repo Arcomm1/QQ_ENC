@@ -252,42 +252,30 @@ var monitoring_dashboard = new Vue({
 
     computed: 
     {
-        sortedQueueData: function() 
-        {
-            const sortedQueueIds = Object.keys(this.totalCallsByQueue).sort((a, b) => 
-            {
-              return this.totalCallsByQueue[b] - this.totalCallsByQueue[a];
-            });  
-    
-            const queuesArray = sortedQueueIds.map(queueId => 
-            {
-                if (this.queueIdContainsCallback(queueId)) 
-                {
-                    return null; // Skip this queue
-                }
-                let realtimeData = {};
-                for (const key in this.realtime_data) 
-                {
-                    if (this.realtime_data.hasOwnProperty(key) && this.realtime_data[key].data.displayName === queueId) 
-                    {
-                    realtimeData = this.realtime_data[key];
-                    }
-                }
-                const queueName = realtimeData.data ? realtimeData.data.Queue : "";
-            
-            
-                return {
-                    queueId: queueId,
-                    totalCalls: this.totalCallsByQueue[queueId],
-                    callers: realtimeData.callers || {},
-                    queue: queueName,
-                };
-            });
-            const filteredQueuesArray = queuesArray.filter(queue => queue !== null);
-            return filteredQueuesArray;
-          },
-          
+		sortedQueueData: function() {
+			// Assuming this.totalCallsByQueue correctly maps queue IDs to their total call counts.
+			const sortedQueueIds = Object.keys(this.totalCallsByQueue).sort((a, b) => {
+				return this.totalCallsByQueue[b] - this.totalCallsByQueue[a];
+			});
 
+			const queuesArray = sortedQueueIds.map(queueId => {
+				// Directly access the queue data if available
+				const queueData = this.realtime_data.find(queue => queue.data.Queue === queueId);
+				if (!queueData || this.queueIdContainsCallback(queueId)) {
+					return null; // Skip if not found or if it's a callback queue
+				}
+
+				// Return a simplified structure with necessary information
+				return {
+					queueId: queueId,
+					totalCalls: this.totalCallsByQueue[queueId],
+					callers: queueData.callers || [],
+					queue: queueData.data.Queue,
+				};
+			}).filter(queue => queue !== null); // Ensure null values are removed
+			return queuesArray;
+		},
+          
         total_callers: function() 
         {
             a = 0;
