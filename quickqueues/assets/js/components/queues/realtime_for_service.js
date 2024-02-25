@@ -118,15 +118,25 @@ var monitoring_dashboard = new Vue({
 					this.agents_unavailable = 0;
 					// Count agents based on status
 					for (let fa in this.freepbx_agents) {
-						let status = this.agent_statuses[this.freepbx_agents[fa].extension]['StatusText'];
-						if (status == 'Idle') {
-							this.agents_free++;
-						} else if (status == 'Unavailable') {
-							this.agents_unavailable++;
-						} else if (status == 'InUse') {
-							this.agents_on_call++;
-						} else if (status == 'Busy') {
-							this.agents_busy++;
+						// Check if the agent extension exists in agent_statuses and has a StatusText property
+						let agentExtension = this.freepbx_agents[fa].extension;
+						let agentStatus = this.agent_statuses[agentExtension];
+						
+						if (agentStatus && 'StatusText' in agentStatus) {
+							let status = agentStatus['StatusText'];
+							
+							if (status == 'Idle') {
+								this.agents_free++;
+							} else if (status == 'Unavailable') {
+								this.agents_unavailable++;
+							} else if (status == 'InUse') {
+								this.agents_on_call++;
+							} else if (status == 'Busy') {
+								this.agents_busy++;
+							}
+						} else {
+							// Handle the case where the status is not available
+							//console.log(`Status not available for agent extension: ${agentExtension}`);
 						}
 					}
 				}
