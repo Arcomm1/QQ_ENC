@@ -503,22 +503,114 @@ class Tools extends CI_Controller {
 			readline();
 			*/
 
-			if (!file_exists($merged_queue_log)) {
+			// Calculate the date
+			$period_in_days = date('Y-m-d H:i:s', strtotime("-{$queue_log_rollback_days} days"));
+			// Prepare the query
+			$query = $this->db->select('timestamp')
+							  ->from('qq_calls')
+							  ->where('date >=', $period_in_days)
+							  ->order_by('timestamp', 'ASC')
+							  ->limit(1)
+							  ->get();
 
-				// Calculate the date
-				$period_in_days = date('Y-m-d', strtotime("-{$queue_log_rollback_days} days"));
+			// Fetch the result
+			$result = $query->row_array();
 
-				// Prepare the query
-				$query = $this->db->select('timestamp')
-								  ->from('qq_calls')
-								  ->where('date >=', $period_in_days)
-								  ->order_by('timestamp', 'DESC')
-								  ->limit(1)
-								  ->get();
+			if ($parser_type === "LOG") {
+				if (!file_exists($merged_queue_log)) {			
+					// Check for errors and result
+					if ($query === FALSE || empty($result)) {
+						log_message('error', 'Error fetching timestamp: ' . (isset($this->db->error()['message']) ? $this->db->error()['message'] : 'Unknown error'));
+						$last_parsed_event = 1; // or some other default value
+						echo "Timestamp from $queue_log_rollback_days days ago: NOT FOUND - NO DELETION \n";
+					} else {
+						echo "Timestamp from $queue_log_rollback_days days ago: " . $result['timestamp'] . "\n";
+						$last_parsed_event = $result['timestamp'];
+					}
 
-				// Fetch the result
-				$result = $query->row_array();
+					$this->db->update('qq_config', array('value' => $last_parsed_event), array('name' => 'app_last_parsed_event'));
+				
+					if ($queue_log_rollback_with_deletion == "yes" and $last_parsed_event != "1") {
+						// Check if $last_parsed_event is set and is a valid timestamp
+						if (isset($last_parsed_event) && is_numeric($last_parsed_event)) {
+							// Delete records from qq_calls where timestamp is greater than $last_parsed_event
+							$this->db->where('timestamp >', $last_parsed_event);
+							$this->db->delete('qq_calls');
 
+							$this->db->where('timestamp >', $last_parsed_event);
+							$this->db->delete('qq_events');
+							
+							$uniqueid = isset($this->db->select('uniqueid')->from('qq_calls')->where('timestamp', $last_parsed_event)->get()->row()->uniqueid);
+							
+							// Check if $uniqueid is not empty
+							if (!empty($uniqueid)) {
+								// Update the userfield in the cdr table where uniqueid is greater than $uniqueid
+								$this->db->set('userfield', '')
+										 ->where('uniqueid >', $uniqueid)
+										 ->where('userfield', 'QQCOLLECTED')
+										 ->update('asteriskcdrdb.cdr');
+							}                    
+							
+						} else {
+							log_message('error', 'Invalid last_parsed_event timestamp, cannot perform deletion.');
+						}
+					}
+					
+					
+					// Get all queue_log files
+					$allFiles = glob($directory_queue_log . '/queue_log*');
+				
+					if (!empty($allFiles)) {
+						// Separate queue_log and dated files
+						$datedFiles = array_filter($allFiles, function($filename) {
+							return strpos($filename, 'queue_log-') !== false;
+						});
+						$queueLog = array_filter($allFiles, function($filename) {
+							return strpos($filename, 'queue_log-') === false;
+						});
+
+						// Sort dated files by date in ascending order
+						usort($datedFiles, function($a, $b) {
+							return strcmp($a, $b);
+						});
+
+						// Append queue_log to the end of the array
+						$filesToMerge = array_merge($datedFiles, $queueLog);
+
+						// Open file handle for writing to the merged file
+						$handle = fopen($merged_queue_log, 'a'); // 'a' mode to append to the file
+
+						// Check if handle is valid
+						if ($handle) {
+							foreach ($filesToMerge as $file) {
+								$content = file_get_contents($file);
+								fwrite($handle, $content . "\n");
+							}
+							fclose($handle);
+							echo "Files merged successfully into '$merged_queue_log'.";
+						} else {
+							echo "Unable to open file for writing.";
+						}
+
+						// Read the merged file
+						$queue_log = @fopen($directory_queue_log . '/merged_queue_log', 'r');
+						if (!$queue_log) {
+							log_to_file("ERROR", "Can not open log file, Exitting");
+							parser_unlock();
+							exit();
+						}
+					}
+					else {
+						echo "Queue_log not found or MYSQL DB integration is used";
+					}
+				}
+				else {
+					// Check if merged file exists - previous parse was not finished, will try again from last event
+					echo "Previous parse was not finished, will try again from last event ";
+					$queue_log = @fopen($directory_queue_log . '/merged_queue_log', 'r');
+				}
+			}
+			if ($parser_type === "DB") {
 				// Check for errors and result
 				if ($query === FALSE || empty($result)) {
 					log_message('error', 'Error fetching timestamp: ' . (isset($this->db->error()['message']) ? $this->db->error()['message'] : 'Unknown error'));
@@ -555,60 +647,7 @@ class Tools extends CI_Controller {
 					} else {
 						log_message('error', 'Invalid last_parsed_event timestamp, cannot perform deletion.');
 					}
-				}
-				
-				
-				// Get all queue_log files
-				$allFiles = glob($directory_queue_log . '/queue_log*');
-			
-				if (!empty($allFiles)) {
-					// Separate queue_log and dated files
-					$datedFiles = array_filter($allFiles, function($filename) {
-						return strpos($filename, 'queue_log-') !== false;
-					});
-					$queueLog = array_filter($allFiles, function($filename) {
-						return strpos($filename, 'queue_log-') === false;
-					});
-
-					// Sort dated files by date in ascending order
-					usort($datedFiles, function($a, $b) {
-						return strcmp($a, $b);
-					});
-
-					// Append queue_log to the end of the array
-					$filesToMerge = array_merge($datedFiles, $queueLog);
-
-					// Open file handle for writing to the merged file
-					$handle = fopen($merged_queue_log, 'a'); // 'a' mode to append to the file
-
-					// Check if handle is valid
-					if ($handle) {
-						foreach ($filesToMerge as $file) {
-							$content = file_get_contents($file);
-							fwrite($handle, $content . "\n");
-						}
-						fclose($handle);
-						echo "Files merged successfully into '$merged_queue_log'.";
-					} else {
-						echo "Unable to open file for writing.";
-					}
-
-
-					// Read the merged file
-					$queue_log = @fopen($directory_queue_log . '/merged_queue_log', 'r');
-					if (!$queue_log) {
-						log_to_file("ERROR", "Can not open log file, Exitting");
-						parser_unlock();
-						exit();
-					}
-				}
-				else {
-					echo "Queue_log not found or MYSQL DB integration is used";
-				}
-			}
-			else {
-				// Check if merged file exists - previous parse was not finished, will try again from last event 
-				$queue_log = @fopen($directory_queue_log . '/merged_queue_log', 'r');
+				}				
 			}
 		}
 		else {
