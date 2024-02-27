@@ -517,7 +517,7 @@ class Tools extends CI_Controller {
 			$result = $query->row_array();
 
 			if ($parser_type === "LOG") {
-				if (!file_exists($merged_queue_log)) {	
+				if (!file_exists($merged_queue_log)) {
 					// Check for errors and result
 					if ($query === FALSE || empty($result)) {
 						log_message('error', 'Error fetching timestamp: ' . (isset($this->db->error()['message']) ? $this->db->error()['message'] : 'Unknown error'));
