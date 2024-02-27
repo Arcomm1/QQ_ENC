@@ -11,6 +11,7 @@
                             <tr>
                                 <th scope="col"><?php echo lang('agent'); ?></th>
                                 <th scope="col"><?php echo lang('calls_answered'); ?></th>
+								<th scope="col"><?php echo lang('local_calls'); ?></th>
                                 <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
                                 <th scope="col"><?php echo lang('ringnoanswer'); ?></th>
                                 <th scope="col"><?php echo lang('calls_outgoing_answered'); ?></th>
@@ -50,7 +51,7 @@
                                     {{ agent.calls_answered }}
                                 </td>
                                 <td>
-                                    {{ agent.total_local_calls }}
+                                    {{ agent.calls_total_local }}
                                 </td>								
                                 <td>                        
                                 <td>
