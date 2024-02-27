@@ -174,7 +174,7 @@
                                                 </div>
                                             </td>
 
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">
+											<td style="text-align: center;">
 												{{
 													agent_statuses[agent.extension]
 													? (
@@ -183,12 +183,12 @@
 														agent_statuses[agent.extension].StatusText === 'InUse' ? 'Active' :
 														agent_statuses[agent.extension].StatusText === 'Busy' ? 'DND' :
 														agent_statuses[agent.extension].StatusText === 'Ringing' ? 'Active Ringing' :
-														agent_statuses[agent.extension].StatusText === 'Hold' ? 'Active OnHold' :														
+														agent_statuses[agent.extension].StatusText === 'Hold' ? 'Active OnHold' :                                                        
 														agent_statuses[agent.extension].StatusText
 													  )
-													: ''
+													: 'Unavailable'
 												}}
-												 </td>
+											</td>
                                             <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_answered }}</td>
                                             <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ sec_to_time(agent_stats[agent.id]?.incoming_total_calltime) }}</td>
                                             <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">{{ agent_stats[agent.id]?.calls_missed }}</td>
