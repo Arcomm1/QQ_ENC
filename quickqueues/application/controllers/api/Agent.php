@@ -1409,6 +1409,7 @@ class Agent extends MY_Controller {
                     'extension'                 => $a->extension,
                     'agent_id'                  => $a->id,
                     'calls_answered'            => 0,
+					'calls_total_local'			=> 0,
                     'calls_outgoing'            => 0,
                     'calls_missed'              => 0,
                     'total_calltime'            => 0,
@@ -1441,6 +1442,13 @@ class Agent extends MY_Controller {
 			$agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
 			$agent_stats[$s->agent_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
 			$agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+			
+			$local_calls_for_start = $this->Call_model->get_local_calls_for_start($date_range, $s->agent_id);
+			if (!isset($local_calls_for_start->calls_total_local)) {
+				$agent_stats[$s->agent_id]['calls_total_local'] = 0; // Set default value if the property does not exist
+			}else {
+				$agent_stats[$s->agent_id]['calls_total_local'] = $local_calls_for_start->calls_total_local;
+			}			
 		}
 		
         foreach ($agent_event_stats as $s) {
