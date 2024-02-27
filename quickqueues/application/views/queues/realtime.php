@@ -177,7 +177,7 @@
                                                     {{ " | "+agent.last_call }}
                                                 </div>
                                             </td>
-                                            <td  v-if="agent_statuses[agent.extension]" style="text-align: center;">
+											<td style="text-align: center;">
 												{{
 													agent_statuses[agent.extension]
 													? (
@@ -186,12 +186,12 @@
 														agent_statuses[agent.extension].StatusText === 'InUse' ? 'Active' :
 														agent_statuses[agent.extension].StatusText === 'Busy' ? 'DND' :
 														agent_statuses[agent.extension].StatusText === 'Ringing' ? 'Active Ringing' :
-														agent_statuses[agent.extension].StatusText === 'Hold' ? 'Active OnHold' :														
+														agent_statuses[agent.extension].StatusText === 'Hold' ? 'Active OnHold' :                                                        
 														agent_statuses[agent.extension].StatusText
 													  )
-													: ''
+													: 'Unavailable'
 												}}
-											 </td>
+											</td>
 											<!-- Using the ternary operator to display stats or a default value -->
 											<td>{{ agent_stats[agent.id] ? agent_stats[agent.id].calls_answered : 0 }}</td>
 											<td>{{ agent_stats[agent.id] ? sec_to_time(agent_stats[agent.id].incoming_total_calltime) : '0:00' }}</td>
