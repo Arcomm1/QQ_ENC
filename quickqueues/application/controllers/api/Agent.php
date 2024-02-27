@@ -1423,20 +1423,26 @@ class Agent extends MY_Controller {
                 );
             }
         }
-        
-        foreach($agent_call_stats as $s) {
-            $agent_stats[$s->agent_id]['calls_answered']           = $s->calls_answered;
-            $agent_stats[$s->agent_id]['calls_outgoing']           = $s->calls_outgoing;
-            $agent_stats[$s->agent_id]['total_calltime']           = $s->total_calltime;
-            $agent_stats[$s->agent_id]['total_ringtime']           = $s->total_ringtime;
-            $agent_stats[$s->agent_id]['avg_calltime']             = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
-            $agent_stats[$s->agent_id]['avg_ringtime']             = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
-            $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
-            $agent_stats[$s->agent_id]['calls_outgoing_answered']  = $s->calls_outgoing_answered;
-            $agent_stats[$s->agent_id]['outgoing_total_calltime']  = $s->outgoing_total_calltime;
-            $agent_stats[$s->agent_id]['calls_outgoing_unanswered']= $s->calls_outgoing_unanswered;
-        }
 
+		foreach($agent_call_stats as $s) {
+			$agent_stats[$s->agent_id]['calls_answered'] = $s->calls_answered;
+			$agent_stats[$s->agent_id]['calls_outgoing'] = $s->calls_outgoing;
+			$agent_stats[$s->agent_id]['total_calltime'] = $s->total_calltime;
+			$agent_stats[$s->agent_id]['total_ringtime'] = $s->total_ringtime;
+
+			// Calculate avg_calltime, ensure denominator is not zero
+			$totalCalls = $s->calls_answered + $s->calls_outgoing;
+			$agent_stats[$s->agent_id]['avg_calltime'] = $totalCalls > 0 ? ceil($s->total_calltime / $totalCalls) : 0;
+
+			// Calculate avg_ringtime, ensure denominator (calls_answered) is not zero
+			$agent_stats[$s->agent_id]['avg_ringtime'] = $s->calls_answered > 0 ? ceil($s->total_ringtime / $s->calls_answered) : 0;
+
+			$agent_stats[$s->agent_id]['incoming_total_calltime'] = $s->incoming_total_calltime;
+			$agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
+			$agent_stats[$s->agent_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
+			$agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+		}
+		
         foreach ($agent_event_stats as $s) {
             $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
         }
@@ -1558,21 +1564,28 @@ class Agent extends MY_Controller {
                 'outgoing_total_calltime'   => 0
             );
         }
-        foreach($agent_call_stats as $s) {
-            $agent_stats[$s->agent_id]['calls_answered']            = $s->calls_answered;
-            $agent_stats[$s->agent_id]['calls_outgoing']            = $s->calls_outgoing;
-            $agent_stats[$s->agent_id]['total_calltime']            = $s->total_calltime;
-            $agent_stats[$s->agent_id]['total_ringtime']            = $s->total_ringtime;
-            $agent_stats[$s->agent_id]['avg_calltime']              = ceil($s->total_calltime == 0 ? 0 : $s->total_calltime / ($s->calls_answered + $s->calls_outgoing));
-            $agent_stats[$s->agent_id]['avg_ringtime']              = ceil($s->total_ringtime == 0 ? 0 : $s->total_ringtime / $s->calls_answered);
-            $agent_stats[$s->agent_id]['agent_id']                  = $s->agent_id;
-            $agent_stats[$s->agent_id]['total_data']                = $s;
-            $agent_stats[$s->agent_id]['calls_outgoing_answered']   = $s->calls_outgoing_answered;
-            $agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-            $agent_stats[$s->agent_id]['incoming_total_calltime']   = $s->incoming_total_calltime;
-            $agent_stats[$s->agent_id]['outgoing_total_calltime']   = $s->outgoing_total_calltime;
 
-        }
+		foreach($agent_call_stats as $s) {
+			$agent_stats[$s->agent_id]['calls_answered'] = $s->calls_answered;
+			$agent_stats[$s->agent_id]['calls_outgoing'] = $s->calls_outgoing;
+			$agent_stats[$s->agent_id]['total_calltime'] = $s->total_calltime;
+			$agent_stats[$s->agent_id]['total_ringtime'] = $s->total_ringtime;
+
+			// Calculate avg_calltime safely
+			$callsForAvgCalltime = $s->calls_answered + $s->calls_outgoing;
+			$agent_stats[$s->agent_id]['avg_calltime'] = $callsForAvgCalltime > 0 ? ceil($s->total_calltime / $callsForAvgCalltime) : 0;
+
+			// Calculate avg_ringtime safely
+			$agent_stats[$s->agent_id]['avg_ringtime'] = $s->calls_answered > 0 ? ceil($s->total_ringtime / $s->calls_answered) : 0;
+
+			$agent_stats[$s->agent_id]['agent_id'] = $s->agent_id;
+			$agent_stats[$s->agent_id]['total_data'] = $s;
+			$agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
+			$agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+			$agent_stats[$s->agent_id]['incoming_total_calltime'] = $s->incoming_total_calltime;
+			$agent_stats[$s->agent_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
+		}
+		
         foreach ($agent_event_stats as $s) 
         {
             if ($s->agent_id) 
