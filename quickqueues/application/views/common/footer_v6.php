@@ -3,7 +3,7 @@
         <!-- content -->
         <footer class="footer"> <!-- footer -->
             <div>
-                <a href="https://arcomm.ge">ARComm | Quickqueues</a> <?php echo qq_get_version(); ?> © 2016-2023
+                <a href="https://arcomm.ge">ARComm | Quickqueues</a> <?php echo qq_get_version(); ?> © 2016-<?php echo date('Y'); ?>
             </div>
             <!-- <div class="ms-auto">Powered by&nbsp;
                 <a href="https://coreui.io/bootstrap/ui-components/">CoreUI PRO UI Components</a>
