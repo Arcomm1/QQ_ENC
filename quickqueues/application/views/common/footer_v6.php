@@ -3,7 +3,7 @@
         <!-- content -->
         <footer class="footer"> <!-- footer -->
             <div style="width: 50%; margin: 0 auto; text-align: center;">
-                <a href="https://arcomm.ge">ARComm | Quickqueues</a> <?php echo qq_get_version(); ?> © 2016-<?php echo date('Y'); ?>
+                <a href="https://arcomm.ge">ARComm | Quickqueues</a> <?php echo "V"qq_get_version(); ?> © 2016-<?php echo date('Y'); ?>
             </div>
             <!-- <div class="ms-auto">Powered by&nbsp;
                 <a href="https://coreui.io/bootstrap/ui-components/">CoreUI PRO UI Components</a>
