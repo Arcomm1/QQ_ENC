@@ -2,7 +2,7 @@
         <!-- Updated At 19.02.2023 -->
         <!-- content -->
         <footer class="footer"> <!-- footer -->
-            <div>
+            <div style="width: 50%; margin: 0 auto; text-align: center;">
                 <a href="https://arcomm.ge">ARComm | Quickqueues</a> <?php echo qq_get_version(); ?> © 2016-<?php echo date('Y'); ?>
             </div>
             <!-- <div class="ms-auto">Powered by&nbsp;
