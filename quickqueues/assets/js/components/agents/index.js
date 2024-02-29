@@ -6,6 +6,7 @@ var agent_overview = new Vue({
 	data () {
 		return {
 			agents              : {},
+			agents_missing		: {},
 			agents_loading      : true,
 			agents_error        : false,
 			refreshStatsInterval: null,
@@ -46,48 +47,43 @@ var agent_overview = new Vue({
 		this.$set(agent, 'isEditing', false);
         this.$set(agent, 'editedDisplayName', '');
 	},
-	  get_overview: function () 
-		{
-			this.agents_loading = true;
-			axios.get(api_url + 'agent/get_stats_for_start/')
-			.then(response => 
-				{
-					if (typeof (response.data.data) == 'object') 
-					{
-						const agentsData        = response.data.data;
-						const reorganizedAgents = {};
-						Object.keys(agentsData).forEach(agentId => 
-							{
-								const agent                  = agentsData[agentId];
-								const extension              = parseInt(agent.extension);
-								reorganizedAgents[extension] = agent;
-						});
+	
+	get_overview: function() {
+		this.agents_loading = true;
+		axios.get(api_url + 'agent/get_stats_for_start/')
+			.then(response => {
+				if (typeof(response.data.data) == 'object') {
+					const agentsData = response.data.data;
+					const reorganizedAgents = {}; // Object for agents with valid extensions
+					const reorganizedAgentsMissing = []; // Array for agents missing extensions
 
-						this.agents = reorganizedAgents;
+					Object.keys(agentsData).forEach((agentId, index) => {
+						const agent = agentsData[agentId];
 
-						// DnD Status for Agents
-						Object.keys(this.agents).forEach(agentId => 
-						{
-							axios.get(api_url + 'Dnd/get_agent_dnd_status/' + agentId)
-								.then(agentResponse => 
-									{
-										const agentInfo = agentResponse.data;
-										this.$set(this.agents[agentId], 'dnd_status_pushed', agentInfo.dnd_status);
-										this.$set(this.agents[agentId], 'dnd_duration_pushed', agentInfo.dnd_duration);
-										this.$set(this.agents[agentId], 'dnd_subject_title_pushed', agentInfo.dnd_subject_title);
-								})
-								.catch(error => 
-								{
-										console.error('Error fetching data:', error);
-								});
-						});
-					}
+						// Check if agent.extension exists and is a valid number
+						if (agent.extension && !isNaN(parseInt(agent.extension))) {
+							const extensionKey = parseInt(agent.extension);
+							reorganizedAgents[extensionKey] = agent; // Use extensionKey as the key
+						} else {
+							// Directly push agent into the missing array
+							reorganizedAgentsMissing.push(agent);
+						}
+					});
+
+					// Assign the structured data to Vue data properties
+					this.agents = reorganizedAgents;
+					this.agents_missing = reorganizedAgentsMissing;
+
+					// Optional: Log the structured data for verification
+					console.log(this.agents);
+					console.log(this.agents_missing);
+				}
 			})
-			.finally(() => 
-			{
+			.finally(() => {
 				this.agents_loading = false;
 			});
-	   },
+	},
+
 
 	refresh_stats: function() 
     {
