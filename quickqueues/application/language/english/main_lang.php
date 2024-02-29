@@ -1,4 +1,6 @@
 <?php
+//For Mobile Forward
+$lang['mobile_forward']                                          = "Mobile Forward";
 //For settings page
 $lang['settings']                                                = "Settings";
 $lang['overload']                                                = "Overload";
