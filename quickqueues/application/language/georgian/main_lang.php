@@ -1,4 +1,6 @@
 <?php
+//For Mobile Forward
+$lang['mobile_forward']     = "მობილური გადამისამართება";
 //For settings page
 $lang['period']             = "პერიოდი";
 $lang['settings']           = "პარამეტრები";
