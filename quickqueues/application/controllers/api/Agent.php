@@ -1423,6 +1423,28 @@ class Agent extends MY_Controller {
                     'calls_outgoing_unanswered' => 0,
                 );
             }
+            if (strpos($a->name, "Local/") === 0) {
+				$number = preg_match("/Local\/(.+?)@from-queue\/n/", $a->display_name, $matches) ? $matches[1] : null;
+                $agent_stats[$a->id] = array(
+                    'display_name'              => $number,
+                    'last_call'                 => $a->last_call,
+                    'extension'                 => "Mobile Forward",
+                    'agent_id'                  => $a->id,
+                    'calls_answered'            => 0,
+					'calls_total_local'			=> 0,
+                    'calls_outgoing'            => 0,
+                    'calls_missed'              => 0,
+                    'total_calltime'            => 0,
+                    'total_ringtime'            => 0,
+                    'total_pausetime'           => 0,
+                    'avg_calltime'              => 0,
+                    'avg_ringtime'              => 0,
+                    'incoming_total_calltime'    => 0,
+                    'calls_outgoing_answered'   => 0,
+                    'outgoing_total_calltime'   => 0,
+                    'calls_outgoing_unanswered' => 0,
+                );
+            }			
         }
 
 		foreach($agent_call_stats as $s) {
