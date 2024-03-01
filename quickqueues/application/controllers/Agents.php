@@ -62,7 +62,7 @@ class Agents extends MY_Controller {
             redirect(site_url('start'));
         }
 
-        if (!$this->Agent_model->exists($id)) {
+        if (!$this->Agent_model->existsInActiveOrArchived($id)) {
             set_flash_notif('danger', lang('agent_not_found'));
             redirect(site_url('agents'));
         }
