@@ -1,6 +1,7 @@
 <?php
 //For Mobile Forward
 $lang['mobile_forward']     = "მობილური გადამისამართება";
+$lang['agents_archived']     = "დაარქივებული ოპერატორები";
 //For settings page
 $lang['period']             = "პერიოდი";
 $lang['settings']           = "პარამეტრები";
