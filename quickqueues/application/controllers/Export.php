@@ -3325,10 +3325,24 @@ class Export extends MY_Controller {
         $total_stats         = $this->Call_model->get_agent_stats_for_agent_stats_page($agent_id, $date_range);
         $agent_event_stats   = $this->Event_model->get_agent_stats_for_agent_stats_page($agent_id, $date_range);
         $agent               = $this->Agent_model->get($agent_id);
-        $row_header          = array(lang('stats').' '.$date_gt.' > '.$date_lt.'('.lang('agent').': '.$agent->display_name.')');
-      
+
+		// Check if $agent is an object before accessing its properties
+		if (is_object($agent)) {
+			$agentDisplayName = $agent->display_name;
+			$agentLastCall = $agent->last_call;
+			// Add more properties as needed
+		} else {
+			// Set default values if $agent is not an object
+			$queryResult = $this->db->select('display_name')->get_where('qq_agents_archived', ['agent_id' => $agent_id])->row();
+			$agentDisplayName = isset($queryResult->display_name) ? $queryResult->display_name : "Archived Agent Not Found";
+			$agentLastCall = "Last Call Not Available";
+			// Add more default values as needed
+		}
+		
+        $row_header          = array(lang('stats').' '.$date_gt.' > '.$date_lt.'('.lang('agent').': '.$agentDisplayName.')');
+
         // Last Call 
-        $rows_overview[] = array(lang('last_call'), $agent->last_call);
+        $rows_overview[] = array(lang('last_call'), $agentLastCall);
        
         // Total Calls
         $overallCalls = (intval($overall_stats->calls_answered ) + intval($overall_stats->calls_unanswered)) + (intval($overall_stats->calls_outgoing_answered) + intval($overall_stats->calls_outgoing_unanswered));
@@ -3659,7 +3673,7 @@ class Export extends MY_Controller {
         
 
          /////////////////// ---------- END OFTIME SHEET ----------------//////////////////////////
-        $this->_prepare_headers('agent_'.$agent->display_name.'_stats-'.date('Ymd-His').'.xlsx');
+        $this->_prepare_headers('agent_'.$agentDisplayName.'_stats-'.date('Ymd-His').'.xlsx');
         
 
         $writer = new XLSXWriter();
