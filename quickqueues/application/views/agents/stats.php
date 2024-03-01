@@ -12,18 +12,37 @@
 
 									$agent_id = $this->uri->segment(3); // Assuming '3' is the correct segment number for the agent_id in your URL structure.
 
-									// First, attempt to fetch the agent's display name from the active agents table
-									$queryActive = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
-									$agentActive = $queryActive->row();
-
-									// If not found in active agents, attempt to fetch from archived agents
-									if (empty($agentActive)) {
-										$queryArchived = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
-										$agentArchived = $queryArchived->row();
-										$agentDisplayName = isset($agentArchived->display_name) ? $agentArchived->display_name : "Agent Not Found";
-									} else {
-										$agentDisplayName = $agentActive->display_name;
+									// Check if $agent_id is numeric
+									if (!is_numeric($agent_id)) {
+										redirect(site_url('agents')); // Redirect if not numeric
 									}
+
+									// Initialize variables to store agent information
+									$agentDisplayName = null;
+									$agentFound = false;
+
+									// Attempt to fetch the agent from the active agents table
+									$queryActive = $this->db->select('display_name')->from('qq_agents')->where('id', $agent_id)->get();
+									if ($queryActive && $queryActive->num_rows() > 0) {
+										$agentFound = true;
+										$agentDisplayName = $queryActive->row()->display_name;
+									}
+
+									// If not found in active agents, attempt to fetch the agent from the archived agents table
+									if (!$agentFound) {
+										$queryArchived = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
+										if ($queryArchived && $queryArchived->num_rows() > 0) {
+											$agentFound = true;
+											$agentDisplayName = $queryArchived->row()->display_name;
+										}
+									}
+
+									// Check if the agent was found in either table
+									if (!$agentFound) {
+										// Agent not found in both tables, redirect
+										redirect(site_url('agents'));
+									}
+									
 									?>
 									<h4 class="card-title"><?php echo lang('agent') . ": " . $agentDisplayName; ?></h4>
                                     <div class="small text-medium-emphasis mb-3"><?php echo lang('stats'); ?></div>

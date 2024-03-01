@@ -686,6 +686,7 @@ class Tools extends CI_Controller {
 					'name'          => $qq_agent->name,
 					'display_name'  => $qq_agent->display_name,
 					'extension'     => $qq_agent->extension, // Include the extension
+                    'last_call'		=> $qq_agent->last_call, // Include last_call
 					'date'          => date('Y-m-d H:i:s'), // Current timestamp
 				];
 
