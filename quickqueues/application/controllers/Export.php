@@ -3332,11 +3332,17 @@ class Export extends MY_Controller {
 			$agentLastCall = $agent->last_call;
 			// Add more properties as needed
 		} else {
-			// Set default values if $agent is not an object
-			$queryResult = $this->db->select('display_name')->get_where('qq_agents_archived', ['agent_id' => $agent_id])->row();
-			$agentDisplayName = isset($queryResult->display_name) ? $queryResult->display_name : "Archived Agent Not Found";
-			$agentLastCall = "Last Call Not Available";
-			// Add more default values as needed
+			$queryResult = $this->db->select('display_name, last_call')
+									->get_where('qq_agents_archived', ['agent_id' => $agent_id])
+									->row();
+
+			if ($queryResult !== null) {
+				$agentDisplayName = $queryResult->display_name;
+				$agentLastCall = $queryResult->last_call;
+			} else {
+				$agentDisplayName = "Archived Agent Not Found";
+				$agentLastCall = "Last Call Not Available";
+			}
 		}
 		
         $row_header          = array(lang('stats').' '.$date_gt.' > '.$date_lt.'('.lang('agent').': '.$agentDisplayName.')');
