@@ -26,7 +26,7 @@
                           <tr v-for="agent in agents" v-if="agent && agent.display_name">
                                 <td style="width: 500px;">
 								  <div style="display:flex; gap: 10px;">
-									  <div style="width: 150px">
+									  <div style="width: 100%">
 										  <div>
 											  <span v-if="!agent.isEditing" :key="agent.display_name" @click="startEditing(agent)" style="cursor: pointer; text-decoration: underline; color: rgba(44, 56, 74, 0.95);">{{ agent.display_name }}</span>
 											  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
@@ -39,11 +39,11 @@
 											  </span>
 											  {{ " | "+agent.last_call }}
 										  </div>
-									  </div>
-									  <div style="width: 150px">
-										  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
-										  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
-										  <?php endif; ?>
+										  <div>
+											  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
+											  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
+											  <?php endif; ?>										  
+										  </div>
 									  </div>
 								  </div>
                                 </td>
@@ -115,7 +115,7 @@
                           <tr v-for="agent in agents_missing" v-if="agent && agent.display_name">
                                 <td style="width: 500px;">
 								  <div style="display:flex; gap: 10px;">
-									  <div style="width: 150px">
+									  <div style="width: 100%">
 										  <div>
 											  <span v-if="!agent.isEditing" :key="agent.display_name" @click="startEditing(agent)" style="cursor: pointer; text-decoration: underline; color: rgba(44, 56, 74, 0.95);">{{ agent.display_name }}</span>
 											  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
@@ -128,11 +128,11 @@
 											  </span>
 											  {{ " | "+agent.last_call }}
 										  </div>
-									  </div>
-									  <div style="width: 150px">
-										  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
-										  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
-										  <?php endif; ?>
+										  <div>
+											  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
+											  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
+											  <?php endif; ?>										  
+										  </div>										  
 									  </div>
 								  </div>
                                 </td>
@@ -205,7 +205,7 @@
                           <tr v-for="agent in agents_archived" v-if="agent && agent.display_name">
                                 <td style="width: 500px;">
 								  <div style="display:flex; gap: 10px;">
-									  <div style="width: 150px">
+									  <div style="width: 100%">
 										  <div>
 											  <span>{{ agent.display_name }}</span>
 										  </div>
@@ -215,11 +215,11 @@
 											  </span>
 											  {{ " | "+agent.last_call }}
 										  </div>
-									  </div>
-									  <div style="width: 150px">
-										  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
-										  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
-										  <?php endif; ?>
+										  <div>
+											  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
+											  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
+											  <?php endif; ?>										  
+										  </div>										  
 									  </div>
 								  </div>
                                 </td>
