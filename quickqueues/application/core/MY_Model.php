@@ -799,6 +799,27 @@ class MY_model extends CI_Model
         }
         return false;
     }
+	
+	/**
+	 * Check if an agent exists in either the active or archived agents tables.
+	 *
+	 * @param mixed $id The ID of the agent to check.
+	 * @return bool True if the agent exists in either table, false otherwise.
+	 */
+	public function existsInActiveOrArchived($id) {
+		// Check in the active agents table
+		$existsInActive = $this->exists($id);
+		if ($existsInActive) {
+			return true; // Found in active agents table
+		}
+		
+		// Check in the archived agents table
+		$query = $this->db->get_where('qq_agents_archived', array('agent_id' => $id));
+		$existsInArchived = $query->num_rows() > 0;
+		
+		return $existsInArchived; // True if found in archived, false otherwise
+	}
+		
 
 
     /**
