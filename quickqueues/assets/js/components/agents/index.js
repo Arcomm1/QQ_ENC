@@ -7,6 +7,7 @@ var agent_overview = new Vue({
 		return {
 			agents              : {},
 			agents_missing		: {},
+			agents_archived		: {},
 			agents_loading      : true,
 			agents_error        : false,
 			refreshStatsInterval: null,
@@ -73,10 +74,29 @@ var agent_overview = new Vue({
 					// Assign the structured data to Vue data properties
 					this.agents = reorganizedAgents;
 					this.agents_missing = reorganizedAgentsMissing;
+				}
+			})
+			.finally(() => {
+				this.agents_loading = false;
+			});
+	},
+	
+	get_overview_archived: function() {
+		this.agents_loading = true;
+		axios.get(api_url + 'agent/get_stats_for_start/?archived=true')
+			.then(response => {
+				if (typeof(response.data.data) == 'object') {
+					const agentsData = response.data.data;
+					const reorganizedAgents = []; // Use an array to store all agents
 
-					// Optional: Log the structured data for verification
-					console.log(this.agents);
-					console.log(this.agents_missing);
+					Object.keys(agentsData).forEach((agentId, index) => {
+						const agent = agentsData[agentId];
+						// Directly add all agents to the array without checking for extension
+						reorganizedAgents.push(agent);
+					});
+
+					// Assign the structured data to Vue data properties
+					this.agents_archived = reorganizedAgents;
 				}
 			})
 			.finally(() => {
@@ -85,9 +105,11 @@ var agent_overview = new Vue({
 	},
 
 
+
 	refresh_stats: function() 
     {
 		this.refreshStatsInterval = setInterval(() => this.get_overview(), 60000);
+		this.refreshStatsInterval = setInterval(() => this.get_overview_archived(), 60000);
 	},	
 
 	destroyed() 
@@ -99,6 +121,7 @@ var agent_overview = new Vue({
 	mounted () 
 	{
 			this.get_overview();
+			this.get_overview_archived();
 	},
 
 	created () 
