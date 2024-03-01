@@ -9,7 +9,7 @@
                     <table class="table agents_table">
                         <thead class="table-light fw-semibold">
                             <tr>
-                                <th scope="col"><?php echo lang('agent'); ?></th>
+                                <th scope="col" style="width: 500px;"><?php echo lang('agent'); ?></th>
                                 <th scope="col"><?php echo lang('calls_answered'); ?></th>
 								<th scope="col"><?php echo lang('local_calls'); ?></th>
                                 <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
@@ -24,7 +24,7 @@
                         </thead>
                         <tbody class="monitoring-agents-dashboard-table-body">
                           <tr v-for="agent in agents" v-if="agent && agent.display_name">
-                                <td style="width: 300px;">
+                                <td style="width: 500px;">
 								  <div style="display:flex; gap: 10px;">
 									  <div style="width: 150px">
 										  <div>
@@ -93,12 +93,12 @@
                         </tbody>
                     </table>
                     </div>
-                    <h4 class="card-title mb-3"><?php echo lang('mobile_forward'); ?></h4>
-                   <div class="table-responsive">
+                   <div class="table-responsive" v-if="agents_missing && agents_missing.length > 0">
+				   <h4 class="card-title mb-3"><?php echo lang('mobile_forward'); ?></h4>
                     <table class="table agents_table">
                         <thead class="table-light fw-semibold">
                             <tr>
-                                <th scope="col"><?php echo lang('agent'); ?></th>
+                                <th scope="col" style="width: 500px;"><?php echo lang('agent'); ?></th>
                                 <th scope="col"><?php echo lang('calls_answered'); ?></th>
 								<th scope="col"><?php echo lang('local_calls'); ?></th>
                                 <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
@@ -113,7 +113,7 @@
                         </thead>					
                         <tbody class="monitoring-agents-dashboard-table-body">
                           <tr v-for="agent in agents_missing" v-if="agent && agent.display_name">
-                                <td style="width: 300px;">
+                                <td style="width: 500px;">
 								  <div style="display:flex; gap: 10px;">
 									  <div style="width: 150px">
 										  <div>
@@ -182,13 +182,13 @@
                         </tbody>
                     </table>
                     </div>
-					<?php if ($this->data->logged_in_user->role === 'admin'): ?>
-                    <h4 class="card-title mb-3"><?php echo lang('agents_archived'); ?></h4>	
-                   <div class="table-responsive">
+					<?php if ($this->data->logged_in_user->role === 'admin'): ?>	
+                   <div class="table-responsive" v-if="agents_archived && agents_archived.length > 0">
+				   <h4 class="card-title mb-3"><?php echo lang('agents_archived'); ?></h4>
                     <table class="table agents_table">
                         <thead class="table-light fw-semibold">
                             <tr>
-                                <th scope="col"><?php echo lang('agent'); ?></th>
+                                <th scope="col" style="width: 500px;"><?php echo lang('agent'); ?></th>
                                 <th scope="col"><?php echo lang('calls_answered'); ?></th>
 								<th scope="col"><?php echo lang('local_calls'); ?></th>
                                 <th scope="col"><?php echo lang('incoming_talk_time_sum'); ?></th>
@@ -203,7 +203,7 @@
                         </thead>					
                         <tbody class="monitoring-agents-dashboard-table-body">
                           <tr v-for="agent in agents_archived" v-if="agent && agent.display_name">
-                                <td style="width: 300px;">
+                                <td style="width: 500px;">
 								  <div style="display:flex; gap: 10px;">
 									  <div style="width: 150px">
 										  <div>
