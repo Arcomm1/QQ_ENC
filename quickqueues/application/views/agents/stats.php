@@ -7,7 +7,25 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-3">
                                 <div>
-                                    <h4 class="card-title"><?php echo lang('agent').": ".$agent->display_name; ?></h4>
+									<?php
+									// Assuming you have access to the $this->db object in your view. If not, this logic should ideally be in your controller.
+
+									$agent_id = $this->uri->segment(3); // Assuming '3' is the correct segment number for the agent_id in your URL structure.
+
+									// First, attempt to fetch the agent's display name from the active agents table
+									$queryActive = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
+									$agentActive = $queryActive->row();
+
+									// If not found in active agents, attempt to fetch from archived agents
+									if (empty($agentActive)) {
+										$queryArchived = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
+										$agentArchived = $queryArchived->row();
+										$agentDisplayName = isset($agentArchived->display_name) ? $agentArchived->display_name : "Agent Not Found";
+									} else {
+										$agentDisplayName = $agentActive->display_name;
+									}
+									?>
+									<h4 class="card-title"><?php echo lang('agent') . ": " . $agentDisplayName; ?></h4>
                                     <div class="small text-medium-emphasis mb-3"><?php echo lang('stats'); ?></div>
                                 </div>
                                 <div class="btn-toolbar d-none d-md-block" role="toolbar">
@@ -77,7 +95,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-list-rich text-primary mr-2"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>">{{ lang['calls_total'] }}</a>
+											<a class="text-decoration-none link-dark" :href="app_url+'/recordings?date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id=' + <?php echo is_object($agent) ? $agent->id : '0'; ?>">{{ lang['calls_total'] }}</a>
                                         </span>
                                         <span>{{ calls_total }}</span>
                                     </li>
@@ -91,7 +109,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-check text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>">{{ lang['start_menu_calls_answered'] }}</a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo is_object($agent) ? $agent->id : '0'; ?>">{{ lang['start_menu_calls_answered'] }}</a>
                                         </span>
                                         <span>{{ calls_answered }}</span>
                                     </li>
@@ -137,7 +155,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-delete text-warning mr-2"></i>
-                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=RINGNOANSWER&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>">{{ lang['ringnoanswer'] }}</a>
+                                            <a class="text-decoration-none link-dark link-dark" :href="app_url+'/recordings?event_type=RINGNOANSWER&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo is_object($agent) ? $agent->id : '0'; ?>">{{ lang['ringnoanswer'] }}</a>
                                         </span>
                                         <span>{{ total_stats.calls_missed }}</span>
                                     </li>
@@ -167,7 +185,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-arrow-thick-right text-success mr-4"></i>
-                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo $agent->id; ?>"><?php echo lang('calls_outgoing_answered'); ?></a>
+                                            <a class="text-decoration-none link-dark" :href="app_url+'/recordings?event_type=OUT_ANSWERED&date_gt='+date_gt+'&date_lt='+date_lt+'&agent_id='+<?php echo isset($agent) && is_object($agent) ? $agent->id : '0'; ?>"><?php echo lang('calls_outgoing_answered'); ?></a>
                                         </span>
                                         <span>{{ total_stats.calls_outgoing_answered }}</span>
                                     </li>
