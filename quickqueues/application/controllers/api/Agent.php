@@ -1387,6 +1387,7 @@ class Agent extends MY_Controller {
 
 
     public function get_stats_for_start() {
+		$archived = isset($_GET['archived']) && $_GET['archived'] === 'true' ? true : false;
         $date_range['date_gt'] = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
         $date_range['date_lt'] = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
         $queue_ids = array();
@@ -1398,16 +1399,35 @@ class Agent extends MY_Controller {
         $agent_call_stats = $this->Call_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_event_stats = $this->Event_model->get_agent_stats_for_start_page($queue_ids, $date_range);
         $agent_pause_stats = $this->Event_model->get_agent_pause_stats_for_start_page($date_range);
+		
+		if ($archived === false) {
+			$ALLagents = $this->data->user_agents;
+		}
+		if ($archived === true) {
+			$query = $this->db->get('qq_agents_archived');
+			$ALLagents = $query->result();
+		}		
 
-
-        foreach ($this->data->user_agents as $a) {
+        foreach ($ALLagents as $a) {
+			if ($archived === false) {
+				$display_name = $a->display_name;
+				$last_call = $a->last_call;
+				$extension = $a->extension;
+				$agent_id = $a->id;
+			}
+			if ($archived === true) {
+				$display_name = $a->display_name;
+				$last_call = "N/A";
+				$extension = $a->extension;
+				$agent_id = $a->agent_id;
+			}				
 			// Do not display empty extensions or mobile forwarding
             if ($a->extension != "" && $a->name != "" && strpos($a->name, "Local/") !== 0) {
                 $agent_stats[$a->id] = array(
-                    'display_name'              => $a->display_name,
-                    'last_call'                 => $a->last_call,
-                    'extension'                 => $a->extension,
-                    'agent_id'                  => $a->id,
+                    'display_name'              => $display_name,
+                    'last_call'                 => $last_call,
+                    'extension'                 => $extension,
+                    'agent_id'                  => $agent_id,
                     'calls_answered'            => 0,
 					'calls_total_local'			=> 0,
                     'calls_outgoing'            => 0,
@@ -1424,12 +1444,12 @@ class Agent extends MY_Controller {
                 );
             }
             if (strpos($a->name, "Local/") === 0) {
-				$number = preg_match("/Local\/(.+?)@from-queue\/n/", $a->display_name, $matches) ? $matches[1] : null;
+				$number = preg_match("/Local\/(.+?)@from-queue\/n/", $a->name, $matches) ? $matches[1] : null;
                 $agent_stats[$a->id] = array(
                     'display_name'              => $number,
-                    'last_call'                 => $a->last_call,
+                    'last_call'                 => $last_call,
                     'extension'                 => "Mobile Forward",
-                    'agent_id'                  => $a->id,
+                    'agent_id'                  => $agent_id,
                     'calls_answered'            => 0,
 					'calls_total_local'			=> 0,
                     'calls_outgoing'            => 0,
@@ -1446,42 +1466,44 @@ class Agent extends MY_Controller {
                 );
             }			
         }
-
-		foreach($agent_call_stats as $s) {
-			$agent_stats[$s->agent_id]['calls_answered'] = $s->calls_answered;
-			$agent_stats[$s->agent_id]['calls_outgoing'] = $s->calls_outgoing;
-			$agent_stats[$s->agent_id]['total_calltime'] = $s->total_calltime;
-			$agent_stats[$s->agent_id]['total_ringtime'] = $s->total_ringtime;
-
-			// Calculate avg_calltime, ensure denominator is not zero
-			$totalCalls = $s->calls_answered + $s->calls_outgoing;
-			$agent_stats[$s->agent_id]['avg_calltime'] = $totalCalls > 0 ? ceil($s->total_calltime / $totalCalls) : 0;
-
-			// Calculate avg_ringtime, ensure denominator (calls_answered) is not zero
-			$agent_stats[$s->agent_id]['avg_ringtime'] = $s->calls_answered > 0 ? ceil($s->total_ringtime / $s->calls_answered) : 0;
-
-			$agent_stats[$s->agent_id]['incoming_total_calltime'] = $s->incoming_total_calltime;
-			$agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
-			$agent_stats[$s->agent_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
-			$agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
-			
-			$local_calls_for_start = $this->Call_model->get_local_calls_for_start($date_range, $s->agent_id);
-			if (!isset($local_calls_for_start->calls_total_local)) {
-				$agent_stats[$s->agent_id]['calls_total_local'] = 0; // Set default value if the property does not exist
-			}else {
-				$agent_stats[$s->agent_id]['calls_total_local'] = $local_calls_for_start->calls_total_local;
-			}			
-		}
 		
-        foreach ($agent_event_stats as $s) {
-            $agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
-        }
+		if ($archived === false) {
+			foreach($agent_call_stats as $s) {
+				$agent_stats[$s->agent_id]['calls_answered'] = $s->calls_answered;
+				$agent_stats[$s->agent_id]['calls_outgoing'] = $s->calls_outgoing;
+				$agent_stats[$s->agent_id]['total_calltime'] = $s->total_calltime;
+				$agent_stats[$s->agent_id]['total_ringtime'] = $s->total_ringtime;
 
-        foreach ($agent_pause_stats as $s) {
-            $agent_stats[$s->agent_id]['total_pausetime'] = $s->total_pausetime;
-        }
-        
-        $this->r->data = $agent_stats;
+				// Calculate avg_calltime, ensure denominator is not zero
+				$totalCalls = $s->calls_answered + $s->calls_outgoing;
+				$agent_stats[$s->agent_id]['avg_calltime'] = $totalCalls > 0 ? ceil($s->total_calltime / $totalCalls) : 0;
+
+				// Calculate avg_ringtime, ensure denominator (calls_answered) is not zero
+				$agent_stats[$s->agent_id]['avg_ringtime'] = $s->calls_answered > 0 ? ceil($s->total_ringtime / $s->calls_answered) : 0;
+
+				$agent_stats[$s->agent_id]['incoming_total_calltime'] = $s->incoming_total_calltime;
+				$agent_stats[$s->agent_id]['calls_outgoing_answered'] = $s->calls_outgoing_answered;
+				$agent_stats[$s->agent_id]['outgoing_total_calltime'] = $s->outgoing_total_calltime;
+				$agent_stats[$s->agent_id]['calls_outgoing_unanswered'] = $s->calls_outgoing_unanswered;
+				
+				$local_calls_for_start = $this->Call_model->get_local_calls_for_start($date_range, $s->agent_id);
+				if (!isset($local_calls_for_start->calls_total_local)) {
+					$agent_stats[$s->agent_id]['calls_total_local'] = 0; // Set default value if the property does not exist
+				}else {
+					$agent_stats[$s->agent_id]['calls_total_local'] = $local_calls_for_start->calls_total_local;
+				}			
+			}
+			
+			foreach ($agent_event_stats as $s) {
+				$agent_stats[$s->agent_id]['calls_missed'] = $s->calls_missed;
+			}
+
+			foreach ($agent_pause_stats as $s) {
+				$agent_stats[$s->agent_id]['total_pausetime'] = $s->total_pausetime;
+			}
+		}
+			
+		$this->r->data = $agent_stats;
 
         $this->r->status = 'OK';
         $this->r->message = 'Total agent stats will follow';
