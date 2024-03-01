@@ -12,6 +12,36 @@
 
 									$agent_id = $this->uri->segment(3); // Assuming '3' is the correct segment number for the agent_id in your URL structure.
 
+									// Check if $agent_id is numeric
+									if (!is_numeric($agent_id)) {
+										redirect(site_url('agents')); // Redirect if not numeric
+									}
+
+									// Initialize variables to store agent information
+									$agentDisplayName = null;
+									$agentFound = false;
+
+									// Attempt to fetch the agent from the active agents table
+									$queryActive = $this->db->select('display_name')->from('qq_agents')->where('id', $agent_id)->get();
+									if ($queryActive && $queryActive->num_rows() > 0) {
+										$agentFound = true;
+										$agentDisplayName = $queryActive->row()->display_name;
+									}
+
+									// If not found in active agents, attempt to fetch the agent from the archived agents table
+									if (!$agentFound) {
+										$queryArchived = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
+										if ($queryArchived && $queryArchived->num_rows() > 0) {
+											$agentFound = true;
+											$agentDisplayName = $queryArchived->row()->display_name;
+										}
+									}
+
+									// Check if the agent was found in either table
+									if (!$agentFound) {
+										// Agent not found in both tables, redirect
+										redirect(site_url('agents'));
+									}
 									// First, attempt to fetch the agent's display name from the active agents table
 									$queryActive = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
 									$agentActive = $queryActive->row();
