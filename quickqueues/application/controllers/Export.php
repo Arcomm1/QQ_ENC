@@ -3332,13 +3332,18 @@ class Export extends MY_Controller {
 			$agentLastCall = $agent->last_call;
 			// Add more properties as needed
 		} else {
-			$queryResult = $this->db->select('display_name, last_call')
+			$queryResult = $this->db->select('name, display_name, last_call')
 									->get_where('qq_agents_archived', ['agent_id' => $agent_id])
 									->row();
 
 			if ($queryResult !== null) {
 				$agentDisplayName = $queryResult->display_name;
 				$agentLastCall = $queryResult->last_call;
+				
+				// Check mobile forwarding
+				if (preg_match("/Local\/(.+?)@from-queue\/n/", $queryResult->name, $matches)) {
+					$agentDisplayName = $matches[1];
+				}
 			} else {
 				$agentDisplayName = "Archived Agent Not Found";
 				$agentLastCall = "Last Call Not Available";
