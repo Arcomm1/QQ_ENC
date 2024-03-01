@@ -42,18 +42,7 @@
 										// Agent not found in both tables, redirect
 										redirect(site_url('agents'));
 									}
-									// First, attempt to fetch the agent's display name from the active agents table
-									$queryActive = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
-									$agentActive = $queryActive->row();
-
-									// If not found in active agents, attempt to fetch from archived agents
-									if (empty($agentActive)) {
-										$queryArchived = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
-										$agentArchived = $queryArchived->row();
-										$agentDisplayName = isset($agentArchived->display_name) ? $agentArchived->display_name : "Agent Not Found";
-									} else {
-										$agentDisplayName = $agentActive->display_name;
-									}
+									
 									?>
 									<h4 class="card-title"><?php echo lang('agent') . ": " . $agentDisplayName; ?></h4>
                                     <div class="small text-medium-emphasis mb-3"><?php echo lang('stats'); ?></div>
