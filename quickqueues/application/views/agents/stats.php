@@ -22,19 +22,29 @@
 									$agentFound = false;
 
 									// Attempt to fetch the agent from the active agents table
-									$queryActive = $this->db->select('display_name')->from('qq_agents')->where('id', $agent_id)->get();
+									$queryActive = $this->db->select('name, display_name')->from('qq_agents')->where('id', $agent_id)->get();
 									if ($queryActive && $queryActive->num_rows() > 0) {
 										$agentFound = true;
 										$agentDisplayName = $queryActive->row()->display_name;
+										
+										// Check for Mobile Forwarding
+										if (preg_match("/Local\/(.+?)@from-queue\/n/", $queryActive->row()->name, $matches)) {
+											$agentDisplayName = $matches[1];
+										}										
 									}
 
 									// If not found in active agents, attempt to fetch the agent from the archived agents table
 									if (!$agentFound) {
-										$queryArchived = $this->db->select('display_name, last_call')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
+										$queryArchived = $this->db->select('name, display_name, last_call')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
 										if ($queryArchived && $queryArchived->num_rows() > 0) {
 											$agentFound = true;
 											$agentDisplayName = $queryArchived->row()->display_name;
 											$agentLastCall = $queryArchived->row()->last_call;
+											
+											// Check for Mobile Forwarding
+											if (preg_match("/Local\/(.+?)@from-queue\/n/", $queryArchived->row()->name, $matches)) {
+												$agentDisplayName = $matches[1];
+											}											
 										}
 									}
 
