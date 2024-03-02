@@ -30,10 +30,11 @@
 
 									// If not found in active agents, attempt to fetch the agent from the archived agents table
 									if (!$agentFound) {
-										$queryArchived = $this->db->select('display_name')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
+										$queryArchived = $this->db->select('display_name, last_call')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
 										if ($queryArchived && $queryArchived->num_rows() > 0) {
 											$agentFound = true;
 											$agentDisplayName = $queryArchived->row()->display_name;
+											$agentLastCall = $queryArchived->row()->last_call;
 										}
 									}
 
@@ -104,13 +105,19 @@
                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                             <div class="card border-top-dark border-dark border-top-3">
                                 <ul class="list-group">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span>
-                                            <i class="cil-list-rich text-primary mr-2"></i>
-                                            <span>{{ lang['last_call'] }}</span>
-                                        </span>
-                                        <span>{{ agent.last_call }}</span>
-                                    </li>
+									<li class="list-group-item d-flex justify-content-between align-items-center">
+										<span>
+											<i class="cil-list-rich text-primary mr-2"></i>
+											<span><?php echo lang('last_call'); ?></span>
+										</span>
+										<!-- Conditionally display $agentLastCall if it exists -->
+										<?php if (!empty($agentLastCall)): ?>
+											<span><?php echo $agentLastCall; ?></span>
+										<?php else: ?>
+											<!-- Display some default text or leave blank if $agentLastCall does not exist -->
+											<span>{{ agent.last_call }}</span>
+										<?php endif; ?>
+									</li>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span>
                                             <i class="cil-list-rich text-primary mr-2"></i>
