@@ -728,6 +728,11 @@ class Tools extends CI_Controller {
 
 						if ($query->num_rows() == 0) {
 							// $qq_agent->name does not exist in queues_details, so proceed to archive
+							
+							// Set the extension to NULL before archiving/deleting
+							$this->db->where('id', $qq_agent->id);
+							$this->db->update('qq_agents', ['extension' => NULL]);							
+							
 							$query = $this->db->get_where('qq_agents_archived', array('name' => $qq_agent->name, 'agent_id' => $qq_agent->id));
 							if ($query->num_rows() == 0) {
 								// Record is unique based on 'name' | 'agent_id'
@@ -737,7 +742,12 @@ class Tools extends CI_Controller {
 							$this->db->where('id', $qq_agent->id);
 							$this->db->delete('qq_agents');
 						}
-						// If $qq_agent->name exists in queues_details, the agent is not archived, so no action needed here
+						else {
+							// The agent's name exists in queues_details, indicating an active or relevant queue member.
+							// Therefore, remove the extension as it must not be here.
+							$this->db->where('id', $qq_agent->id);
+							$this->db->update('qq_agents', ['extension' => NULL]);
+						}
 					}					
 				}
 				else {
