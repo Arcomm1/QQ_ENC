@@ -45,7 +45,14 @@
                                             <?php if ($this->input->get('agent_id') == $a->id) { ?>
                                                 <option selected value="<?php echo $a->id; ?>"><?php echo $a->display_name; ?></option>
                                             <?php } else { ?>
-                                                <option value="<?php echo $a->id; ?>"><?php echo $a->display_name; ?></option>
+                                                <option value="<?php echo $a->id; ?>">
+												<?php
+													if (strpos($a->display_name, "Local/") === 0) {
+														$a->display_name = preg_match("/Local\/(.+?)@from-queue\/n/", $a->display_name, $matches) ? $matches[1] : null;
+													}
+													echo $a->display_name;
+												?>
+												</option>
                                             <?php } ?>
                                         <?php } ?>
                                         </select>
