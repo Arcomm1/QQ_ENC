@@ -47,8 +47,8 @@
                                             <?php } else { ?>
                                                 <option value="<?php echo $a->id; ?>">
 												<?php
-													if (strpos($a->display_name, "Local/") === 0) {
-														$a->display_name = preg_match("/Local\/(.+?)@from-queue\/n/", $a->display_name, $matches) ? $matches[1] : null;
+													if (strpos($a->name, "Local/") === 0) {
+														$a->display_name = preg_match("/Local\/(.+?)@from-queue\/n/", $a->name, $matches) ? $matches[1] : null;
 													}
 													echo $a->display_name;
 												?>
