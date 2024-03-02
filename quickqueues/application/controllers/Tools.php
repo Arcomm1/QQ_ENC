@@ -686,37 +686,61 @@ class Tools extends CI_Controller {
 					'name'          => $qq_agent->name,
 					'display_name'  => $qq_agent->display_name,
 					'extension'     => $qq_agent->extension, // Include the extension
-                    'last_call'		=> $qq_agent->last_call, // Include last_call
+					'last_call'		=> $qq_agent->last_call,
 					'date'          => date('Y-m-d H:i:s'), // Current timestamp
 				];
 
 				// Handle agents with non-empty extensions
 				if (!empty($qq_agent->extension)) {
-					// Check for a matching user by extension
-					$matching_user = $this->db->get_where('users', ['extension' => $qq_agent->extension])->row();
+					// Check if mobile forwarder was tagged mistaken with extension (manual interaction)
+					if (!preg_match('/Local\/\d+@from-queue\/n/', $qq_agent->name)) {
+						// Check for a matching user by extension
+						$matching_user = $this->db->get_where('users', ['extension' => $qq_agent->extension])->row();
 
-					if ($matching_user) {
-						if ($matching_user->name != $qq_agent->name) {
-							// Step 3: Update qq_agents name and display_name only if the name in users does not match the name in qq_agents
+						if ($matching_user) {
+							if ($matching_user->name != $qq_agent->name) {
+								// Step 3: Update qq_agents name and display_name only if the name in users does not match the name in qq_agents
+								$this->db->where('id', $qq_agent->id);
+								$this->db->update('qq_agents', [
+									'name' => $matching_user->name,
+									'display_name' => $matching_user->name
+								]);
+							}
+						}
+						else {
+							// Extension exists in qq_agents but not in users, archive the agent
+							$query = $this->db->get_where('qq_agents_archived', array('name' => $qq_agent->name, 'extension' => $qq_agent->extension, 'agent_id' => $qq_agent->id));
+							if ($query->num_rows() == 0) {
+								// Record is unique based on 'name' | 'extension' | 'agent_id'
+								// Safe to insert
+								$this->db->insert('qq_agents_archived', $archiveData);
+							}
 							$this->db->where('id', $qq_agent->id);
-							$this->db->update('qq_agents', [
-								'name' => $matching_user->name,
-								'display_name' => $matching_user->name
-							]);
+							$this->db->delete('qq_agents');
 						}
 					}
 					else {
-						// Extension exists in qq_agents but not in users, archive the agent
-						$query = $this->db->get_where('qq_agents_archived', array('name' => $qq_agent->name, 'extension' => $qq_agent->extension, 'agent_id' => $qq_agent->id));
+						// If the name matches the pattern, check if $qq_agent->name does not exist in queueMembers
+						$this->db->select('data');
+						$this->db->where('keyword', 'member');
+						$this->db->like('data', $qq_agent->name, 'both'); // Use 'both' for wildcard before and after
+						$query = $this->db->get('queues_details');
+
 						if ($query->num_rows() == 0) {
-							// Record is unique based on 'name' | 'extension' | 'agent_id'
-							// Safe to insert
-							$this->db->insert('qq_agents_archived', $archiveData);
+							// $qq_agent->name does not exist in queues_details, so proceed to archive
+							$query = $this->db->get_where('qq_agents_archived', array('name' => $qq_agent->name, 'agent_id' => $qq_agent->id));
+							if ($query->num_rows() == 0) {
+								// Record is unique based on 'name' | 'agent_id'
+								// Safe to insert
+								$this->db->insert('qq_agents_archived', $archiveData);
+							}
+							$this->db->where('id', $qq_agent->id);
+							$this->db->delete('qq_agents');
 						}
-						$this->db->where('id', $qq_agent->id);
-						$this->db->delete('qq_agents');
+						// If $qq_agent->name exists in queues_details, the agent is not archived, so no action needed here
 					}					
-				} else {
+				}
+				else {
 					// For agents with empty or NULL extensions, check the name pattern before archiving
 					if (!preg_match('/Local\/\d+@from-queue\/n/', $qq_agent->name)) {
 						// If name does not match the pattern, proceed to archive
@@ -729,10 +753,30 @@ class Tools extends CI_Controller {
 						$this->db->where('id', $qq_agent->id);
 						$this->db->delete('qq_agents');		
 					}
-					// If the name matches the pattern, the agent is not archived, so no action needed here
+					else {
+						// If the name matches the pattern, check if $qq_agent->name does not exist in queueMembers
+						$this->db->select('data');
+						$this->db->where('keyword', 'member');
+						$this->db->like('data', $qq_agent->name, 'both'); // Use 'both' for wildcard before and after
+						$query = $this->db->get('queues_details');
+
+						if ($query->num_rows() == 0) {
+							// $qq_agent->name does not exist in queues_details, so proceed to archive
+							$query = $this->db->get_where('qq_agents_archived', array('name' => $qq_agent->name, 'agent_id' => $qq_agent->id));
+							if ($query->num_rows() == 0) {
+								// Record is unique based on 'name' | 'agent_id'
+								// Safe to insert
+								$this->db->insert('qq_agents_archived', $archiveData);
+							}
+							$this->db->where('id', $qq_agent->id);
+							$this->db->delete('qq_agents');
+						}
+						// If $qq_agent->name exists in queues_details, the agent is not archived, so no action needed here
+					}
 				}
 			}
-		} else {
+		}
+		else {
 			// Log error if no agents found or if the query failed
 			log_message('error', 'No data returned from qq_agents or query failed.');
 		}
@@ -827,7 +871,7 @@ class Tools extends CI_Controller {
 
 			// If no user was found with the extension, use a modified version of the data field
 			if (empty($insertData['name'])) {
-				if ($extensionFound && strlen($extension) > 6) {
+				if ($extensionFound) {
 					// Construct name from the data field if extension is not used
 					$nameToUse = 'Local/' . $extension . '@from-queue/n';
 					$insertData['name'] = $nameToUse;
