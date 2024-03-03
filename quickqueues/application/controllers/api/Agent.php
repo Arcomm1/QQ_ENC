@@ -1443,10 +1443,19 @@ class Agent extends MY_Controller {
                     'calls_outgoing_unanswered' => 0,
                 );
             }
+			// Mobile Forwarding Part
             if (strpos($a->name, "Local/") === 0) {
-				$number = preg_match("/Local\/(.+?)@from-queue\/n/", $a->name, $matches) ? $matches[1] : null;
+				if (preg_match("/Local\/(.+?)@from-queue\/n/", $a->name, $matches)) {
+					if ($a->name != $a->display_name){
+						$agentDisplayName = $a->display_name;
+					}
+					else {
+						$agentDisplayName = $matches[1];
+					}					
+				}				
                 $agent_stats[$a->id] = array(
-                    'display_name'              => $number,
+                    'display_name'              => $agentDisplayName,
+					'name'              		=> $matches[1],
                     'last_call'                 => $last_call,
                     'extension'                 => "Mobile Forward",
                     'agent_id'                  => $agent_id,
