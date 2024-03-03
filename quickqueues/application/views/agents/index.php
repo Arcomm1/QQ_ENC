@@ -124,7 +124,7 @@
 										  </div>
 										  <div class="small text-medium-emphasis">
 											  <span>
-												  <span>{{ agent.extension }}</span>
+												  <span>{{ agent.extension }} - {{ agent.name }}</span>
 											  </span>
 											  {{ " | "+agent.last_call }}
 										  </div>
@@ -211,15 +211,10 @@
 										  </div>
 										  <div class="small text-medium-emphasis">
 											  <span>
-												  <span>{{ agent.extension }}</span>
+												  <span>{{ agent.extension }} - {{ agent.name }}</span>
 											  </span>
 											  {{ " | "+agent.last_call }}
-										  </div>
-										  <div>
-											  <?php if ($this->data->logged_in_user->role === 'admin'): ?>
-											  <button class="btn" v-if="agent.isEditing" @click="cancelEditing(agent)">Cancel</button>
-											  <?php endif; ?>										  
-										  </div>										  
+										  </div>									  
 									  </div>
 								  </div>
                                 </td>

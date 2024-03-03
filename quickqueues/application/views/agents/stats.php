@@ -29,7 +29,12 @@
 										
 										// Check for Mobile Forwarding
 										if (preg_match("/Local\/(.+?)@from-queue\/n/", $queryActive->row()->name, $matches)) {
-											$agentDisplayName = $matches[1];
+											if ($queryActive->row()->name != $queryActive->row()->display_name){
+												$agentDisplayName = $matches[1]."-".$queryActive->row()->display_name;
+											}
+											else {
+												$agentDisplayName = $matches[1];
+											}
 										}										
 									}
 
@@ -43,7 +48,12 @@
 											
 											// Check for Mobile Forwarding
 											if (preg_match("/Local\/(.+?)@from-queue\/n/", $queryArchived->row()->name, $matches)) {
-												$agentDisplayName = $matches[1];
+												if ($queryArchived->row()->name != $queryArchived->row()->display_name && $matches[1] != $queryArchived->row()->display_name){
+													$agentDisplayName = $matches[1]."-".$queryArchived->row()->display_name;
+												}
+												else {
+													$agentDisplayName = $matches[1];
+												}
 											}											
 										}
 									}
