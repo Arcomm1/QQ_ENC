@@ -3330,6 +3330,17 @@ class Export extends MY_Controller {
 		if (is_object($agent)) {
 			$agentDisplayName = $agent->display_name;
 			$agentLastCall = $agent->last_call;
+			
+			// Check mobile forwarding
+			if (preg_match("/Local\/(.+?)@from-queue\/n/", $agent->name, $matches)) {
+				if ($agent->name != $agent->display_name && $matches[1] != $agent->display_name){
+					$agentDisplayName = $matches[1]."-".$agent->display_name;
+				}
+				else {
+					$agentDisplayName = $matches[1];
+				}					
+			}			
+			
 			// Add more properties as needed
 		} else {
 			$queryResult = $this->db->select('name, display_name, last_call')
@@ -3342,7 +3353,12 @@ class Export extends MY_Controller {
 				
 				// Check mobile forwarding
 				if (preg_match("/Local\/(.+?)@from-queue\/n/", $queryResult->name, $matches)) {
-					$agentDisplayName = $matches[1];
+					if ($queryResult->name != $queryResult->display_name && $matches[1] != $queryResult->display_name){
+						$agentDisplayName = $matches[1]."-".$queryResult->display_name;
+					}
+					else {
+						$agentDisplayName = $matches[1];
+					}					
 				}
 			} else {
 				$agentDisplayName = "Archived Agent Not Found";
