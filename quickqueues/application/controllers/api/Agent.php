@@ -1418,7 +1418,7 @@ class Agent extends MY_Controller {
 			}
 			if ($archived === true) {
 				$display_name = $a->display_name;
-				$last_call = $a->last_call;
+				$last_call = empty($a->last_call) ? "N/A" : $a->last_call;
 				$extension = $a->extension;
 				$agent_id = $a->agent_id;
 				$archived_date = $a->date;
