@@ -1414,12 +1414,14 @@ class Agent extends MY_Controller {
 				$last_call = $a->last_call;
 				$extension = $a->extension;
 				$agent_id = $a->id;
+				$archived_date = "";
 			}
 			if ($archived === true) {
 				$display_name = $a->display_name;
 				$last_call = "N/A";
 				$extension = $a->extension;
 				$agent_id = $a->agent_id;
+				$archived_date = $a->date;
 			}				
 			// Do not display empty extensions or mobile forwarding
             if ($a->extension != "" && $a->name != "" && strpos($a->name, "Local/") !== 0) {
@@ -1428,6 +1430,7 @@ class Agent extends MY_Controller {
                     'last_call'                 => $last_call,
                     'extension'                 => $extension,
                     'agent_id'                  => $agent_id,
+					'archived_date'             => $archived_date,
                     'calls_answered'            => 0,
 					'calls_total_local'			=> 0,
                     'calls_outgoing'            => 0,
@@ -1459,6 +1462,7 @@ class Agent extends MY_Controller {
                     'last_call'                 => $last_call,
                     'extension'                 => "Mobile Forward",
                     'agent_id'                  => $agent_id,
+					'archived_date'             => $archived_date,
                     'calls_answered'            => 0,
 					'calls_total_local'			=> 0,
                     'calls_outgoing'            => 0,
