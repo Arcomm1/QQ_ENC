@@ -20,6 +20,7 @@
 									// Initialize variables to store agent information
 									$agentDisplayName = null;
 									$agentFound = false;
+									$archived_date = "";
 
 									// Attempt to fetch the agent from the active agents table
 									$queryActive = $this->db->select('name, display_name')->from('qq_agents')->where('id', $agent_id)->get();
@@ -40,11 +41,12 @@
 
 									// If not found in active agents, attempt to fetch the agent from the archived agents table
 									if (!$agentFound) {
-										$queryArchived = $this->db->select('name, display_name, last_call')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
+										$queryArchived = $this->db->select('name, display_name, last_call, date')->from('qq_agents_archived')->where('agent_id', $agent_id)->get();
 										if ($queryArchived && $queryArchived->num_rows() > 0) {
 											$agentFound = true;
 											$agentDisplayName = $queryArchived->row()->display_name;
 											$agentLastCall = $queryArchived->row()->last_call;
+											$archived_date = $queryArchived->row()->date;;
 											
 											// Check for Mobile Forwarding
 											if (preg_match("/Local\/(.+?)@from-queue\/n/", $queryArchived->row()->name, $matches)) {
@@ -57,6 +59,10 @@
 											}											
 										}
 									}
+									
+									if ($archived_date != "") {
+										$archived_date = "Archived on - " . $archived_date;
+									}
 
 									// Check if the agent was found in either table
 									if (!$agentFound) {
@@ -65,7 +71,7 @@
 									}
 									
 									?>
-									<h4 class="card-title"><?php echo lang('agent') . ": " . $agentDisplayName; ?></h4>
+									<h4 class="card-title"><?php echo lang('agent') . ": " . $agentDisplayName ." ". $archived_date; ?></h4>
                                     <div class="small text-medium-emphasis mb-3"><?php echo lang('stats'); ?></div>
                                 </div>
                                 <div class="btn-toolbar d-none d-md-block" role="toolbar">

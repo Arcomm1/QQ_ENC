@@ -207,7 +207,7 @@
 								  <div style="display:flex; gap: 10px;">
 									  <div style="width: 100%">
 										  <div>
-											  <span>{{ agent.display_name }}</span>
+											  <span>{{ agent.display_name }} ({{ agent.archived_date }})</span>
 										  </div>
 										  <div class="small text-medium-emphasis">
 											  <span>
