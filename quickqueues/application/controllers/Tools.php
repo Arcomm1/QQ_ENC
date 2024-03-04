@@ -2016,21 +2016,23 @@ class Tools extends CI_Controller {
 					}
 
 					if ($call_data['event_type'] == 'OUT_ANSWERED') {
+						$src_to_match = $call_data['dst'];
+
 						$calls_to_mark = $this->Call_model->get_many_by_complex(
 							array(
-								'src' => $call_data['dst'],
 								'date >' => $mark_from,
 								'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT', 'INCOMINGOFFWORK'),
 							)
 						);
-
-						log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as called_back');
-
+						
 						foreach ($calls_to_mark as $ctm) {
-							log_to_file('DEBUG', 'Marking '.$ctm->id.' as called_back');
-							$this->Call_model->update($ctm->id, array('called_back' => 'yes'));
+							// Check if the end of 'src' matches the 'dst'
+							if (substr($ctm->src, -strlen($src_to_match)) === $src_to_match) {
+								log_to_file('DEBUG', 'Marking ' . $ctm->id . ' as called_back');
+								$this->Call_model->update($ctm->id, array('called_back' => 'yes'));
+							}
 						}
-
+						
 						unset($calls_to_mark);
 						unset($mark_from);
 					}
