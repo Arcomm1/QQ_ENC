@@ -2,6 +2,7 @@
 //For Mobile Forward
 $lang['mobile_forward']                                          = "Mobile Forward";
 $lang['agents_archived']                                         = "Archived Agents";
+$lang['archived_on']     										 = "Archived on";
 //For settings page
 $lang['settings']                                                = "Settings";
 $lang['overload']                                                = "Overload";
