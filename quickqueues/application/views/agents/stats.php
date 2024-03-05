@@ -61,7 +61,7 @@
 									}
 									
 									if ($archived_date != "") {
-										$archived_date = $lang('archived_on') . " - " . $archived_date;
+										$archived_date = lang('archived_on') . " - " . $archived_date;
 									}
 
 									// Check if the agent was found in either table
