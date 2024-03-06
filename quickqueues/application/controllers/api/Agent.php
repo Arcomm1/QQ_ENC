@@ -1515,8 +1515,13 @@ class Agent extends MY_Controller {
 				$agent_stats[$s->agent_id]['total_pausetime'] = $s->total_pausetime;
 			}
 		}
-			
-		$this->r->data = $agent_stats;
+
+		$filtered_agent_stats = array_filter($agent_stats, function($agent) {
+			// Check if 'agent_id' is set and not empty
+			return isset($agent['agent_id']) && $agent['agent_id'] !== "";
+		});
+
+		$this->r->data = $filtered_agent_stats;
 
         $this->r->status = 'OK';
         $this->r->message = 'Total agent stats will follow';
