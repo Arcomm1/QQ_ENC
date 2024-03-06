@@ -366,7 +366,7 @@
                             <tr v-for="e in call_events" v-if="e.event_type !== 'DID'">
                                 <td>{{ e.date }}</td>
                                 <td>{{ e.event_type }}</td>
-                                <td v-if="e.agent_id > 0">{{ agents[e.agent_id].display_name }}</td>
+                                <td v-if="e.agent_id > 0">{{ agents[e.agent_id] && agents[e.agent_id].display_name ? agents[e.agent_id].display_name : '' }}</td>
                                 <td v-else="e.agent_id > 0"></td>
                                 <td>{{ sec_to_time(e.calltime) }}</td>
                                 <td v-if="e.event_type == 'ABANDON'">{{ sec_to_time(e.waittime) }}</td>
