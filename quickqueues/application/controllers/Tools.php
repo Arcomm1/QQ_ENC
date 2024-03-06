@@ -1874,7 +1874,7 @@ class Tools extends CI_Controller {
 					// Update qq_agents last_call value based on last_call from agent with maxIDValue
 					if ($agentLastCallQuery && $agentLastCallRow = $agentLastCallQuery->row()) {
 						// Update the qq_agents table to set last_call value for $originalId
-						$updateAgentsQuery = "UPDATE qq_agents SET last_call = ?, deleted = 0 WHERE id = ?";
+						$updateAgentsQuery = "UPDATE qq_agents SET last_call = ? WHERE id = ?";
 						$this->db->query($updateAgentsQuery, [$agentLastCallRow->last_call, $originalId]);
 					}						
 
