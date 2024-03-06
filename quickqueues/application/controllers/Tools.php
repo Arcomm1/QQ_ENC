@@ -1879,7 +1879,7 @@ class Tools extends CI_Controller {
 					}
 
 					// Update qq_agents to set Active
-                    $this->db->query("UPDATE qq_agents SET deleted = 0 WHERE id = $originalId");                   
+                    $this->db->query("UPDATE qq_agents SET deleted = 0 WHERE id = $originalId");
 
 					// Step 3: Update and delete duplicates
 					foreach ($ids as $id) {
