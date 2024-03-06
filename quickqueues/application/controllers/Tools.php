@@ -1876,7 +1876,10 @@ class Tools extends CI_Controller {
 						// Update the qq_agents table to set last_call value for $originalId
 						$updateAgentsQuery = "UPDATE qq_agents SET last_call = ? WHERE id = ?";
 						$this->db->query($updateAgentsQuery, [$agentLastCallRow->last_call, $originalId]);
-					}						
+					}
+
+					// Update qq_agents to set Active
+                    $this->db->query("UPDATE qq_agents SET deleted = 0 WHERE id = $originalId");                   
 
 					// Step 3: Update and delete duplicates
 					foreach ($ids as $id) {
@@ -1884,7 +1887,7 @@ class Tools extends CI_Controller {
 						$this->db->query("UPDATE qq_events SET agent_id = $originalId WHERE agent_id = $id");
 						
 						// Update qq_calls
-						$this->db->query("UPDATE qq_calls SET agent_id = $originalId WHERE agent_id = $id");
+						$this->db->query("UPDATE qq_calls SET agent_id = $originalId WHERE agent_id = $id");                      
 
 						// Delete the duplicate agent
 						$this->db->delete('qq_agents', array('id' => $id));
