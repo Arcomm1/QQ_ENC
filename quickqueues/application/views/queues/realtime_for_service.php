@@ -161,7 +161,7 @@
 													<span v-if="sec_to_time(callDurations[agent.extension]) !== '00:00:00'">
 														{{ sec_to_time(callDurations[agent.extension]) }}
 													</span>
-													<span v-if="isAgentPaused(agent.display_name)" class="paused-text">
+													<span v-if="isAgentPaused(agent.name)" class="paused-text">
 														Queue Paused
 													</span>                                                        
                                                     <span v-else></span> 
