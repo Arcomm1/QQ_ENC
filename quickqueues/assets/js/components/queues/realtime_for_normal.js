@@ -22,12 +22,14 @@ var queue_realtime = new Vue({
             agent_current_calls: {},
             agent_current_calls_loading: true,
 			
-			callDurations: {},			
+			callDurations: {},
 
             agents_free: 0,
             agents_busy: 0,
             agents_on_call: 0,
             agents_unavailable: 0,
+			
+			uniqueAgentsArray: [],
         }
     },
 
@@ -89,6 +91,10 @@ var queue_realtime = new Vue({
                 .then(response => {
                     //console.log(response.data.data, 'realtime data');
                     this.realtime_data = response.data.data;
+					this.uniqueAgentsArray = this.processQueueData(response.data);
+
+					console.log(JSON.stringify(this.uniqueAgentsArray, null, 2));
+					
                     this.realtime_data_loading = false;
                 });
         },
@@ -151,7 +157,42 @@ var queue_realtime = new Vue({
 
 			// Save the updated call durations back to local storage
 			localStorage.setItem('callDurations', JSON.stringify(this.callDurations));
+		},
+		
+        processQueueData: function(data) {
+            const agentsData = {};
+
+            // Processing each queue
+            for (const queueKey in data) {
+                const queue = data[queueKey];
+                if (queue.agents) {
+                    for (const agentKey in queue.agents) {
+                        const agent = queue.agents[agentKey];
+                        const agentName = agent.Name;
+                        const agentStatus = agent.Paused;
+
+                        // Creating a unique key for each agent
+                        if (!agentsData[agentName]) {
+                            agentsData[agentName] = agentStatus;
+                        }
+                    }
+                }
+            }
+
+            // Converting the unique agents data into the desired array format
+            const uniqueAgentsArray = Object.keys(agentsData).map(name => ({
+                Name: name,
+                Paused: agentsData[name]
+            }));
+
+            return uniqueAgentsArray;
+        },
+
+		isAgentPaused(agentName) {
+			const agent = this.uniqueAgentsArray.find(a => a.Name === agentName);
+			return agent && agent.Paused === '1';
 		},	
+        		
 		
     },
 
