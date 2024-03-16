@@ -1053,6 +1053,7 @@ class Tools extends CI_Controller {
 				} else {
 					$name = $ev_data[3];
 					$display_name = $ev_data[3];
+					$dst_queue = $ev_data[2];
 
 					// Reparse Logic
 					if ($queue_log_rollback == "yes") {
@@ -1060,31 +1061,28 @@ class Tools extends CI_Controller {
 					}
 					else {
 						$from = date('Y-m-d H:i:s', strtotime("-3 hours"));
-					}	
+					}
 					
 					if (!array_key_exists($name, $agents)) {
-						//Agent is not real or reparse of old logs initiated
-						if (in_array($ev_data[4], array('STARTPAUSE', 'STARTSESSION', 'STOPSESSION', 'STOPPAUSE'))) 
-						{
-							log_to_file('NOTICE', 'Not creating new agent since they have no calls yet');
-							continue;
-						}
-						
+						echo "Agent ***** ". $name ." is NOT real \n";
+						// Search by Qeueu enterred number
+						// Agent is not real or reparse of old logs initiated
 						// Get extension, which was assigned to that user during reparse from cdr
 						$linked_uniqueid_for_check = $ev_data[1];
-						
 						$sql = "SELECT dstchannel FROM asteriskcdrdb.cdr 
-								WHERE lastapp = 'Queue' 
+								WHERE lastapp = 'Queue'
 								AND disposition = 'ANSWERED' 
 								AND linkedid = ?
 								AND calldate >= ? 
+								AND dst = ?
 								ORDER BY calldate DESC
 								LIMIT 1";
-						$query = $this->db->query($sql, array($linked_uniqueid_for_check, $from));
+						$query = $this->db->query($sql, array($linked_uniqueid_for_check, $from, $dst_queue));
 						$row = $query->row_array();
 						if (isset($row)) {
 							$dstchannel = $row['dstchannel'];
-							$agent_extension = preg_match('/Local\/(\d+)@/', $dstchannel, $matches) ? $matches[1] : 'No match';	
+							$agent_extension = preg_match('/Local\/(\d+)@/', $dstchannel, $matches) ? $matches[1] : 'No match';
+							echo "CDR Found for ". $linked_uniqueid_for_check ." \n";
 							// Check for duplicates in qq_agents_archived
 							$query = $this->db->get_where('qq_agents_archived', array('name' => $name, 'extension' => $agent_extension));
 							if ($query->num_rows() == 0) {
@@ -1101,6 +1099,7 @@ class Tools extends CI_Controller {
 								$update_data = array('agent_id' => $agent_id);
 								$this->db->where('id', $agent_id);
 								$this->db->update('qq_agents_archived', $update_data);
+								//echo "$agent_extension";
 							} else {
 								// If a record with the same name already exists, do not insert
 								// Select current data
@@ -1109,39 +1108,58 @@ class Tools extends CI_Controller {
 								$agent_extension = $existing_record->extension;
 							}
 						} else {
-							//Data in cdr for unreal agent is missing, assigning DATA to dummy agent
-							log_to_file('NOTICE', 'Data in cdr for unreal agent is missing, assigning to DUMMY Agent');
-							$agent_id = "99999";
-							$agent_extension = "ARcomm_dummy";
+							// Extension not found in CRD, possible CDR Database was deleted
+							echo "CDR *****NOTFound for ". $linked_uniqueid_for_check ." \n";
+							// Extension not found in CRD, possible CDR Database was deleted
+							// Selecting from qq_agents by Name may lead to incorrect agent statistics assigment
+							// Checking by name - if there are multiple entries of people
+							$query = $this->db->query("SELECT agent_id, extension FROM asterisk.qq_agents_archived WHERE name = ?", array($name));
+
+							// Check if there is exactly one row returned
+							if ($query->num_rows() === 1) {
+								// One occurrence found, fetch the result
+								$result = $query->row();
+								$agent_id = $result->id;
+								$agent_extension = $result->extension;
+							} else {
+								// Either no occurrences or multiple occurrences found
+								log_to_file('NOTICE', 'Data in cdr for agent is missing, assigning to DUMMY Agent');
+								$agent_id = "99999";
+								$agent_extension = "ARcomm_dummy";
+							}
 						}
 					}
 					else {
+						echo "Agent ". $name ." is real \n";
+						// Search by Qeueu enterred number
 						// Agent exists in qq_agents
 						$linked_uniqueid_for_check = $ev_data[1];
 						$sql = "SELECT dstchannel FROM asteriskcdrdb.cdr 
 								WHERE lastapp = 'Queue' 
 								AND disposition = 'ANSWERED' 
 								AND linkedid = ? 
-								AND calldate >= ? 
+								AND calldate >= ?
+								AND dst = ?
 								ORDER BY calldate DESC
 								LIMIT 1";
-						$query = $this->db->query($sql, array($linked_uniqueid_for_check, $from));
+						$query = $this->db->query($sql, array($linked_uniqueid_for_check, $from, $dst_queue));
 						$row = $query->row_array();
 						if (isset($row)) {
 							// Extension found in CDR by uniqueid
 							$dstchannel = $row['dstchannel'];
 							$agent_extension = preg_match('/Local\/(\d+)@/', $dstchannel, $matches) ? $matches[1] : 'No match';
-							
+							echo "CDR Found for ". $linked_uniqueid_for_check ." \n";
 							// Extension found in CDR by uniqueid, selecting agent id from qq_agents by extension
 							$query = $this->db->query("SELECT id FROM asterisk.qq_agents WHERE extension = ?", array($agent_extension));
 							$result = $query->row();
 							$agent_id = isset($result->id) ? $result->id : false;						
 						} else {
-							// Extension not found in CRD, possible CDR Database was deleted
+							// Extension not found in CRD, possible CDR Database was deleted or call is ongoing
+							echo "CDR ****** NOT Foud for ". $linked_uniqueid_for_check ." \n";
+							echo "Tryng by Agent Name ******" . $name . " \n";
 							// Selecting from qq_agents by Name may lead to incorrect agent statistics assigment
 							// Checking by name - if there are multiple entries of people
 							$query = $this->db->query("SELECT id, extension FROM asterisk.qq_agents WHERE name = ?", array($name));
-
 							// Check if there is exactly one row returned
 							if ($query->num_rows() === 1) {
 								// One occurrence found, fetch the result
