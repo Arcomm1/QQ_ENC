@@ -1706,7 +1706,8 @@ class Agent extends MY_Controller {
 					
 					// Filter the 'queue' array to only include the specified queue
 					$data['queue'] = array_values(array_filter($data['queue'], function($queue) use ($queue_name) {
-						return $queue['data']['Queue'] == $queue_name;
+						// Check if 'Queue' index exists within 'data' before comparing
+						return isset($queue['data']['Queue']) && $queue['data']['Queue'] == $queue_name;
 					}));
 
 					// Check if 'queue_stats_detailed' exists and has the specific queue's data
