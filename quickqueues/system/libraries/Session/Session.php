@@ -1,983 +1,324 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 2.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * CodeIgniter Session Class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Sessions
- * @author		Andrey Andreev
- * @link		https://codeigniter.com/user_guide/libraries/sessions.html
- */
-class CI_Session {
-
-	/**
-	 * Userdata array
-	 *
-	 * Just a reference to $_SESSION, for BC purposes.
-	 */
-	public $userdata;
-
-	protected $_driver = 'files';
-	protected $_config;
-	protected $_sid_regexp;
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Class constructor
-	 *
-	 * @param	array	$params	Configuration parameters
-	 * @return	void
-	 */
-	public function __construct(array $params = array())
-	{
-		// No sessions under CLI
-		if (is_cli())
-		{
-			log_message('debug', 'Session: Initialization under CLI aborted.');
-			return;
-		}
-		elseif ((bool) ini_get('session.auto_start'))
-		{
-			log_message('error', 'Session: session.auto_start is enabled in php.ini. Aborting.');
-			return;
-		}
-		elseif ( ! empty($params['driver']))
-		{
-			$this->_driver = $params['driver'];
-			unset($params['driver']);
-		}
-		elseif ($driver = config_item('sess_driver'))
-		{
-			$this->_driver = $driver;
-		}
-		// Note: BC workaround
-		elseif (config_item('sess_use_database'))
-		{
-			log_message('debug', 'Session: "sess_driver" is empty; using BC fallback to "sess_use_database".');
-			$this->_driver = 'database';
-		}
-
-		$class = $this->_ci_load_classes($this->_driver);
-
-		// Configuration ...
-		$this->_configure($params);
-		$this->_config['_sid_regexp'] = $this->_sid_regexp;
-
-		$class = new $class($this->_config);
-		if ($class instanceof SessionHandlerInterface)
-		{
-			if (is_php('5.4'))
-			{
-				session_set_save_handler($class, TRUE);
-			}
-			else
-			{
-				session_set_save_handler(
-					array($class, 'open'),
-					array($class, 'close'),
-					array($class, 'read'),
-					array($class, 'write'),
-					array($class, 'destroy'),
-					array($class, 'gc')
-				);
-
-				register_shutdown_function('session_write_close');
-			}
-		}
-		else
-		{
-			log_message('error', "Session: Driver '".$this->_driver."' doesn't implement SessionHandlerInterface. Aborting.");
-			return;
-		}
-
-		// Sanitize the cookie, because apparently PHP doesn't do that for userspace handlers
-		if (isset($_COOKIE[$this->_config['cookie_name']])
-			&& (
-				! is_string($_COOKIE[$this->_config['cookie_name']])
-				OR ! preg_match('#\A'.$this->_sid_regexp.'\z#', $_COOKIE[$this->_config['cookie_name']])
-			)
-		)
-		{
-			unset($_COOKIE[$this->_config['cookie_name']]);
-		}
-
-		session_start();
-
-		// Is session ID auto-regeneration configured? (ignoring ajax requests)
-		if ((empty($_SERVER['HTTP_X_REQUESTED_WITH']) OR strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest')
-			&& ($regenerate_time = config_item('sess_time_to_update')) > 0
-		)
-		{
-			if ( ! isset($_SESSION['__ci_last_regenerate']))
-			{
-				$_SESSION['__ci_last_regenerate'] = time();
-			}
-			elseif ($_SESSION['__ci_last_regenerate'] < (time() - $regenerate_time))
-			{
-				$this->sess_regenerate((bool) config_item('sess_regenerate_destroy'));
-			}
-		}
-		// Another work-around ... PHP doesn't seem to send the session cookie
-		// unless it is being currently created or regenerated
-		elseif (isset($_COOKIE[$this->_config['cookie_name']]) && $_COOKIE[$this->_config['cookie_name']] === session_id())
-		{
-			setcookie(
-				$this->_config['cookie_name'],
-				session_id(),
-				(empty($this->_config['cookie_lifetime']) ? 0 : time() + $this->_config['cookie_lifetime']),
-				$this->_config['cookie_path'],
-				$this->_config['cookie_domain'],
-				$this->_config['cookie_secure'],
-				TRUE
-			);
-		}
-
-		$this->_ci_init_vars();
-
-		log_message('info', "Session: Class initialized using '".$this->_driver."' driver.");
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * CI Load Classes
-	 *
-	 * An internal method to load all possible dependency and extension
-	 * classes. It kind of emulates the CI_Driver library, but is
-	 * self-sufficient.
-	 *
-	 * @param	string	$driver	Driver name
-	 * @return	string	Driver class name
-	 */
-	protected function _ci_load_classes($driver)
-	{
-		// PHP 5.4 compatibility
-		interface_exists('SessionHandlerInterface', FALSE) OR require_once(BASEPATH.'libraries/Session/SessionHandlerInterface.php');
-
-		$prefix = config_item('subclass_prefix');
-
-		if ( ! class_exists('CI_Session_driver', FALSE))
-		{
-			require_once(
-				file_exists(APPPATH.'libraries/Session/Session_driver.php')
-					? APPPATH.'libraries/Session/Session_driver.php'
-					: BASEPATH.'libraries/Session/Session_driver.php'
-			);
-
-			if (file_exists($file_path = APPPATH.'libraries/Session/'.$prefix.'Session_driver.php'))
-			{
-				require_once($file_path);
-			}
-		}
-
-		$class = 'Session_'.$driver.'_driver';
-
-		// Allow custom drivers without the CI_ or MY_ prefix
-		if ( ! class_exists($class, FALSE) && file_exists($file_path = APPPATH.'libraries/Session/drivers/'.$class.'.php'))
-		{
-			require_once($file_path);
-			if (class_exists($class, FALSE))
-			{
-				return $class;
-			}
-		}
-
-		if ( ! class_exists('CI_'.$class, FALSE))
-		{
-			if (file_exists($file_path = APPPATH.'libraries/Session/drivers/'.$class.'.php') OR file_exists($file_path = BASEPATH.'libraries/Session/drivers/'.$class.'.php'))
-			{
-				require_once($file_path);
-			}
-
-			if ( ! class_exists('CI_'.$class, FALSE) && ! class_exists($class, FALSE))
-			{
-				throw new UnexpectedValueException("Session: Configured driver '".$driver."' was not found. Aborting.");
-			}
-		}
-
-		if ( ! class_exists($prefix.$class, FALSE) && file_exists($file_path = APPPATH.'libraries/Session/drivers/'.$prefix.$class.'.php'))
-		{
-			require_once($file_path);
-			if (class_exists($prefix.$class, FALSE))
-			{
-				return $prefix.$class;
-			}
-
-			log_message('debug', 'Session: '.$prefix.$class.".php found but it doesn't declare class ".$prefix.$class.'.');
-		}
-
-		return 'CI_'.$class;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Configuration
-	 *
-	 * Handle input parameters and configuration defaults
-	 *
-	 * @param	array	&$params	Input parameters
-	 * @return	void
-	 */
-	protected function _configure(&$params)
-	{
-		$expiration = config_item('sess_expiration');
-
-		if (isset($params['cookie_lifetime']))
-		{
-			$params['cookie_lifetime'] = (int) $params['cookie_lifetime'];
-		}
-		else
-		{
-			$params['cookie_lifetime'] = ( ! isset($expiration) && config_item('sess_expire_on_close'))
-				? 0 : (int) $expiration;
-		}
-
-		isset($params['cookie_name']) OR $params['cookie_name'] = config_item('sess_cookie_name');
-		if (empty($params['cookie_name']))
-		{
-			$params['cookie_name'] = ini_get('session.name');
-		}
-		else
-		{
-			ini_set('session.name', $params['cookie_name']);
-		}
-
-		isset($params['cookie_path']) OR $params['cookie_path'] = config_item('cookie_path');
-		isset($params['cookie_domain']) OR $params['cookie_domain'] = config_item('cookie_domain');
-		isset($params['cookie_secure']) OR $params['cookie_secure'] = (bool) config_item('cookie_secure');
-
-		session_set_cookie_params(
-			$params['cookie_lifetime'],
-			$params['cookie_path'],
-			$params['cookie_domain'],
-			$params['cookie_secure'],
-			TRUE // HttpOnly; Yes, this is intentional and not configurable for security reasons
-		);
-
-		if (empty($expiration))
-		{
-			$params['expiration'] = (int) ini_get('session.gc_maxlifetime');
-		}
-		else
-		{
-			$params['expiration'] = (int) $expiration;
-			ini_set('session.gc_maxlifetime', $expiration);
-		}
-
-		$params['match_ip'] = (bool) (isset($params['match_ip']) ? $params['match_ip'] : config_item('sess_match_ip'));
-
-		isset($params['save_path']) OR $params['save_path'] = config_item('sess_save_path');
-
-		$this->_config = $params;
-
-		// Security is king
-		ini_set('session.use_trans_sid', 0);
-		ini_set('session.use_strict_mode', 1);
-		ini_set('session.use_cookies', 1);
-		ini_set('session.use_only_cookies', 1);
-
-		$this->_configure_sid_length();
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Configure session ID length
-	 *
-	 * To make life easier, we used to force SHA-1 and 4 bits per
-	 * character on everyone. And of course, someone was unhappy.
-	 *
-	 * Then PHP 7.1 broke backwards-compatibility because ext/session
-	 * is such a mess that nobody wants to touch it with a pole stick,
-	 * and the one guy who does, nobody has the energy to argue with.
-	 *
-	 * So we were forced to make changes, and OF COURSE something was
-	 * going to break and now we have this pile of shit. -- Narf
-	 *
-	 * @return	void
-	 */
-	protected function _configure_sid_length()
-	{
-		if (PHP_VERSION_ID < 70100)
-		{
-			$hash_function = ini_get('session.hash_function');
-			if (ctype_digit($hash_function))
-			{
-				if ($hash_function !== '1')
-				{
-					ini_set('session.hash_function', 1);
-				}
-
-				$bits = 160;
-			}
-			elseif ( ! in_array($hash_function, hash_algos(), TRUE))
-			{
-				ini_set('session.hash_function', 1);
-				$bits = 160;
-			}
-			elseif (($bits = strlen(hash($hash_function, 'dummy', false)) * 4) < 160)
-			{
-				ini_set('session.hash_function', 1);
-				$bits = 160;
-			}
-
-			$bits_per_character = (int) ini_get('session.hash_bits_per_character');
-			$sid_length         = (int) ceil($bits / $bits_per_character);
-		}
-		else
-		{
-			$bits_per_character = (int) ini_get('session.sid_bits_per_character');
-			$sid_length         = (int) ini_get('session.sid_length');
-			if (($bits = $sid_length * $bits_per_character) < 160)
-			{
-				// Add as many more characters as necessary to reach at least 160 bits
-				$sid_length += (int) ceil((160 % $bits) / $bits_per_character);
-				ini_set('session.sid_length', $sid_length);
-			}
-		}
-
-		// Yes, 4,5,6 are the only known possible values as of 2016-10-27
-		switch ($bits_per_character)
-		{
-			case 4:
-				$this->_sid_regexp = '[0-9a-f]';
-				break;
-			case 5:
-				$this->_sid_regexp = '[0-9a-v]';
-				break;
-			case 6:
-				$this->_sid_regexp = '[0-9a-zA-Z,-]';
-				break;
-		}
-
-		$this->_sid_regexp .= '{'.$sid_length.'}';
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Handle temporary variables
-	 *
-	 * Clears old "flash" data, marks the new one for deletion and handles
-	 * "temp" data deletion.
-	 *
-	 * @return	void
-	 */
-	protected function _ci_init_vars()
-	{
-		if ( ! empty($_SESSION['__ci_vars']))
-		{
-			$current_time = time();
-
-			foreach ($_SESSION['__ci_vars'] as $key => &$value)
-			{
-				if ($value === 'new')
-				{
-					$_SESSION['__ci_vars'][$key] = 'old';
-				}
-				// Hacky, but 'old' will (implicitly) always be less than time() ;)
-				// DO NOT move this above the 'new' check!
-				elseif ($value < $current_time)
-				{
-					unset($_SESSION[$key], $_SESSION['__ci_vars'][$key]);
-				}
-			}
-
-			if (empty($_SESSION['__ci_vars']))
-			{
-				unset($_SESSION['__ci_vars']);
-			}
-		}
-
-		$this->userdata =& $_SESSION;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Mark as flash
-	 *
-	 * @param	mixed	$key	Session data key(s)
-	 * @return	bool
-	 */
-	public function mark_as_flash($key)
-	{
-		if (is_array($key))
-		{
-			for ($i = 0, $c = count($key); $i < $c; $i++)
-			{
-				if ( ! isset($_SESSION[$key[$i]]))
-				{
-					return FALSE;
-				}
-			}
-
-			$new = array_fill_keys($key, 'new');
-
-			$_SESSION['__ci_vars'] = isset($_SESSION['__ci_vars'])
-				? array_merge($_SESSION['__ci_vars'], $new)
-				: $new;
-
-			return TRUE;
-		}
-
-		if ( ! isset($_SESSION[$key]))
-		{
-			return FALSE;
-		}
-
-		$_SESSION['__ci_vars'][$key] = 'new';
-		return TRUE;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Get flash keys
-	 *
-	 * @return	array
-	 */
-	public function get_flash_keys()
-	{
-		if ( ! isset($_SESSION['__ci_vars']))
-		{
-			return array();
-		}
-
-		$keys = array();
-		foreach (array_keys($_SESSION['__ci_vars']) as $key)
-		{
-			is_int($_SESSION['__ci_vars'][$key]) OR $keys[] = $key;
-		}
-
-		return $keys;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Unmark flash
-	 *
-	 * @param	mixed	$key	Session data key(s)
-	 * @return	void
-	 */
-	public function unmark_flash($key)
-	{
-		if (empty($_SESSION['__ci_vars']))
-		{
-			return;
-		}
-
-		is_array($key) OR $key = array($key);
-
-		foreach ($key as $k)
-		{
-			if (isset($_SESSION['__ci_vars'][$k]) && ! is_int($_SESSION['__ci_vars'][$k]))
-			{
-				unset($_SESSION['__ci_vars'][$k]);
-			}
-		}
-
-		if (empty($_SESSION['__ci_vars']))
-		{
-			unset($_SESSION['__ci_vars']);
-		}
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Mark as temp
-	 *
-	 * @param	mixed	$key	Session data key(s)
-	 * @param	int	$ttl	Time-to-live in seconds
-	 * @return	bool
-	 */
-	public function mark_as_temp($key, $ttl = 300)
-	{
-		$ttl += time();
-
-		if (is_array($key))
-		{
-			$temp = array();
-
-			foreach ($key as $k => $v)
-			{
-				// Do we have a key => ttl pair, or just a key?
-				if (is_int($k))
-				{
-					$k = $v;
-					$v = $ttl;
-				}
-				else
-				{
-					$v += time();
-				}
-
-				if ( ! isset($_SESSION[$k]))
-				{
-					return FALSE;
-				}
-
-				$temp[$k] = $v;
-			}
-
-			$_SESSION['__ci_vars'] = isset($_SESSION['__ci_vars'])
-				? array_merge($_SESSION['__ci_vars'], $temp)
-				: $temp;
-
-			return TRUE;
-		}
-
-		if ( ! isset($_SESSION[$key]))
-		{
-			return FALSE;
-		}
-
-		$_SESSION['__ci_vars'][$key] = $ttl;
-		return TRUE;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Get temp keys
-	 *
-	 * @return	array
-	 */
-	public function get_temp_keys()
-	{
-		if ( ! isset($_SESSION['__ci_vars']))
-		{
-			return array();
-		}
-
-		$keys = array();
-		foreach (array_keys($_SESSION['__ci_vars']) as $key)
-		{
-			is_int($_SESSION['__ci_vars'][$key]) && $keys[] = $key;
-		}
-
-		return $keys;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Unmark temp
-	 *
-	 * @param	mixed	$key	Session data key(s)
-	 * @return	void
-	 */
-	public function unmark_temp($key)
-	{
-		if (empty($_SESSION['__ci_vars']))
-		{
-			return;
-		}
-
-		is_array($key) OR $key = array($key);
-
-		foreach ($key as $k)
-		{
-			if (isset($_SESSION['__ci_vars'][$k]) && is_int($_SESSION['__ci_vars'][$k]))
-			{
-				unset($_SESSION['__ci_vars'][$k]);
-			}
-		}
-
-		if (empty($_SESSION['__ci_vars']))
-		{
-			unset($_SESSION['__ci_vars']);
-		}
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * __get()
-	 *
-	 * @param	string	$key	'session_id' or a session data key
-	 * @return	mixed
-	 */
-	public function __get($key)
-	{
-		// Note: Keep this order the same, just in case somebody wants to
-		//       use 'session_id' as a session data key, for whatever reason
-		if (isset($_SESSION[$key]))
-		{
-			return $_SESSION[$key];
-		}
-		elseif ($key === 'session_id')
-		{
-			return session_id();
-		}
-
-		return NULL;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * __isset()
-	 *
-	 * @param	string	$key	'session_id' or a session data key
-	 * @return	bool
-	 */
-	public function __isset($key)
-	{
-		if ($key === 'session_id')
-		{
-			return (session_status() === PHP_SESSION_ACTIVE);
-		}
-
-		return isset($_SESSION[$key]);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * __set()
-	 *
-	 * @param	string	$key	Session data key
-	 * @param	mixed	$value	Session data value
-	 * @return	void
-	 */
-	public function __set($key, $value)
-	{
-		$_SESSION[$key] = $value;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Session destroy
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @return	void
-	 */
-	public function sess_destroy()
-	{
-		session_destroy();
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Session regenerate
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	bool	$destroy	Destroy old session data flag
-	 * @return	void
-	 */
-	public function sess_regenerate($destroy = FALSE)
-	{
-		$_SESSION['__ci_last_regenerate'] = time();
-		session_regenerate_id($destroy);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Get userdata reference
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @returns	array
-	 */
-	public function &get_userdata()
-	{
-		return $_SESSION;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Userdata (fetch)
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	string	$key	Session data key
-	 * @return	mixed	Session data value or NULL if not found
-	 */
-	public function userdata($key = NULL)
-	{
-		if (isset($key))
-		{
-			return isset($_SESSION[$key]) ? $_SESSION[$key] : NULL;
-		}
-		elseif (empty($_SESSION))
-		{
-			return array();
-		}
-
-		$userdata = array();
-		$_exclude = array_merge(
-			array('__ci_vars'),
-			$this->get_flash_keys(),
-			$this->get_temp_keys()
-		);
-
-		foreach (array_keys($_SESSION) as $key)
-		{
-			if ( ! in_array($key, $_exclude, TRUE))
-			{
-				$userdata[$key] = $_SESSION[$key];
-			}
-		}
-
-		return $userdata;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Set userdata
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	mixed	$data	Session data key or an associative array
-	 * @param	mixed	$value	Value to store
-	 * @return	void
-	 */
-	public function set_userdata($data, $value = NULL)
-	{
-		if (is_array($data))
-		{
-			foreach ($data as $key => &$value)
-			{
-				$_SESSION[$key] = $value;
-			}
-
-			return;
-		}
-
-		$_SESSION[$data] = $value;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Unset userdata
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	mixed	$key	Session data key(s)
-	 * @return	void
-	 */
-	public function unset_userdata($key)
-	{
-		if (is_array($key))
-		{
-			foreach ($key as $k)
-			{
-				unset($_SESSION[$k]);
-			}
-
-			return;
-		}
-
-		unset($_SESSION[$key]);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * All userdata (fetch)
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @return	array	$_SESSION, excluding flash data items
-	 */
-	public function all_userdata()
-	{
-		return $this->userdata();
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Has userdata
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	string	$key	Session data key
-	 * @return	bool
-	 */
-	public function has_userdata($key)
-	{
-		return isset($_SESSION[$key]);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Flashdata (fetch)
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	string	$key	Session data key
-	 * @return	mixed	Session data value or NULL if not found
-	 */
-	public function flashdata($key = NULL)
-	{
-		if (isset($key))
-		{
-			return (isset($_SESSION['__ci_vars'], $_SESSION['__ci_vars'][$key], $_SESSION[$key]) && ! is_int($_SESSION['__ci_vars'][$key]))
-				? $_SESSION[$key]
-				: NULL;
-		}
-
-		$flashdata = array();
-
-		if ( ! empty($_SESSION['__ci_vars']))
-		{
-			foreach ($_SESSION['__ci_vars'] as $key => &$value)
-			{
-				is_int($value) OR $flashdata[$key] = $_SESSION[$key];
-			}
-		}
-
-		return $flashdata;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Set flashdata
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	mixed	$data	Session data key or an associative array
-	 * @param	mixed	$value	Value to store
-	 * @return	void
-	 */
-	public function set_flashdata($data, $value = NULL)
-	{
-		$this->set_userdata($data, $value);
-		$this->mark_as_flash(is_array($data) ? array_keys($data) : $data);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Keep flashdata
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	mixed	$key	Session data key(s)
-	 * @return	void
-	 */
-	public function keep_flashdata($key)
-	{
-		$this->mark_as_flash($key);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Temp data (fetch)
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	string	$key	Session data key
-	 * @return	mixed	Session data value or NULL if not found
-	 */
-	public function tempdata($key = NULL)
-	{
-		if (isset($key))
-		{
-			return (isset($_SESSION['__ci_vars'], $_SESSION['__ci_vars'][$key], $_SESSION[$key]) && is_int($_SESSION['__ci_vars'][$key]))
-				? $_SESSION[$key]
-				: NULL;
-		}
-
-		$tempdata = array();
-
-		if ( ! empty($_SESSION['__ci_vars']))
-		{
-			foreach ($_SESSION['__ci_vars'] as $key => &$value)
-			{
-				is_int($value) && $tempdata[$key] = $_SESSION[$key];
-			}
-		}
-
-		return $tempdata;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Set tempdata
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	mixed	$data	Session data key or an associative array of items
-	 * @param	mixed	$value	Value to store
-	 * @param	int	$ttl	Time-to-live in seconds
-	 * @return	void
-	 */
-	public function set_tempdata($data, $value = NULL, $ttl = 300)
-	{
-		$this->set_userdata($data, $value);
-		$this->mark_as_temp(is_array($data) ? array_keys($data) : $data, $ttl);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Unset tempdata
-	 *
-	 * Legacy CI_Session compatibility method
-	 *
-	 * @param	mixed	$data	Session data key(s)
-	 * @return	void
-	 */
-	public function unset_tempdata($key)
-	{
-		$this->unmark_temp($key);
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

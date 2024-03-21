@@ -1,58 +1,65 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-$lang['email_must_be_array'] = 'The email validation method must be passed an array.';
-$lang['email_invalid_address'] = 'Invalid email address: %s';
-$lang['email_attachment_missing'] = 'Unable to locate the following email attachment: %s';
-$lang['email_attachment_unreadable'] = 'Unable to open this attachment: %s';
-$lang['email_no_from'] = 'Cannot send mail with no "From" header.';
-$lang['email_no_recipients'] = 'You must include recipients: To, Cc, or Bcc';
-$lang['email_send_failure_phpmail'] = 'Unable to send email using PHP mail(). Your server might not be configured to send mail using this method.';
-$lang['email_send_failure_sendmail'] = 'Unable to send email using PHP Sendmail. Your server might not be configured to send mail using this method.';
-$lang['email_send_failure_smtp'] = 'Unable to send email using PHP SMTP. Your server might not be configured to send mail using this method.';
-$lang['email_sent'] = 'Your message has been successfully sent using the following protocol: %s';
-$lang['email_no_socket'] = 'Unable to open a socket to Sendmail. Please check settings.';
-$lang['email_no_hostname'] = 'You did not specify a SMTP hostname.';
-$lang['email_smtp_error'] = 'The following SMTP error was encountered: %s';
-$lang['email_no_smtp_unpw'] = 'Error: You must assign a SMTP username and password.';
-$lang['email_failed_smtp_login'] = 'Failed to send AUTH LOGIN command. Error: %s';
-$lang['email_smtp_auth_un'] = 'Failed to authenticate username. Error: %s';
-$lang['email_smtp_auth_pw'] = 'Failed to authenticate password. Error: %s';
-$lang['email_smtp_data_failure'] = 'Unable to send data: %s';
-$lang['email_exit_status'] = 'Exit status code: %s';
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

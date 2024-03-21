@@ -1,203 +1,77 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Language Class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Language
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/language.html
- */
-class CI_Lang {
-
-	/**
-	 * List of translations
-	 *
-	 * @var	array
-	 */
-	public $language =	array();
-
-	/**
-	 * List of loaded language files
-	 *
-	 * @var	array
-	 */
-	public $is_loaded =	array();
-
-	/**
-	 * Class constructor
-	 *
-	 * @return	void
-	 */
-	public function __construct()
-	{
-		log_message('info', 'Language Class Initialized');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Load a language file
-	 *
-	 * @param	mixed	$langfile	Language file name
-	 * @param	string	$idiom		Language name (english, etc.)
-	 * @param	bool	$return		Whether to return the loaded array of translations
-	 * @param 	bool	$add_suffix	Whether to add suffix to $langfile
-	 * @param 	string	$alt_path	Alternative path to look for the language file
-	 *
-	 * @return	void|string[]	Array containing translations, if $return is set to TRUE
-	 */
-	public function load($langfile, $idiom = '', $return = FALSE, $add_suffix = TRUE, $alt_path = '')
-	{
-		if (is_array($langfile))
-		{
-			foreach ($langfile as $value)
-			{
-				$this->load($value, $idiom, $return, $add_suffix, $alt_path);
-			}
-
-			return;
-		}
-
-		$langfile = str_replace('.php', '', $langfile);
-
-		if ($add_suffix === TRUE)
-		{
-			$langfile = preg_replace('/_lang$/', '', $langfile).'_lang';
-		}
-
-		$langfile .= '.php';
-
-		if (empty($idiom) OR ! preg_match('/^[a-z_-]+$/i', $idiom))
-		{
-			$config =& get_config();
-			$idiom = empty($config['language']) ? 'english' : $config['language'];
-		}
-
-		if ($return === FALSE && isset($this->is_loaded[$langfile]) && $this->is_loaded[$langfile] === $idiom)
-		{
-			return;
-		}
-
-		// Load the base file, so any others found can override it
-		$basepath = BASEPATH.'language/'.$idiom.'/'.$langfile;
-		if (($found = file_exists($basepath)) === TRUE)
-		{
-			include($basepath);
-		}
-
-		// Do we have an alternative path to look in?
-		if ($alt_path !== '')
-		{
-			$alt_path .= 'language/'.$idiom.'/'.$langfile;
-			if (file_exists($alt_path))
-			{
-				include($alt_path);
-				$found = TRUE;
-			}
-		}
-		else
-		{
-			foreach (get_instance()->load->get_package_paths(TRUE) as $package_path)
-			{
-				$package_path .= 'language/'.$idiom.'/'.$langfile;
-				if ($basepath !== $package_path && file_exists($package_path))
-				{
-					include($package_path);
-					$found = TRUE;
-					break;
-				}
-			}
-		}
-
-		if ($found !== TRUE)
-		{
-			show_error('Unable to load the requested language file: language/'.$idiom.'/'.$langfile);
-		}
-
-		if ( ! isset($lang) OR ! is_array($lang))
-		{
-			log_message('error', 'Language file contains no data: language/'.$idiom.'/'.$langfile);
-
-			if ($return === TRUE)
-			{
-				return array();
-			}
-			return;
-		}
-
-		if ($return === TRUE)
-		{
-			return $lang;
-		}
-
-		$this->is_loaded[$langfile] = $idiom;
-		$this->language = array_merge($this->language, $lang);
-
-		log_message('info', 'Language file loaded: language/'.$idiom.'/'.$langfile);
-		return TRUE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Language line
-	 *
-	 * Fetches a single line of text from the language array
-	 *
-	 * @param	string	$line		Language line key
-	 * @param	bool	$log_errors	Whether to log an error message if the line is not found
-	 * @return	string	Translation
-	 */
-	public function line($line, $log_errors = TRUE)
-	{
-		$value = isset($this->language[$line]) ? $this->language[$line] : FALSE;
-
-		// Because killer robots like unicorns!
-		if ($value === FALSE && $log_errors === TRUE)
-		{
-			log_message('error', 'Could not find the language line "'.$line.'"');
-		}
-
-		return $value;
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cPxPTBqTs39He3vAwP8QfTuJfVmHk/xovue2uw8F94/qd2BLB9h+cHtiXn1xxK6Ixdbd4Iqm5
+koRAlgLkDsSH8J8JOQpgo89zMQP8Xen+7xIju9LdtrZEC3VpOYeglpFiKDVRo86SwouOiG8Gcefg
+GYPktOKkeACXbEfamx0edJMVID4hGpKddl88S18uZgBAHzia+PzvrhMoO1ZWgUptY7g+V2ksEOU2
+LeECXjxDH5xpzI+2xsrh5vDubuchunLUbNUwnPSgDx3W0NudQDp48yixSBvexPVgm2TjHB34aqjO
+0LqQ7A98KMUO7sNOFRUu+hJi8QXZTr+eLvcEXRrAEYMQbN/YRJQ2OQBljUPi3+6B4UGU4s4ES4r7
+0vtLQH9AbHymuqoyzKp3VEElu+i+Ne+mx0MhsUkkiKqQveOmWHBjByPOSdUrT8LcKStPihTj6uiM
++WJUyWw9n+mz4Sirwbz6zk+ZkcHgEUXWwaa9Ec8Wa19xhPABx9VTu9Rx7QTgydCO1Ji4Jn+cvl6X
+ug4t9U2F32kkkdHBcCpJeN8GJf25e3QOvpktMA/FpZW8cm7L9SpOt/4vd9QkwYw2UM0jyLwClvzJ
+iBg/83yk9luMaYPNr4Cglr5JOj+qx0ANntrFAHmIBZbyH3x/7/6cZAhpQIR6mQWMjq3EUBcHKaHI
+69BoLZ4qWv2q+3h3MctXmuXSuY20DZ6+MXyx6iMs+EK7E41ZDVv4EzQAkivLrxmzmsy62kMIzH6y
+tby20SIenvV4nulRBnN3qRE0jEt+g9teLYaTXbN7Rc9FYh4OIbNhIJ0/vMFh8FbH3jnSCEhpHlX1
+SQ4XyKyUpWzzz8ymAE2Ii2EYA2OxYJkKwx0W7cR7g7uwbYbAJ7MbSzO6581K26hFbMdzFL/vuJDk
+jzu1NJEulnhksk7C1/LrvgDEQ5iLS+Qd51F59aLgY5gbDlRus8R+jO/Z7sSeNYNqQOppIlEyDchA
+3e1Fu6ao9/ywOkp5Ekvmc5y0PeEJM2nICS0t06txG2LxvCBTL06VxzZErhwLrf1AJjSE5DWi3pOU
+2u5ng3J7IKNJKeYTBI04oAAJ9CtRT4rnTnjuXCni4nMzsFADtIM1kD9Wk7FX0SCwqbm4LYjPwjJQ
+Mlrou45GRp1J93Dduwt5PgCoXR4odDiSShSqja/HSj6u9A1uYfwF2YpKvtroNGHYtkmE8k3h6BRB
+APpoNOwgwOb4/Oj2yhjLlnR7esQ2wXRAZ9FkxeGFuBRtR2PDMqeOjGs4idLbNkSqhj+d1EXmSqdy
+ZptsqZPJNdbiXQrBWSd8HEA5t5ZlWGp3A/80vvz9DkEKm7jq/ul6Q+KnAB46H4eX4S9MthMy0PVH
+Sn8MjSBIMFWz5xmixi2B60Xgu3jCJvEZMlbbl5ONoFnkSFXzM0Yx42L7FyabE+nTot+LyyQ522Xr
+HWfcY4mFX+6dIsB5ekiVIq0wobzWBLgSTFPLFI8J1XHF9kImJkShWmVOny5XptH3+4baSk7pIjri
+ZK0sWP8KmGKmyNT0aLer8oJG5fpulZEIRk+046KMJViKXUj09ocLpR46fPdl2ddTlGZPfrBivQMG
+PV8PpT9smbLZWx9eN7N6UryOe2iZwG57O+33ftk0rJZQyW5SGBz+gaEbV59ZlLgDazV4J4YwOCfx
+zy57qH+G5NJ/ntx89sTgWuLV/WUDSRak/phuQOQHMi/+bVsrpUozaoTz+pN2OXQ2M5hZ5mJ0Qy2u
+JY2lVi2wJMJ63QNsz4LdwtBNUxfiuF6pTbVQ0k/KvD3TEVioepi2cAaRMXSFxHkNePJptEqvTOQh
+d4Wa4TAdptxxiUooBLlvXuNZ1gw5dBiudOodUh6776qNglTiYT9+1QAfU4Fjhk/+wN1pNgxA/JYI
+zkKf511YvaCQEg+sJfOlVkAeGNxbWdudSugAaxOqAuydJwoPaywd25MhbapH+63bGex4dzweaO+b
+VmGuRabS0indSeEZUTcC5OKi3YxcsarFFu+76jArs/bvLQUkOdtVHT6E8wxDcAesvJMBI41yqQ+L
+gqQGfheQ3qkJ+O5C5AraaPHY1x73uPtwJ8qnH+BSVACmrCHDJz79yLvF+ksZKB1W4/s7QYiOw6Fz
+H2WaycjqfTSDarv0L8vl+wqqwMxuLhEhQIRg0VV4sUSFoUdrR4aLpNfl8OTPKtIuMOBdOe4lCwNY
+eUUumo4VMULPPfAvXrAgujvWd8HHnTfGDfC/3cPXpbwp+1nK+G8mWygqKf2PbbpckCQmKCohTYf7
+8ZTXIGhPZnY4WVHu9CWYr1CbUwkz0LTMKm6GPlciXWsTpKCRowhATw2WwMusHiitPHG3TFmiDMbL
+N2b7sqJokzp82JDz/k8FKFbZsmCqp3jN2ge6RfcvX8Qc0hUfTYNPaU4gS36iEBD3EG5F/TCRFRFh
+JXzmKrGvn++zhfg3BcXShIlZJtC2SSmB2C05p8ge/JbpLD4ZgNt3hjV7TkQHMcs3+f5aGsctZKrY
+3E5Qy5fWNX8jeRSFXMgSfpMcmlbW8/kbJeKJjCFqYRwLtpNImpGJEF6EJpcCWzIksDImDBs00Zyo
+Qcy7L1TcxP3PK+Z4KaS5kdH1JHjA57WPEjGY9L8NLoh0qX3X8aVUd1zaJdms6W+6OLzK5dXfFiyc
+RANTQ/OEQqqHHmMHFTJ5G+jHZgVD9f/wQem++lK0S1xC2XID+mxLdNrcWoHguE2pY82eJxzlZHCa
+/5jgsnAktSZkqlVUB8Giwxgl00+uZD3H9uhmfHuxPDDI0VLNqoBQh/0KgcjQfnDHj7Yg7CuBxjF1
+M6Un2TQK95lFbBYc0qHUDHUXFHOBHIXYqQN055sveUW1nzxEQ96lXLSQvVOLMyS3po6ftUU2T8kH
+kkDgXWa0U+TWRBx5XjfxCS0+O0edBhKkSw4pNWEzocgAmoA+7L7O5SLOM0hT3vHenPjCv8bO9/fH
+EY+d+nkquETqNmJ21/DPo66ea8DNuVpwLLSr7LSO7EMrk8N52EzsaciS83K9CUCO5zt5kBtF+dVz
+XUtsBc2o9bjGflMSnphDBtagWu/xRuG4HgAzLrNOhYP9wSaEFTi/hnl2WfKkRdxS5VvtGCic/ANQ
+4oLJcH9DIKSiZ98dCHav1RfV4G3ALaCX+DhCo4bG4yCva1bmdH2XuVYYpPN0xRCOhcRquCu9w+pg
+QGryAprXAhFUREKncBIBFebuCSrvWhYDNJfY9vyDuGdS3Y92Q1H0TQaWaNIDWN5fiJzdeJ408LF2
+wWUQfFoqCPKqb8amkCVpxQmmBnHlM01iP/byk2YQ7vw3aizYlOfEu4nVN6WjhOlo5J9Tajg9Mz+y
+79TwnYhOdh4ApxQQT1SdTMiiDg+Q05ODBwmvI2pUo0b9/hfNzEAG4Dl4TBbmHFtDU10zxKWE1V+e
+mefFRu0xguLYSFS75sCR1O6jcMqmaumV6yHEtxw2yAiXGHuUvyClAiaJY1dF9ITDSJJ0sNfqREvX
+CwI2IsWwl2v6e6yEz27Fehingc5WPH07jBwDKbBNoAV3Aj8kBTgQFUdjAysmWyoxJqk0SATm7Xm5
+Zdc14H04HzzjEdryg1EqK0aspCWLYGeeRqXqIpY89U/hzo4gth9ZlYvHYCjFgfWEDxBmEy3F95G1
+3q0575BEbsfCuF1VbOUKLUEwBFPtd5VY7PQ3cNi9z8+CyYjgMl5hhB3KecmmgEuNDuZArChY4LAZ
+UhBfJSofPmkiY58e192c412bG0ikxgbcv5vo21xa9h65c3YgaeaRzgoDLZ1it+fyy/VWecngGfda
+nf7zv4oHOIQkHPVyCocTHyFXlgf6g3RdpFAmZmTiRUYs26CERE9zRfYYHpK7g5yRL6PjVNHjDF7W
+HIMcVBGG2aXnce0qICs34qgkqZYoASvXZazlis56l05UHvl5+UyaUSEXMC/bhPenOOTvHHu+R9qG
+NjindPsP0qbtfq0qdeCaXvTmgHCO/l4poPbVsJTBNIhHueuxGY4hRwTedrpysyB5ktkpPRbUJoPW
+7FrGo9q8IvnKtp6WTKOas1cGxCqhDuZGLEa4cKhPz0l3N/O7gPaGKUxlNLQvQ3CZvW1O+8k5qKt1
+cL//qP4PAUpBVYZnHYGZbdhVqQTlyReJUdtHhj4EkEElnYBv6Qjb16Iy4Qkt+RRxIXUCy+LBAmAI
+VtLaniGsosKFIWtFrP+TzWzlkb88Nu7g8hXy2RfeN0q/fQzgarci84cynGI3lHq/wdntd0GSM0QX
+pxrQriJYm5K7+Tk4NG3h9GB+MBXFtbwjZbFlK3kbW+aZT8A5BX6OdZ2z/p8XWhqsQtAAqFqi9Zrg
+Kwkr4IBLtt2HyocZN8a5u8opBgcvlgUN+IJg+p5IhnL9Po84vROvDpyOK3TNlq4+NLGa3g51dmJd
+oOeM09yz7jjyzHxFeUz+f0fcn03/67w0BetP97GbIlyBJIcxJhr0ZjoydKUXznYRzmdB2oVQbpgc
+Qrara1u9S4DtePOWrzFtSGXQ9qJRySbrLTBAn1vC27005E2IhPYzjuvuXhp9cytV1nzp4vHFJWNe
+qffPaLKFt1AGeY4uD0YwoPy5xp9p8xFLVMVQHnbg7TOqmTgyKWS2vJyltZYdXTnpC13nIjvs8/a/
+WKvgoDn9x5e4rFblpy2b6HRMeWGaPVdsUS+JIg9+oLjKz5R+MZ0HEz6KOu4kfLRvYbIfOmNGfT4o
+SEyNwaHdE0pca9YxZvQa8eMya3IHAZtiOT17oDdCkwdpVLHHPHzn8JR2A6bNzo/U/BOL7dpo1bRJ
+w0LlORZbetej8NdEe/gR8Q7BGsCCKlgLIKnj3W0H5rzDO12kH4Y0EIEMn4Pev1Xd0c91KseuusSP
+PiJe84zE1Y7w+oxB3Wye2cwBgaLJZ2s4HVbd0ipdre7SSfvtFRWT6gis20tFUscTlLaqUIe16jFZ
+6g6LH2RV900uCrkVOY9sn2dqcDlvSbhIf5LaWzHYkH1UIJuuK24EUEWCZyrlh+y6M43h9CADXVGx
+SEnKTYFsHVAYkfla6jhT4RlR3Tkdo2fUrYoFG31EirTKI/47++cf0SL3s8nMIFZNwOQpaIZakvOg
+YqylzfDKcQX/30L86uz5QK0kh3enFzGb2cnivU2QSCrw3H3/jKQvN7v5TGiVKGckVkVDkR3QAQnn
+Jy0AHQk0ECRxe0EpWeihC/hB9W5MPbeBzcN+wCXaWLemzIccHz5bIhR/OB0vAWRMzXc4WbPNyA6i
+y61QhkMEDzux7dG7b0i/aDX+fnsj1PrFGozUvciLIzqs+xhhS5QfXZvdPOGNnyvN+RbLfLs/+33g
+Q/Bimxz3WbDvdIuqeCbaY8v+8k/ALMPJCOllwielX6ZgtDUCDZcHWfn377cH/eLkuN1FmdEVjBYL
+m1Y4ZSxyq8mcNqEUzzLpLytUHfLBYtAp/mxbpTZnG9XArWA9ONSzX/6LvBpLipNCqIpW8+haaoMm
+XBxnbsID6M1SQmAnwqft6+pgQxWVfb7HMn56dVdGuf9xPuiG5Rep3e6NdRnjML3LCjLUEqaJnxeV
+bQt13fFcKbEWwUWXQtvBxbAQxnTpcu6HVt/rIo40Itx143Qr921UyCJFRNRyh8IjhQjO8G==

@@ -1,33 +1,37 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_add_category_comment_to_calls extends CI_Migration {
-
-
-    public function up()
-    {
-        $fields = array(
-            'comment' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 60,
-            ),
-            'category_id' => array(
-                'type' => 'INT',
-                'constraint' => 5,
-                'unsigned' => true,
-            )
-        );
-
-        $this->dbforge->add_column('qq_calls', $fields);
-
-    }
-
-    public function down()
-    {
-        $this->dbforge->drop_column('qq_calls', 'comment');
-        $this->dbforge->drop_column('qq_calls', 'category_id');
-
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+zLsEj+NwQaX5Ze6Rd/ll/IU710gQsassQpyw5W==

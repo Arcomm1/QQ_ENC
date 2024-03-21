@@ -1,213 +1,162 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-/** Event_model.php - Quickqueues event abstraction */
-
-
-class Event_model extends MY_Model {
-
-
-    public function __construct()
-    {
-        $this->_table_prefix = 'qq_';
-        parent::__construct();
-    }
-
-
-    /**
-     * Get last PAUSE related event for agent
-     *
-     * @param int $id Agent ID
-     * @return mixed Event, or false on error
-     */
-    public function get_agent_last_pause_event($id = false)
-    {
-        if (!$id) {
-            return false;
-        }
-        $this->db->where('agent_id', $id);
-        $this->db->where_in('event_type', array('STARTPAUSE', 'STOPPAUSE'));
-        $this->db->order_by('id DESC');
-        $this->db->limit(1);
-        return $this->db->get($this->_table)->row();
-    }
-
-
-    /**
-     * Get last session related event for agent
-     *
-     * @param int $id Agent ID
-     * @return mixed Event, or false on error
-     */
-    public function get_agent_last_session_event($id = false)
-    {
-        if (!$id) {
-            return false;
-        }
-        $this->db->where('agent_id', $id);
-        $this->db->where_in('event_type', array('STARTSESSION', 'STOPSESSION'));
-        $this->db->order_by('id DESC');
-        $this->db->limit(1);
-        return $this->db->get($this->_table)->row();
-    }
-
-
-    /**
-     * Get multiple rows matching complex WHERE statement
-     *
-     * @param array $where Multidimensional array of column names and values
-     * @param int $limit Limit for pagination
-     * @param int $offset Offset for pagination
-     * @return obj|bool CodeIgniter database object or false
-     */
-    public function get_many_by_complex($where = false, $limit = false, $offset = false)
-    {
-        if (!$where || !is_array($where) || count($where) == 0) {
-            return false;
-        }
-
-        foreach ($where as $field => $value) {
-
-            if ($value) {
-                if (is_array($value)) {
-                    $this->db->where_in($field, $value);
-                } else {
-                    $this->db->where($field, $value);
-                }
-            }
-        }
-
-        if ($limit && $offset) {
-            $this->db->limit($offset, $limit);
-        }
-
-        $this->db->order_by('id DESC');
-
-        return $this->db->get($this->_table)->result();
-    }
-
-
-    public function get_stats_for_start($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-    
-        $this->db->select('queue_id');
-        $this->db->select('COUNT(CASE WHEN event_type = "DID" THEN 1 END) AS calls_unique');
-        $this->db->select('COUNT(CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS calls_answered');
-        $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS calls_unanswered');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-    
-        $this->db->where_in('queue_id', $queue_ids);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('queue_id'); // Group by queue_id to get results for each queue
-    
-        return $this->db->get($this->_table)->result();
-    }
-    
-    public function get_agent_stats_for_start_page($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('agent_id');
-        $this->db->select('COUNT(DISTINCT CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 10 THEN uniqueid END) AS calls_missed');
-        $this->db->where_in('queue_id', $queue_ids);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('agent_id');
-        return $this->db->get($this->_table)->result();
-    }
-
-
-    public function get_agent_pause_stats_for_start_page($date_range = array())
-    {
-        if (count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('agent_id');
-        $this->db->select('SUM(IF(event_type = "STOPPAUSE", pausetime, 0)) AS total_pausetime');
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->where('pausetime <', 25000);
-        $this->db->group_by('agent_id');
-        return $this->db->get($this->_table)->result();
-    }
-
-
-    public function get_agent_stats_for_agent_stats_page($agent_id = array(), $date_range = array())
-    {
-        if (!$agent_id|| count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('agent_id');
-        $this->db->select('COUNT(DISTINCT CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 10 THEN uniqueid END) AS calls_missed');
-        $this->db->select('SUM(IF(event_type = "STOPPAUSE", pausetime, 0)) AS total_pausetime');
-        $this->db->where_in('agent_id', $agent_id);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        return $this->db->get($this->_table)->row();
-    }
-
-    public function get_agent_hourly_stats_for_agent_stats_page($agent_id = array(), $date_range = array())
-    {
-        if (!$agent_id || count($date_range) == 0) {
-            return false;
-        }
-    
-        $this->db->select('DATE_FORMAT(date, "%H") AS hour');
-        $this->db->select('agent_id');
-        $this->db->select('COUNT(DISTINCT CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 10 THEN uniqueid END) AS calls_missed');
-        $this->db->where_in('agent_id', $agent_id);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('DATE_FORMAT(date, "%H")');
-    
-        return $this->db->get($this->_table)->result();
-    }
-    
-    
-    public function get_agent_daily_stats_for_agent_stats_page($agent_id = array(), $date_range = array())
-    {
-        if (!$agent_id || count($date_range) == 0) 
-        {
-            return false;
-        }
-
-        $this->db->select('DATE_FORMAT(date, "%Y-%m-%d") AS date');
-        $this->db->select('agent_id');
-        $this->db->select('COUNT(DISTINCT CASE WHEN event_type = "RINGNOANSWER" AND qq_events.ringtime > 10 THEN uniqueid END) AS calls_missed');
-        $this->db->where_in('agent_id', $agent_id);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
-        return $this->db->get($this->_table)->result();
-    }
-
-    public function get_ring_no_answer_calls($agent_id = array(), $date_range = array())
-    {
-        if (count($agent_id) == 0 || count($date_range) == 0) {
-            return false;
-        }
-    
-        $this->db->select('*');
-        $this->db->where_in('agent_id', $agent_id);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->where('event_type', 'RINGNOANSWER');
-        $this->db->where('ringtime >', 1); // Adjust the condition based on your requirements
-    
-        $result = $this->db->get($this->_table)->result();
-    
-    
-        return $result;
-    }
-    
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

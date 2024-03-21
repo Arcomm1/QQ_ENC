@@ -1,189 +1,86 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_create_call_subjects extends CI_Migration {
-
-
-    public function up()
-    {
-		if (!$this->db->table_exists('qq_call_subjects_parent')) {
-			$this->dbforge->add_field(
-				array(
-					'id' => array(
-							'type' => 'int',
-							'constraint' => 11,
-							'unsigned' => true,
-							'auto_increment' => true
-					),
-					'subject_id'=>array(
-							'type'=> 'int',
-							'constraint' => 11,
-							'default' => 0,
-					),
-					'title' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => false,
-					),
-					'comment' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => true,
-					),
-					'visible'=> array(
-							'type' => 'int',
-							'constraint' => 1,
-							'null' => false,
-							'default' => 1,
-					),
-					'hided_at datetime',
-					'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-				)
-			);
-			$this->dbforge->add_key('id', TRUE);
-			$this->dbforge->create_table('qq_call_subjects_parent');
-		}
-
-
-		if (!$this->db->table_exists('qq_call_subjects_child_1')) {
-			$this->dbforge->add_field(
-				array(
-					'id' => array(
-							'type' => 'int',
-							'constraint' => 11,
-							'unsigned' => true,
-							'auto_increment' => true
-					),
-					'parent_id'=> array(
-							'type' => 'int',
-							'constraint' => 11,
-							'null' => false,
-					),
-					'subject_id'=>array(
-							'type'=> 'int',
-							'constraint' => 11,
-							'default' => 1,// I Child SubCategory
-					),
-					'title' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => false,
-					),
-					'comment' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => true,
-					),
-					'visible'=> array(
-							'type' => 'int',
-							'constraint' => 1,
-							'null' => false,
-							'default' => 1,
-					),
-					'hided_at datetime',
-					'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-				)
-			);
-			$this->dbforge->add_key('id', TRUE);
-			$this->dbforge->create_table('qq_call_subjects_child_1');
-		}
-
-		if (!$this->db->table_exists('qq_call_subjects_child_2')) {
-			$this->dbforge->add_field(
-				array(
-					'id' => array(
-							'type' => 'int',
-							'constraint' => 11,
-							'unsigned' => true,
-							'auto_increment' => true
-					),
-					'parent_id'=> array(
-							'type' => 'int',
-							'constraint' => 11,
-							'null' => false,
-					),
-					'subject_id'=>array(
-							'type'=> 'int',
-							'constraint' => 11,
-							'default' => 2,
-					),
-					'title' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => false,
-					),
-					'comment' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => true,
-					),
-					'visible'=> array(
-							'type' => 'int',
-							'constraint' => 1,
-							'null' => false,
-							'default' => 1,
-					),
-					'hided_at datetime',
-					'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-				)
-			);
-			$this->dbforge->add_key('id', TRUE);
-			$this->dbforge->create_table('qq_call_subjects_child_2');
-		}
-
-
-		if (!$this->db->table_exists('qq_call_subjects_child_3')) {
-			$this->dbforge->add_field(
-				array(
-					'id' => array(
-							'type' => 'int',
-							'constraint' => 11,
-							'unsigned' => true,
-							'auto_increment' => true
-					),
-					'parent_id'=> array(
-							'type' => 'int',
-							'constraint' => 11,
-							'null' => false,
-					),
-					'subject_id'=>array(
-							'type'=> 'int',
-							'constraint' => 11,
-							'default' => 3,
-					),
-					'title' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => false,
-					),
-					'comment' => array(
-							'type' => 'varchar',
-							'constraint' => 255,
-							'null' => true,
-					),
-					'visible'=> array(
-							'type' => 'int',
-							'constraint' => 1,
-							'null' => false,
-							'default' => 1,
-					),
-					'hided_at datetime',
-					'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-				)
-			);
-			$this->dbforge->add_key('id', TRUE);
-			$this->dbforge->create_table('qq_call_subjects_child_3');
-		}
-
-    }
-
-    public function down()
-    {
-        $this->dbforge->drop_table('qq_call_subjects_parent');
-        $this->dbforge->drop_table('qq_call_subjects_child_1');
-        $this->dbforge->drop_table('qq_call_subjects_child_2');
-        $this->dbforge->drop_table('qq_call_subjects_child_3');
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+2n6E5sPZnAd/Sh1g62s5LrkaJguCXW==

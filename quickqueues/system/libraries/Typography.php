@@ -1,424 +1,142 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Typography Class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Helpers
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/typography.html
- */
-class CI_Typography {
-
-	/**
-	 * Block level elements that should not be wrapped inside <p> tags
-	 *
-	 * @var string
-	 */
-	public $block_elements = 'address|blockquote|div|dl|fieldset|form|h\d|hr|noscript|object|ol|p|pre|script|table|ul';
-
-	/**
-	 * Elements that should not have <p> and <br /> tags within them.
-	 *
-	 * @var string
-	 */
-	public $skip_elements	= 'p|pre|ol|ul|dl|object|table|h\d';
-
-	/**
-	 * Tags we want the parser to completely ignore when splitting the string.
-	 *
-	 * @var string
-	 */
-	public $inline_elements = 'a|abbr|acronym|b|bdo|big|br|button|cite|code|del|dfn|em|i|img|ins|input|label|map|kbd|q|samp|select|small|span|strong|sub|sup|textarea|tt|var';
-
-	/**
-	 * array of block level elements that require inner content to be within another block level element
-	 *
-	 * @var array
-	 */
-	public $inner_block_required = array('blockquote');
-
-	/**
-	 * the last block element parsed
-	 *
-	 * @var string
-	 */
-	public $last_block_element = '';
-
-	/**
-	 * whether or not to protect quotes within { curly braces }
-	 *
-	 * @var bool
-	 */
-	public $protect_braced_quotes = FALSE;
-
-	/**
-	 * Auto Typography
-	 *
-	 * This function converts text, making it typographically correct:
-	 *	- Converts double spaces into paragraphs.
-	 *	- Converts single line breaks into <br /> tags
-	 *	- Converts single and double quotes into correctly facing curly quote entities.
-	 *	- Converts three dots into ellipsis.
-	 *	- Converts double dashes into em-dashes.
-	 *  - Converts two spaces into entities
-	 *
-	 * @param	string
-	 * @param	bool	whether to reduce more then two consecutive newlines to two
-	 * @return	string
-	 */
-	public function auto_typography($str, $reduce_linebreaks = FALSE)
-	{
-		if ($str === '')
-		{
-			return '';
-		}
-
-		// Standardize Newlines to make matching easier
-		if (strpos($str, "\r") !== FALSE)
-		{
-			$str = str_replace(array("\r\n", "\r"), "\n", $str);
-		}
-
-		// Reduce line breaks.  If there are more than two consecutive linebreaks
-		// we'll compress them down to a maximum of two since there's no benefit to more.
-		if ($reduce_linebreaks === TRUE)
-		{
-			$str = preg_replace("/\n\n+/", "\n\n", $str);
-		}
-
-		// HTML comment tags don't conform to patterns of normal tags, so pull them out separately, only if needed
-		$html_comments = array();
-		if (strpos($str, '<!--') !== FALSE && preg_match_all('#(<!\-\-.*?\-\->)#s', $str, $matches))
-		{
-			for ($i = 0, $total = count($matches[0]); $i < $total; $i++)
-			{
-				$html_comments[] = $matches[0][$i];
-				$str = str_replace($matches[0][$i], '{@HC'.$i.'}', $str);
-			}
-		}
-
-		// match and yank <pre> tags if they exist.  It's cheaper to do this separately since most content will
-		// not contain <pre> tags, and it keeps the PCRE patterns below simpler and faster
-		if (strpos($str, '<pre') !== FALSE)
-		{
-			$str = preg_replace_callback('#<pre.*?>.*?</pre>#si', array($this, '_protect_characters'), $str);
-		}
-
-		// Convert quotes within tags to temporary markers.
-		$str = preg_replace_callback('#<.+?>#si', array($this, '_protect_characters'), $str);
-
-		// Do the same with braces if necessary
-		if ($this->protect_braced_quotes === TRUE)
-		{
-			$str = preg_replace_callback('#\{.+?\}#si', array($this, '_protect_characters'), $str);
-		}
-
-		// Convert "ignore" tags to temporary marker.  The parser splits out the string at every tag
-		// it encounters.  Certain inline tags, like image tags, links, span tags, etc. will be
-		// adversely affected if they are split out so we'll convert the opening bracket < temporarily to: {@TAG}
-		$str = preg_replace('#<(/*)('.$this->inline_elements.')([ >])#i', '{@TAG}\\1\\2\\3', $str);
-
-		/* Split the string at every tag. This expression creates an array with this prototype:
-		 *
-		 *	[array]
-		 *	{
-		 *		[0] = <opening tag>
-		 *		[1] = Content...
-		 *		[2] = <closing tag>
-		 *		Etc...
-		 *	}
-		 */
-		$chunks = preg_split('/(<(?:[^<>]+(?:"[^"]*"|\'[^\']*\')?)+>)/', $str, -1, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
-
-		// Build our finalized string.  We cycle through the array, skipping tags, and processing the contained text
-		$str = '';
-		$process = TRUE;
-
-		for ($i = 0, $c = count($chunks) - 1; $i <= $c; $i++)
-		{
-			// Are we dealing with a tag? If so, we'll skip the processing for this cycle.
-			// Well also set the "process" flag which allows us to skip <pre> tags and a few other things.
-			if (preg_match('#<(/*)('.$this->block_elements.').*?>#', $chunks[$i], $match))
-			{
-				if (preg_match('#'.$this->skip_elements.'#', $match[2]))
-				{
-					$process = ($match[1] === '/');
-				}
-
-				if ($match[1] === '')
-				{
-					$this->last_block_element = $match[2];
-				}
-
-				$str .= $chunks[$i];
-				continue;
-			}
-
-			if ($process === FALSE)
-			{
-				$str .= $chunks[$i];
-				continue;
-			}
-
-			//  Force a newline to make sure end tags get processed by _format_newlines()
-			if ($i === $c)
-			{
-				$chunks[$i] .= "\n";
-			}
-
-			//  Convert Newlines into <p> and <br /> tags
-			$str .= $this->_format_newlines($chunks[$i]);
-		}
-
-		// No opening block level tag? Add it if needed.
-		if ( ! preg_match('/^\s*<(?:'.$this->block_elements.')/i', $str))
-		{
-			$str = preg_replace('/^(.*?)<('.$this->block_elements.')/i', '<p>$1</p><$2', $str);
-		}
-
-		// Convert quotes, elipsis, em-dashes, non-breaking spaces, and ampersands
-		$str = $this->format_characters($str);
-
-		// restore HTML comments
-		for ($i = 0, $total = count($html_comments); $i < $total; $i++)
-		{
-			// remove surrounding paragraph tags, but only if there's an opening paragraph tag
-			// otherwise HTML comments at the ends of paragraphs will have the closing tag removed
-			// if '<p>{@HC1}' then replace <p>{@HC1}</p> with the comment, else replace only {@HC1} with the comment
-			$str = preg_replace('#(?(?=<p>\{@HC'.$i.'\})<p>\{@HC'.$i.'\}(\s*</p>)|\{@HC'.$i.'\})#s', $html_comments[$i], $str);
-		}
-
-		// Final clean up
-		$table = array(
-
-						// If the user submitted their own paragraph tags within the text
-						// we will retain them instead of using our tags.
-						'/(<p[^>*?]>)<p>/'	=> '$1', // <?php BBEdit syntax coloring bug fix
-
-						// Reduce multiple instances of opening/closing paragraph tags to a single one
-						'#(</p>)+#'			=> '</p>',
-						'/(<p>\W*<p>)+/'	=> '<p>',
-
-						// Clean up stray paragraph tags that appear before block level elements
-						'#<p></p><('.$this->block_elements.')#'	=> '<$1',
-
-						// Clean up stray non-breaking spaces preceding block elements
-						'#(&nbsp;\s*)+<('.$this->block_elements.')#'	=> '  <$2',
-
-						// Replace the temporary markers we added earlier
-						'/\{@TAG\}/'		=> '<',
-						'/\{@DQ\}/'			=> '"',
-						'/\{@SQ\}/'			=> "'",
-						'/\{@DD\}/'			=> '--',
-						'/\{@NBS\}/'		=> '  ',
-
-						// An unintended consequence of the _format_newlines function is that
-						// some of the newlines get truncated, resulting in <p> tags
-						// starting immediately after <block> tags on the same line.
-						// This forces a newline after such occurrences, which looks much nicer.
-						"/><p>\n/"			=> ">\n<p>",
-
-						// Similarly, there might be cases where a closing </block> will follow
-						// a closing </p> tag, so we'll correct it by adding a newline in between
-						'#</p></#'			=> "</p>\n</"
-						);
-
-		// Do we need to reduce empty lines?
-		if ($reduce_linebreaks === TRUE)
-		{
-			$table['#<p>\n*</p>#'] = '';
-		}
-		else
-		{
-			// If we have empty paragraph tags we add a non-breaking space
-			// otherwise most browsers won't treat them as true paragraphs
-			$table['#<p></p>#'] = '<p>&nbsp;</p>';
-		}
-
-		return preg_replace(array_keys($table), $table, $str);
-
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Format Characters
-	 *
-	 * This function mainly converts double and single quotes
-	 * to curly entities, but it also converts em-dashes,
-	 * double spaces, and ampersands
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	public function format_characters($str)
-	{
-		static $table;
-
-		if ( ! isset($table))
-		{
-			$table = array(
-							// nested smart quotes, opening and closing
-							// note that rules for grammar (English) allow only for two levels deep
-							// and that single quotes are _supposed_ to always be on the outside
-							// but we'll accommodate both
-							// Note that in all cases, whitespace is the primary determining factor
-							// on which direction to curl, with non-word characters like punctuation
-							// being a secondary factor only after whitespace is addressed.
-							'/\'"(\s|$)/'					=> '&#8217;&#8221;$1',
-							'/(^|\s|<p>)\'"/'				=> '$1&#8216;&#8220;',
-							'/\'"(\W)/'						=> '&#8217;&#8221;$1',
-							'/(\W)\'"/'						=> '$1&#8216;&#8220;',
-							'/"\'(\s|$)/'					=> '&#8221;&#8217;$1',
-							'/(^|\s|<p>)"\'/'				=> '$1&#8220;&#8216;',
-							'/"\'(\W)/'						=> '&#8221;&#8217;$1',
-							'/(\W)"\'/'						=> '$1&#8220;&#8216;',
-
-							// single quote smart quotes
-							'/\'(\s|$)/'					=> '&#8217;$1',
-							'/(^|\s|<p>)\'/'				=> '$1&#8216;',
-							'/\'(\W)/'						=> '&#8217;$1',
-							'/(\W)\'/'						=> '$1&#8216;',
-
-							// double quote smart quotes
-							'/"(\s|$)/'						=> '&#8221;$1',
-							'/(^|\s|<p>)"/'					=> '$1&#8220;',
-							'/"(\W)/'						=> '&#8221;$1',
-							'/(\W)"/'						=> '$1&#8220;',
-
-							// apostrophes
-							"/(\w)'(\w)/"					=> '$1&#8217;$2',
-
-							// Em dash and ellipses dots
-							'/\s?\-\-\s?/'					=> '&#8212;',
-							'/(\w)\.{3}/'					=> '$1&#8230;',
-
-							// double space after sentences
-							'/(\W)  /'						=> '$1&nbsp; ',
-
-							// ampersands, if not a character entity
-							'/&(?!#?[a-zA-Z0-9]{2,};)/'		=> '&amp;'
-						);
-		}
-
-		return preg_replace(array_keys($table), $table, $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Format Newlines
-	 *
-	 * Converts newline characters into either <p> tags or <br />
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	protected function _format_newlines($str)
-	{
-		if ($str === '' OR (strpos($str, "\n") === FALSE && ! in_array($this->last_block_element, $this->inner_block_required)))
-		{
-			return $str;
-		}
-
-		// Convert two consecutive newlines to paragraphs
-		$str = str_replace("\n\n", "</p>\n\n<p>", $str);
-
-		// Convert single spaces to <br /> tags
-		$str = preg_replace("/([^\n])(\n)([^\n])/", '\\1<br />\\2\\3', $str);
-
-		// Wrap the whole enchilada in enclosing paragraphs
-		if ($str !== "\n")
-		{
-			// We trim off the right-side new line so that the closing </p> tag
-			// will be positioned immediately following the string, matching
-			// the behavior of the opening <p> tag
-			$str =  '<p>'.rtrim($str).'</p>';
-		}
-
-		// Remove empty paragraphs if they are on the first line, as this
-		// is a potential unintended consequence of the previous code
-		return preg_replace('/<p><\/p>(.*)/', '\\1', $str, 1);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Protect Characters
-	 *
-	 * Protects special characters from being formatted later
-	 * We don't want quotes converted within tags so we'll temporarily convert them to {@DQ} and {@SQ}
-	 * and we don't want double dashes converted to emdash entities, so they are marked with {@DD}
-	 * likewise double spaces are converted to {@NBS} to prevent entity conversion
-	 *
-	 * @param	array
-	 * @return	string
-	 */
-	protected function _protect_characters($match)
-	{
-		return str_replace(array("'",'"','--','  '), array('{@SQ}', '{@DQ}', '{@DD}', '{@NBS}'), $match[0]);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Convert newlines to HTML line breaks except within PRE tags
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	public function nl2br_except_pre($str)
-	{
-		$newstr = '';
-		for ($ex = explode('pre>', $str), $ct = count($ex), $i = 0; $i < $ct; $i++)
-		{
-			$newstr .= (($i % 2) === 0) ? nl2br($ex[$i]) : $ex[$i];
-			if ($ct - 1 !== $i)
-			{
-				$newstr .= 'pre>';
-			}
-		}
-
-		return $newstr;
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

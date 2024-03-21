@@ -1,149 +1,70 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 3.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * PHP ext/mbstring compatibility package
- *
- * @package		CodeIgniter
- * @subpackage	CodeIgniter
- * @category	Compatibility
- * @author		Andrey Andreev
- * @link		https://codeigniter.com/user_guide/
- * @link		http://php.net/mbstring
- */
-
-// ------------------------------------------------------------------------
-
-if (MB_ENABLED === TRUE)
-{
-	return;
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('mb_strlen'))
-{
-	/**
-	 * mb_strlen()
-	 *
-	 * WARNING: This function WILL fall-back to strlen()
-	 * if iconv is not available!
-	 *
-	 * @link	http://php.net/mb_strlen
-	 * @param	string	$str
-	 * @param	string	$encoding
-	 * @return	int
-	 */
-	function mb_strlen($str, $encoding = NULL)
-	{
-		if (ICONV_ENABLED === TRUE)
-		{
-			return iconv_strlen($str, isset($encoding) ? $encoding : config_item('charset'));
-		}
-
-		log_message('debug', 'Compatibility (mbstring): iconv_strlen() is not available, falling back to strlen().');
-		return strlen($str);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('mb_strpos'))
-{
-	/**
-	 * mb_strpos()
-	 *
-	 * WARNING: This function WILL fall-back to strpos()
-	 * if iconv is not available!
-	 *
-	 * @link	http://php.net/mb_strpos
-	 * @param	string	$haystack
-	 * @param	string	$needle
-	 * @param	int	$offset
-	 * @param	string	$encoding
-	 * @return	mixed
-	 */
-	function mb_strpos($haystack, $needle, $offset = 0, $encoding = NULL)
-	{
-		if (ICONV_ENABLED === TRUE)
-		{
-			return iconv_strpos($haystack, $needle, $offset, isset($encoding) ? $encoding : config_item('charset'));
-		}
-
-		log_message('debug', 'Compatibility (mbstring): iconv_strpos() is not available, falling back to strpos().');
-		return strpos($haystack, $needle, $offset);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('mb_substr'))
-{
-	/**
-	 * mb_substr()
-	 *
-	 * WARNING: This function WILL fall-back to substr()
-	 * if iconv is not available.
-	 *
-	 * @link	http://php.net/mb_substr
-	 * @param	string	$str
-	 * @param	int	$start
-	 * @param	int 	$length
-	 * @param	string	$encoding
-	 * @return	string
-	 */
-	function mb_substr($str, $start, $length = NULL, $encoding = NULL)
-	{
-		if (ICONV_ENABLED === TRUE)
-		{
-			isset($encoding) OR $encoding = config_item('charset');
-			return iconv_substr(
-				$str,
-				$start,
-				isset($length) ? $length : iconv_strlen($str, $encoding), // NULL doesn't work
-				$encoding
-			);
-		}
-
-		log_message('debug', 'Compatibility (mbstring): iconv_substr() is not available, falling back to substr().');
-		return isset($length)
-			? substr($str, $start, $length)
-			: substr($str, $start);
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+gFp/dRO/Dne2hVevhvlvit8=

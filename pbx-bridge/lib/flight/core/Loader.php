@@ -1,215 +1,104 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight\core;
-
-/**
- * The Loader class is responsible for loading objects. It maintains
- * a list of reusable class instances and can generate a new class
- * instances with custom initialization parameters. It also performs
- * class autoloading.
- */
-class Loader {
-    /**
-     * Registered classes.
-     *
-     * @var array
-     */
-    protected $classes = array();
-
-    /**
-     * Class instances.
-     *
-     * @var array
-     */
-    protected $instances = array();
-
-    /**
-     * Autoload directories.
-     *
-     * @var array
-     */
-    protected static $dirs = array();
-
-    /**
-     * Registers a class.
-     *
-     * @param string $name Registry name
-     * @param string|callable $class Class name or function to instantiate class
-     * @param array $params Class initialization parameters
-     * @param callback $callback Function to call after object instantiation
-     */
-    public function register($name, $class, array $params = array(), $callback = null) {
-        unset($this->instances[$name]);
-
-        $this->classes[$name] = array($class, $params, $callback);
-    }
-
-    /**
-     * Unregisters a class.
-     *
-     * @param string $name Registry name
-     */
-    public function unregister($name) {
-        unset($this->classes[$name]);
-    }
-
-    /**
-     * Loads a registered class.
-     *
-     * @param string $name Method name
-     * @param bool $shared Shared instance
-     * @return object Class instance
-     * @throws \Exception
-     */
-    public function load($name, $shared = true) {
-        $obj = null;
-
-        if (isset($this->classes[$name])) {
-            list($class, $params, $callback) = $this->classes[$name];
-
-            $exists = isset($this->instances[$name]);
-
-            if ($shared) {
-                $obj = ($exists) ?
-                    $this->getInstance($name) :
-                    $this->newInstance($class, $params);
-                
-                if (!$exists) {
-                    $this->instances[$name] = $obj;
-                }
-            }
-            else {
-                $obj = $this->newInstance($class, $params);
-            }
-
-            if ($callback && (!$shared || !$exists)) {
-                $ref = array(&$obj);
-                call_user_func_array($callback, $ref);
-            }
-        }
-
-        return $obj;
-    }
-
-    /**
-     * Gets a single instance of a class.
-     *
-     * @param string $name Instance name
-     * @return object Class instance
-     */
-    public function getInstance($name) {
-        return isset($this->instances[$name]) ? $this->instances[$name] : null;
-    }
-
-    /**
-     * Gets a new instance of a class.
-     *
-     * @param string|callable $class Class name or callback function to instantiate class
-     * @param array $params Class initialization parameters
-     * @return object Class instance
-     * @throws \Exception
-     */
-    public function newInstance($class, array $params = array()) {
-        if (is_callable($class)) {
-            return call_user_func_array($class, $params);
-        }
-
-        switch (count($params)) {
-            case 0:
-                return new $class();
-            case 1:
-                return new $class($params[0]);
-            case 2:
-                return new $class($params[0], $params[1]);
-            case 3:
-                return new $class($params[0], $params[1], $params[2]);
-            case 4:
-                return new $class($params[0], $params[1], $params[2], $params[3]);
-            case 5:
-                return new $class($params[0], $params[1], $params[2], $params[3], $params[4]);
-            default:
-                try {
-                    $refClass = new \ReflectionClass($class);
-                    return $refClass->newInstanceArgs($params);
-                } catch (\ReflectionException $e) {
-                    throw new \Exception("Cannot instantiate {$class}", 0, $e);
-                }
-        }
-    }
-
-    /**
-     * @param string $name Registry name
-     * @return mixed Class information or null if not registered
-     */
-    public function get($name) {
-        return isset($this->classes[$name]) ? $this->classes[$name] : null;
-    }
-
-    /**
-     * Resets the object to the initial state.
-     */
-    public function reset() {
-        $this->classes = array();
-        $this->instances = array();
-    }
-
-    /*** Autoloading Functions ***/
-
-    /**
-     * Starts/stops autoloader.
-     *
-     * @param bool $enabled Enable/disable autoloading
-     * @param array $dirs Autoload directories
-     */
-    public static function autoload($enabled = true, $dirs = array()) {
-        if ($enabled) {
-            spl_autoload_register(array(__CLASS__, 'loadClass'));
-        }
-        else {
-            spl_autoload_unregister(array(__CLASS__, 'loadClass'));
-        }
-
-        if (!empty($dirs)) {
-            self::addDirectory($dirs);
-        }
-    }
-
-    /**
-     * Autoloads classes.
-     *
-     * @param string $class Class name
-     */
-    public static function loadClass($class) {
-        $class_file = str_replace(array('\\', '_'), '/', $class).'.php';
-
-        foreach (self::$dirs as $dir) {
-            $file = $dir.'/'.$class_file;
-            if (file_exists($file)) {
-                require $file;
-                return;
-            }
-        }
-    }
-
-    /**
-     * Adds a directory for autoloading classes.
-     *
-     * @param mixed $dir Directory path
-     */
-    public static function addDirectory($dir) {
-        if (is_array($dir) || is_object($dir)) {
-            foreach ($dir as $value) {
-                self::addDirectory($value);
-            }
-        }
-        else if (is_string($dir)) {
-            if (!in_array($dir, self::$dirs)) self::$dirs[] = $dir;
-        }
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

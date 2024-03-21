@@ -1,574 +1,282 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight;
-
-use flight\core\Loader;
-use flight\core\Dispatcher;
-
-/**
- * The Engine class contains the core functionality of the framework.
- * It is responsible for loading an HTTP request, running the assigned services,
- * and generating an HTTP response.
- *
- * Core methods
- * @method void start() Starts engine
- * @method void stop() Stops framework and outputs current response
- * @method void halt(int $code = 200, string $message = '') Stops processing and returns a given response.
- *
- *
- * Routing
- * @method void route(string $pattern, callable $callback, bool $pass_route = false) Routes a URL to a callback function.
- * @method \flight\net\Router router() Gets router
- *
- * Views
- * @method void render(string $file, array $data = null, string $key = null) Renders template
- * @method \flight\template\View view() Gets current view
- *
- * Request-response
- * @method \flight\net\Request request() Gets current request
- * @method \flight\net\Response response() Gets current response
- * @method void error(\Exception $e) Sends an HTTP 500 response for any errors.
- * @method void notFound() Sends an HTTP 404 response when a URL is not found.
- * @method void redirect(string $url, int $code = 303)  Redirects the current request to another URL.
- * @method void json(mixed $data, int $code = 200, bool $encode = true, string $charset = 'utf-8', int $option = 0) Sends a JSON response.
- * @method void jsonp(mixed $data, string $param = 'jsonp', int $code = 200, bool $encode = true, string $charset = 'utf-8', int $option = 0) Sends a JSONP response.
- *
- * HTTP caching
- * @method void etag($id, string $type = 'strong') Handles ETag HTTP caching.
- * @method void lastModified(int $time) Handles last modified HTTP caching.
- */
-class Engine {
-    /**
-     * Stored variables.
-     *
-     * @var array
-     */
-    protected $vars;
-
-    /**
-     * Class loader.
-     *
-     * @var Loader
-     */
-    protected $loader;
-
-    /**
-     * Event dispatcher.
-     *
-     * @var Dispatcher
-     */
-    protected $dispatcher;
-
-    /**
-     * Constructor.
-     */
-    public function __construct() {
-        $this->vars = array();
-
-        $this->loader = new Loader();
-        $this->dispatcher = new Dispatcher();
-
-        $this->init();
-    }
-
-    /**
-     * Handles calls to class methods.
-     *
-     * @param string $name Method name
-     * @param array $params Method parameters
-     * @return mixed Callback results
-     * @throws \Exception
-     */
-    public function __call($name, $params) {
-        $callback = $this->dispatcher->get($name);
-
-        if (is_callable($callback)) {
-            return $this->dispatcher->run($name, $params);
-        }
-
-        if (!$this->loader->get($name)) {
-            throw new \Exception("{$name} must be a mapped method.");
-        }
-
-        $shared = (!empty($params)) ? (bool)$params[0] : true;
-
-        return $this->loader->load($name, $shared);
-    }
-
-    /*** Core Methods ***/
-
-    /**
-     * Initializes the framework.
-     */
-    public function init() {
-        static $initialized = false;
-        $self = $this;
-
-        if ($initialized) {
-            $this->vars = array();
-            $this->loader->reset();
-            $this->dispatcher->reset();
-        }
-
-        // Register default components
-        $this->loader->register('request', '\flight\net\Request');
-        $this->loader->register('response', '\flight\net\Response');
-        $this->loader->register('router', '\flight\net\Router');
-        $this->loader->register('view', '\flight\template\View', array(), function($view) use ($self) {
-            $view->path = $self->get('flight.views.path');
-            $view->extension = $self->get('flight.views.extension');
-        });
-
-        // Register framework methods
-        $methods = array(
-            'start','stop','route','halt','error','notFound',
-            'render','redirect','etag','lastModified','json','jsonp'
-        );
-        foreach ($methods as $name) {
-            $this->dispatcher->set($name, array($this, '_'.$name));
-        }
-
-        // Default configuration settings
-        $this->set('flight.base_url', null);
-        $this->set('flight.case_sensitive', false);
-        $this->set('flight.handle_errors', true);
-        $this->set('flight.log_errors', false);
-        $this->set('flight.views.path', './views');
-        $this->set('flight.views.extension', '.php');
-
-        // Startup configuration
-        $this->before('start', function() use ($self) {
-            // Enable error handling
-            if ($self->get('flight.handle_errors')) {
-                set_error_handler(array($self, 'handleError'));
-                set_exception_handler(array($self, 'handleException'));
-            }
-
-            // Set case-sensitivity
-            $self->router()->case_sensitive = $self->get('flight.case_sensitive');
-        });
-
-        $initialized = true;
-    }
-
-    /**
-     * Custom error handler. Converts errors into exceptions.
-     *
-     * @param int $errno Error number
-     * @param int $errstr Error string
-     * @param int $errfile Error file name
-     * @param int $errline Error file line number
-     * @throws \ErrorException
-     */
-    public function handleError($errno, $errstr, $errfile, $errline) {
-        if ($errno & error_reporting()) {
-            throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
-        }
-    }
-
-    /**
-     * Custom exception handler. Logs exceptions.
-     *
-     * @param \Exception $e Thrown exception
-     */
-    public function handleException($e) {
-        if ($this->get('flight.log_errors')) {
-            error_log($e->getMessage());
-        }
-
-        $this->error($e);
-    }
-
-    /**
-     * Maps a callback to a framework method.
-     *
-     * @param string $name Method name
-     * @param callback $callback Callback function
-     * @throws \Exception If trying to map over a framework method
-     */
-    public function map($name, $callback) {
-        if (method_exists($this, $name)) {
-            throw new \Exception('Cannot override an existing framework method.');
-        }
-
-        $this->dispatcher->set($name, $callback);
-    }
-
-    /**
-     * Registers a class to a framework method.
-     *
-     * @param string $name Method name
-     * @param string $class Class name
-     * @param array $params Class initialization parameters
-     * @param callback $callback Function to call after object instantiation
-     * @throws \Exception If trying to map over a framework method
-     */
-    public function register($name, $class, array $params = array(), $callback = null) {
-        if (method_exists($this, $name)) {
-            throw new \Exception('Cannot override an existing framework method.');
-        }
-
-        $this->loader->register($name, $class, $params, $callback);
-    }
-
-    /**
-     * Adds a pre-filter to a method.
-     *
-     * @param string $name Method name
-     * @param callback $callback Callback function
-     */
-    public function before($name, $callback) {
-        $this->dispatcher->hook($name, 'before', $callback);
-    }
-
-    /**
-     * Adds a post-filter to a method.
-     *
-     * @param string $name Method name
-     * @param callback $callback Callback function
-     */
-    public function after($name, $callback) {
-        $this->dispatcher->hook($name, 'after', $callback);
-    }
-
-    /**
-     * Gets a variable.
-     *
-     * @param string $key Key
-     * @return mixed
-     */
-    public function get($key = null) {
-        if ($key === null) return $this->vars;
-
-        return isset($this->vars[$key]) ? $this->vars[$key] : null;
-    }
-
-    /**
-     * Sets a variable.
-     *
-     * @param mixed $key Key
-     * @param string $value Value
-     */
-    public function set($key, $value = null) {
-        if (is_array($key) || is_object($key)) {
-            foreach ($key as $k => $v) {
-                $this->vars[$k] = $v;
-            }
-        }
-        else {
-            $this->vars[$key] = $value;
-        }
-    }
-
-    /**
-     * Checks if a variable has been set.
-     *
-     * @param string $key Key
-     * @return bool Variable status
-     */
-    public function has($key) {
-        return isset($this->vars[$key]);
-    }
-
-    /**
-     * Unsets a variable. If no key is passed in, clear all variables.
-     *
-     * @param string $key Key
-     */
-    public function clear($key = null) {
-        if (is_null($key)) {
-            $this->vars = array();
-        }
-        else {
-            unset($this->vars[$key]);
-        }
-    }
-
-    /**
-     * Adds a path for class autoloading.
-     *
-     * @param string $dir Directory path
-     */
-    public function path($dir) {
-        $this->loader->addDirectory($dir);
-    }
-
-    /*** Extensible Methods ***/
-
-    /**
-     * Starts the framework.
-     * @throws \Exception
-     */
-    public function _start() {
-        $dispatched = false;
-        $self = $this;
-        $request = $this->request();
-        $response = $this->response();
-        $router = $this->router();
-
-        // Allow filters to run
-        $this->after('start', function() use ($self) {
-            $self->stop();
-        });
-
-        // Flush any existing output
-        if (ob_get_length() > 0) {
-            $response->write(ob_get_clean());
-        }
-
-        // Enable output buffering
-        ob_start();
-
-        // Route the request
-        while ($route = $router->route($request)) {
-            $params = array_values($route->params);
-
-            // Add route info to the parameter list
-            if ($route->pass) {
-                $params[] = $route;
-            }
-
-            // Call route handler
-            $continue = $this->dispatcher->execute(
-                $route->callback,
-                $params
-            );
-
-            $dispatched = true;
-
-            if (!$continue) break;
-
-            $router->next();
-
-            $dispatched = false;
-        }
-
-        if (!$dispatched) {
-            $this->notFound();
-        }
-    }
-
-    /**
-     * Stops the framework and outputs the current response.
-     *
-     * @param int $code HTTP status code
-     * @throws \Exception
-     */
-    public function _stop($code = null) {
-        $response = $this->response();
-
-        if (!$response->sent()) {
-            if ($code !== null) {
-                $response->status($code);
-            }
-
-            $response->write(ob_get_clean());
-
-            $response->send();
-        }
-    }
-
-    /**
-     * Routes a URL to a callback function.
-     *
-     * @param string $pattern URL pattern to match
-     * @param callback $callback Callback function
-     * @param boolean $pass_route Pass the matching route object to the callback
-     */
-    public function _route($pattern, $callback, $pass_route = false) {
-        $this->router()->map($pattern, $callback, $pass_route);
-    }
-
-    /**
-     * Stops processing and returns a given response.
-     *
-     * @param int $code HTTP status code
-     * @param string $message Response message
-     */
-    public function _halt($code = 200, $message = '') {
-        $this->response()
-            ->clear()
-            ->status($code)
-            ->write($message)
-            ->send();
-        exit();
-    }
-
-    /**
-     * Sends an HTTP 500 response for any errors.
-     *
-     * @param \Exception|\Throwable $e Thrown exception
-     */
-    public function _error($e) {
-        $msg = sprintf('<h1>500 Internal Server Error</h1>'.
-            '<h3>%s (%s)</h3>'.
-            '<pre>%s</pre>',
-            $e->getMessage(),
-            $e->getCode(),
-            $e->getTraceAsString()
-        );
-
-        try {
-            $this->response()
-                ->clear()
-                ->status(500)
-                ->write($msg)
-                ->send();
-        }
-        catch (\Throwable $t) { // PHP 7.0+
-            exit($msg);
-        } catch(\Exception $e) { // PHP < 7
-            exit($msg);
-        }
-    }
-
-    /**
-     * Sends an HTTP 404 response when a URL is not found.
-     */
-    public function _notFound() {
-        $this->response()
-            ->clear()
-            ->status(404)
-            ->write(
-                '<h1>404 Not Found</h1>'.
-                '<h3>The page you have requested could not be found.</h3>'.
-                str_repeat(' ', 512)
-            )
-            ->send();
-    }
-
-    /**
-     * Redirects the current request to another URL.
-     *
-     * @param string $url URL
-     * @param int $code HTTP status code
-     */
-    public function _redirect($url, $code = 303) {
-        $base = $this->get('flight.base_url');
-
-        if ($base === null) {
-            $base = $this->request()->base;
-        }
-
-        // Append base url to redirect url
-        if ($base != '/' && strpos($url, '://') === false) {
-            $url = $base . preg_replace('#/+#', '/', '/' . $url);
-        }
-
-        $this->response()
-            ->clear()
-            ->status($code)
-            ->header('Location', $url)
-            ->send();
-    }
-
-    /**
-     * Renders a template.
-     *
-     * @param string $file Template file
-     * @param array $data Template data
-     * @param string $key View variable name
-     * @throws \Exception
-     */
-    public function _render($file, $data = null, $key = null) {
-        if ($key !== null) {
-            $this->view()->set($key, $this->view()->fetch($file, $data));
-        }
-        else {
-            $this->view()->render($file, $data);
-        }
-    }
-
-    /**
-     * Sends a JSON response.
-     *
-     * @param mixed $data JSON data
-     * @param int $code HTTP status code
-     * @param bool $encode Whether to perform JSON encoding
-     * @param string $charset Charset
-     * @param int $option Bitmask Json constant such as JSON_HEX_QUOT
-     * @throws \Exception
-     */
-    public function _json(
-        $data,
-        $code = 200,
-        $encode = true,
-        $charset = 'utf-8',
-        $option = 0
-    ) {
-        $json = ($encode) ? json_encode($data, $option) : $data;
-
-        $this->response()
-            ->status($code)
-            ->header('Content-Type', 'application/json; charset='.$charset)
-            ->write($json)
-            ->send();
-    }
-	
-    /**
-     * Sends a JSONP response.
-     *
-     * @param mixed $data JSON data
-     * @param string $param Query parameter that specifies the callback name.
-     * @param int $code HTTP status code
-     * @param bool $encode Whether to perform JSON encoding
-     * @param string $charset Charset
-     * @param int $option Bitmask Json constant such as JSON_HEX_QUOT
-     * @throws \Exception
-     */
-    public function _jsonp(
-        $data,
-        $param = 'jsonp',
-        $code = 200,
-        $encode = true,
-        $charset = 'utf-8',
-        $option = 0
-    ) {
-        $json = ($encode) ? json_encode($data, $option) : $data;
-
-        $callback = $this->request()->query[$param];
-
-        $this->response()
-            ->status($code)
-            ->header('Content-Type', 'application/javascript; charset='.$charset)
-            ->write($callback.'('.$json.');')
-            ->send();
-    }
-
-    /**
-     * Handles ETag HTTP caching.
-     *
-     * @param string $id ETag identifier
-     * @param string $type ETag type
-     */
-    public function _etag($id, $type = 'strong') {
-        $id = (($type === 'weak') ? 'W/' : '').$id;
-
-        $this->response()->header('ETag', $id);
-
-        if (isset($_SERVER['HTTP_IF_NONE_MATCH']) &&
-            $_SERVER['HTTP_IF_NONE_MATCH'] === $id) {
-            $this->halt(304);
-        }
-    }
-
-    /**
-     * Handles last modified HTTP caching.
-     *
-     * @param int $time Unix timestamp
-     */
-    public function _lastModified($time) {
-        $this->response()->header('Last-Modified', gmdate('D, d M Y H:i:s \G\M\T', $time));
-
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
-            strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) === $time) {
-            $this->halt(304);
-        }
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+nJiafS50GwIQTT5L

@@ -1,1591 +1,485 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Form Validation Class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Validation
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/form_validation.html
- */
-class CI_Form_validation {
-
-	/**
-	 * Reference to the CodeIgniter instance
-	 *
-	 * @var object
-	 */
-	protected $CI;
-
-	/**
-	 * Validation data for the current form submission
-	 *
-	 * @var array
-	 */
-	protected $_field_data		= array();
-
-	/**
-	 * Validation rules for the current form
-	 *
-	 * @var array
-	 */
-	protected $_config_rules	= array();
-
-	/**
-	 * Array of validation errors
-	 *
-	 * @var array
-	 */
-	protected $_error_array		= array();
-
-	/**
-	 * Array of custom error messages
-	 *
-	 * @var array
-	 */
-	protected $_error_messages	= array();
-
-	/**
-	 * Start tag for error wrapping
-	 *
-	 * @var string
-	 */
-	protected $_error_prefix	= '<p>';
-
-	/**
-	 * End tag for error wrapping
-	 *
-	 * @var string
-	 */
-	protected $_error_suffix	= '</p>';
-
-	/**
-	 * Custom error message
-	 *
-	 * @var string
-	 */
-	protected $error_string		= '';
-
-	/**
-	 * Whether the form data has been validated as safe
-	 *
-	 * @var bool
-	 */
-	protected $_safe_form_data	= FALSE;
-
-	/**
-	 * Custom data to validate
-	 *
-	 * @var array
-	 */
-	public $validation_data	= array();
-
-	/**
-	 * Initialize Form_Validation class
-	 *
-	 * @param	array	$rules
-	 * @return	void
-	 */
-	public function __construct($rules = array())
-	{
-		$this->CI =& get_instance();
-
-		// applies delimiters set in config file.
-		if (isset($rules['error_prefix']))
-		{
-			$this->_error_prefix = $rules['error_prefix'];
-			unset($rules['error_prefix']);
-		}
-		if (isset($rules['error_suffix']))
-		{
-			$this->_error_suffix = $rules['error_suffix'];
-			unset($rules['error_suffix']);
-		}
-
-		// Validation rules can be stored in a config file.
-		$this->_config_rules = $rules;
-
-		// Automatically load the form helper
-		$this->CI->load->helper('form');
-
-		log_message('info', 'Form Validation Class Initialized');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Rules
-	 *
-	 * This function takes an array of field names and validation
-	 * rules as input, any custom error messages, validates the info,
-	 * and stores it
-	 *
-	 * @param	mixed	$field
-	 * @param	string	$label
-	 * @param	mixed	$rules
-	 * @param	array	$errors
-	 * @return	CI_Form_validation
-	 */
-	public function set_rules($field, $label = '', $rules = array(), $errors = array())
-	{
-		// No reason to set rules if we have no POST data
-		// or a validation array has not been specified
-		if ($this->CI->input->method() !== 'post' && empty($this->validation_data))
-		{
-			return $this;
-		}
-
-		// If an array was passed via the first parameter instead of individual string
-		// values we cycle through it and recursively call this function.
-		if (is_array($field))
-		{
-			foreach ($field as $row)
-			{
-				// Houston, we have a problem...
-				if ( ! isset($row['field'], $row['rules']))
-				{
-					continue;
-				}
-
-				// If the field label wasn't passed we use the field name
-				$label = isset($row['label']) ? $row['label'] : $row['field'];
-
-				// Add the custom error message array
-				$errors = (isset($row['errors']) && is_array($row['errors'])) ? $row['errors'] : array();
-
-				// Here we go!
-				$this->set_rules($row['field'], $label, $row['rules'], $errors);
-			}
-
-			return $this;
-		}
-
-		// No fields or no rules? Nothing to do...
-		if ( ! is_string($field) OR $field === '' OR empty($rules))
-		{
-			return $this;
-		}
-		elseif ( ! is_array($rules))
-		{
-			// BC: Convert pipe-separated rules string to an array
-			if ( ! is_string($rules))
-			{
-				return $this;
-			}
-
-			$rules = preg_split('/\|(?![^\[]*\])/', $rules);
-		}
-
-		// If the field label wasn't passed we use the field name
-		$label = ($label === '') ? $field : $label;
-
-		$indexes = array();
-
-		// Is the field name an array? If it is an array, we break it apart
-		// into its components so that we can fetch the corresponding POST data later
-		if (($is_array = (bool) preg_match_all('/\[(.*?)\]/', $field, $matches)) === TRUE)
-		{
-			sscanf($field, '%[^[][', $indexes[0]);
-
-			for ($i = 0, $c = count($matches[0]); $i < $c; $i++)
-			{
-				if ($matches[1][$i] !== '')
-				{
-					$indexes[] = $matches[1][$i];
-				}
-			}
-		}
-
-		// Build our master array
-		$this->_field_data[$field] = array(
-			'field'		=> $field,
-			'label'		=> $label,
-			'rules'		=> $rules,
-			'errors'	=> $errors,
-			'is_array'	=> $is_array,
-			'keys'		=> $indexes,
-			'postdata'	=> NULL,
-			'error'		=> ''
-		);
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * By default, form validation uses the $_POST array to validate
-	 *
-	 * If an array is set through this method, then this array will
-	 * be used instead of the $_POST array
-	 *
-	 * Note that if you are validating multiple arrays, then the
-	 * reset_validation() function should be called after validating
-	 * each array due to the limitations of CI's singleton
-	 *
-	 * @param	array	$data
-	 * @return	CI_Form_validation
-	 */
-	public function set_data(array $data)
-	{
-		if ( ! empty($data))
-		{
-			$this->validation_data = $data;
-		}
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Error Message
-	 *
-	 * Lets users set their own error messages on the fly. Note:
-	 * The key name has to match the function name that it corresponds to.
-	 *
-	 * @param	array
-	 * @param	string
-	 * @return	CI_Form_validation
-	 */
-	public function set_message($lang, $val = '')
-	{
-		if ( ! is_array($lang))
-		{
-			$lang = array($lang => $val);
-		}
-
-		$this->_error_messages = array_merge($this->_error_messages, $lang);
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set The Error Delimiter
-	 *
-	 * Permits a prefix/suffix to be added to each error message
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	CI_Form_validation
-	 */
-	public function set_error_delimiters($prefix = '<p>', $suffix = '</p>')
-	{
-		$this->_error_prefix = $prefix;
-		$this->_error_suffix = $suffix;
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get Error Message
-	 *
-	 * Gets the error message associated with a particular field
-	 *
-	 * @param	string	$field	Field name
-	 * @param	string	$prefix	HTML start tag
-	 * @param 	string	$suffix	HTML end tag
-	 * @return	string
-	 */
-	public function error($field, $prefix = '', $suffix = '')
-	{
-		if (empty($this->_field_data[$field]['error']))
-		{
-			return '';
-		}
-
-		if ($prefix === '')
-		{
-			$prefix = $this->_error_prefix;
-		}
-
-		if ($suffix === '')
-		{
-			$suffix = $this->_error_suffix;
-		}
-
-		return $prefix.$this->_field_data[$field]['error'].$suffix;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get Array of Error Messages
-	 *
-	 * Returns the error messages as an array
-	 *
-	 * @return	array
-	 */
-	public function error_array()
-	{
-		return $this->_error_array;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Error String
-	 *
-	 * Returns the error messages as a string, wrapped in the error delimiters
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	string
-	 */
-	public function error_string($prefix = '', $suffix = '')
-	{
-		// No errors, validation passes!
-		if (count($this->_error_array) === 0)
-		{
-			return '';
-		}
-
-		if ($prefix === '')
-		{
-			$prefix = $this->_error_prefix;
-		}
-
-		if ($suffix === '')
-		{
-			$suffix = $this->_error_suffix;
-		}
-
-		// Generate the error string
-		$str = '';
-		foreach ($this->_error_array as $val)
-		{
-			if ($val !== '')
-			{
-				$str .= $prefix.$val.$suffix."\n";
-			}
-		}
-
-		return $str;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Run the Validator
-	 *
-	 * This function does all the work.
-	 *
-	 * @param	string	$group
-	 * @return	bool
-	 */
-	public function run($group = '')
-	{
-		$validation_array = empty($this->validation_data)
-			? $_POST
-			: $this->validation_data;
-
-		// Does the _field_data array containing the validation rules exist?
-		// If not, we look to see if they were assigned via a config file
-		if (count($this->_field_data) === 0)
-		{
-			// No validation rules?  We're done...
-			if (count($this->_config_rules) === 0)
-			{
-				return FALSE;
-			}
-
-			if (empty($group))
-			{
-				// Is there a validation rule for the particular URI being accessed?
-				$group = trim($this->CI->uri->ruri_string(), '/');
-				isset($this->_config_rules[$group]) OR $group = $this->CI->router->class.'/'.$this->CI->router->method;
-			}
-
-			$this->set_rules(isset($this->_config_rules[$group]) ? $this->_config_rules[$group] : $this->_config_rules);
-
-			// Were we able to set the rules correctly?
-			if (count($this->_field_data) === 0)
-			{
-				log_message('debug', 'Unable to find validation rules');
-				return FALSE;
-			}
-		}
-
-		// Load the language file containing error messages
-		$this->CI->lang->load('form_validation');
-
-		// Cycle through the rules for each field and match the corresponding $validation_data item
-		foreach ($this->_field_data as $field => &$row)
-		{
-			// Fetch the data from the validation_data array item and cache it in the _field_data array.
-			// Depending on whether the field name is an array or a string will determine where we get it from.
-			if ($row['is_array'] === TRUE)
-			{
-				$this->_field_data[$field]['postdata'] = $this->_reduce_array($validation_array, $row['keys']);
-			}
-			elseif (isset($validation_array[$field]))
-			{
-				$this->_field_data[$field]['postdata'] = $validation_array[$field];
-			}
-		}
-
-		// Execute validation rules
-		// Note: A second foreach (for now) is required in order to avoid false-positives
-		//	 for rules like 'matches', which correlate to other validation fields.
-		foreach ($this->_field_data as $field => &$row)
-		{
-			// Don't try to validate if we have no rules set
-			if (empty($row['rules']))
-			{
-				continue;
-			}
-
-			$this->_execute($row, $row['rules'], $row['postdata']);
-		}
-
-		// Did we end up with any errors?
-		$total_errors = count($this->_error_array);
-		if ($total_errors > 0)
-		{
-			$this->_safe_form_data = TRUE;
-		}
-
-		// Now we need to re-set the POST data with the new, processed data
-		empty($this->validation_data) && $this->_reset_post_array();
-
-		return ($total_errors === 0);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Prepare rules
-	 *
-	 * Re-orders the provided rules in order of importance, so that
-	 * they can easily be executed later without weird checks ...
-	 *
-	 * "Callbacks" are given the highest priority (always called),
-	 * followed by 'required' (called if callbacks didn't fail),
-	 * and then every next rule depends on the previous one passing.
-	 *
-	 * @param	array	$rules
-	 * @return	array
-	 */
-	protected function _prepare_rules($rules)
-	{
-		$new_rules = array();
-		$callbacks = array();
-
-		foreach ($rules as &$rule)
-		{
-			// Let 'required' always be the first (non-callback) rule
-			if ($rule === 'required')
-			{
-				array_unshift($new_rules, 'required');
-			}
-			// 'isset' is a kind of a weird alias for 'required' ...
-			elseif ($rule === 'isset' && (empty($new_rules) OR $new_rules[0] !== 'required'))
-			{
-				array_unshift($new_rules, 'isset');
-			}
-			// The old/classic 'callback_'-prefixed rules
-			elseif (is_string($rule) && strncmp('callback_', $rule, 9) === 0)
-			{
-				$callbacks[] = $rule;
-			}
-			// Proper callables
-			elseif (is_callable($rule))
-			{
-				$callbacks[] = $rule;
-			}
-			// "Named" callables; i.e. array('name' => $callable)
-			elseif (is_array($rule) && isset($rule[0], $rule[1]) && is_callable($rule[1]))
-			{
-				$callbacks[] = $rule;
-			}
-			// Everything else goes at the end of the queue
-			else
-			{
-				$new_rules[] = $rule;
-			}
-		}
-
-		return array_merge($callbacks, $new_rules);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Traverse a multidimensional $_POST array index until the data is found
-	 *
-	 * @param	array
-	 * @param	array
-	 * @param	int
-	 * @return	mixed
-	 */
-	protected function _reduce_array($array, $keys, $i = 0)
-	{
-		if (is_array($array) && isset($keys[$i]))
-		{
-			return isset($array[$keys[$i]]) ? $this->_reduce_array($array[$keys[$i]], $keys, ($i+1)) : NULL;
-		}
-
-		// NULL must be returned for empty fields
-		return ($array === '') ? NULL : $array;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Re-populate the _POST array with our finalized and processed data
-	 *
-	 * @return	void
-	 */
-	protected function _reset_post_array()
-	{
-		foreach ($this->_field_data as $field => $row)
-		{
-			if ($row['postdata'] !== NULL)
-			{
-				if ($row['is_array'] === FALSE)
-				{
-					isset($_POST[$field]) && $_POST[$field] = is_array($row['postdata']) ? NULL : $row['postdata'];
-				}
-				else
-				{
-					// start with a reference
-					$post_ref =& $_POST;
-
-					// before we assign values, make a reference to the right POST key
-					if (count($row['keys']) === 1)
-					{
-						$post_ref =& $post_ref[current($row['keys'])];
-					}
-					else
-					{
-						foreach ($row['keys'] as $val)
-						{
-							$post_ref =& $post_ref[$val];
-						}
-					}
-
-					$post_ref = $row['postdata'];
-				}
-			}
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Executes the Validation routines
-	 *
-	 * @param	array
-	 * @param	array
-	 * @param	mixed
-	 * @param	int
-	 * @return	mixed
-	 */
-	protected function _execute($row, $rules, $postdata = NULL, $cycles = 0)
-	{
-		// If the $_POST data is an array we will run a recursive call
-		//
-		// Note: We MUST check if the array is empty or not!
-		//       Otherwise empty arrays will always pass validation.
-		if (is_array($postdata) && ! empty($postdata))
-		{
-			foreach ($postdata as $key => $val)
-			{
-				$this->_execute($row, $rules, $val, $key);
-			}
-
-			return;
-		}
-
-		$rules = $this->_prepare_rules($rules);
-		foreach ($rules as $rule)
-		{
-			$_in_array = FALSE;
-
-			// We set the $postdata variable with the current data in our master array so that
-			// each cycle of the loop is dealing with the processed data from the last cycle
-			if ($row['is_array'] === TRUE && is_array($this->_field_data[$row['field']]['postdata']))
-			{
-				// We shouldn't need this safety, but just in case there isn't an array index
-				// associated with this cycle we'll bail out
-				if ( ! isset($this->_field_data[$row['field']]['postdata'][$cycles]))
-				{
-					continue;
-				}
-
-				$postdata = $this->_field_data[$row['field']]['postdata'][$cycles];
-				$_in_array = TRUE;
-			}
-			else
-			{
-				// If we get an array field, but it's not expected - then it is most likely
-				// somebody messing with the form on the client side, so we'll just consider
-				// it an empty field
-				$postdata = is_array($this->_field_data[$row['field']]['postdata'])
-					? NULL
-					: $this->_field_data[$row['field']]['postdata'];
-			}
-
-			// Is the rule a callback?
-			$callback = $callable = FALSE;
-			if (is_string($rule))
-			{
-				if (strpos($rule, 'callback_') === 0)
-				{
-					$rule = substr($rule, 9);
-					$callback = TRUE;
-				}
-			}
-			elseif (is_callable($rule))
-			{
-				$callable = TRUE;
-			}
-			elseif (is_array($rule) && isset($rule[0], $rule[1]) && is_callable($rule[1]))
-			{
-				// We have a "named" callable, so save the name
-				$callable = $rule[0];
-				$rule = $rule[1];
-			}
-
-			// Strip the parameter (if exists) from the rule
-			// Rules can contain a parameter: max_length[5]
-			$param = FALSE;
-			if ( ! $callable && preg_match('/(.*?)\[(.*)\]/', $rule, $match))
-			{
-				$rule = $match[1];
-				$param = $match[2];
-			}
-
-			// Ignore empty, non-required inputs with a few exceptions ...
-			if (
-				($postdata === NULL OR $postdata === '')
-				&& $callback === FALSE
-				&& $callable === FALSE
-				&& ! in_array($rule, array('required', 'isset', 'matches'), TRUE)
-			)
-			{
-				continue;
-			}
-
-			// Call the function that corresponds to the rule
-			if ($callback OR $callable !== FALSE)
-			{
-				if ($callback)
-				{
-					if ( ! method_exists($this->CI, $rule))
-					{
-						log_message('debug', 'Unable to find callback validation rule: '.$rule);
-						$result = FALSE;
-					}
-					else
-					{
-						// Run the function and grab the result
-						$result = $this->CI->$rule($postdata, $param);
-					}
-				}
-				else
-				{
-					$result = is_array($rule)
-						? $rule[0]->{$rule[1]}($postdata)
-						: $rule($postdata);
-
-					// Is $callable set to a rule name?
-					if ($callable !== FALSE)
-					{
-						$rule = $callable;
-					}
-				}
-
-				// Re-assign the result to the master data array
-				if ($_in_array === TRUE)
-				{
-					$this->_field_data[$row['field']]['postdata'][$cycles] = is_bool($result) ? $postdata : $result;
-				}
-				else
-				{
-					$this->_field_data[$row['field']]['postdata'] = is_bool($result) ? $postdata : $result;
-				}
-			}
-			elseif ( ! method_exists($this, $rule))
-			{
-				// If our own wrapper function doesn't exist we see if a native PHP function does.
-				// Users can use any native PHP function call that has one param.
-				if (function_exists($rule))
-				{
-					// Native PHP functions issue warnings if you pass them more parameters than they use
-					$result = ($param !== FALSE) ? $rule($postdata, $param) : $rule($postdata);
-
-					if ($_in_array === TRUE)
-					{
-						$this->_field_data[$row['field']]['postdata'][$cycles] = is_bool($result) ? $postdata : $result;
-					}
-					else
-					{
-						$this->_field_data[$row['field']]['postdata'] = is_bool($result) ? $postdata : $result;
-					}
-				}
-				else
-				{
-					log_message('debug', 'Unable to find validation rule: '.$rule);
-					$result = FALSE;
-				}
-			}
-			else
-			{
-				$result = $this->$rule($postdata, $param);
-
-				if ($_in_array === TRUE)
-				{
-					$this->_field_data[$row['field']]['postdata'][$cycles] = is_bool($result) ? $postdata : $result;
-				}
-				else
-				{
-					$this->_field_data[$row['field']]['postdata'] = is_bool($result) ? $postdata : $result;
-				}
-			}
-
-			// Did the rule test negatively? If so, grab the error.
-			if ($result === FALSE)
-			{
-				// Callable rules might not have named error messages
-				if ( ! is_string($rule))
-				{
-					$line = $this->CI->lang->line('form_validation_error_message_not_set').'(Anonymous function)';
-				}
-				else
-				{
-					$line = $this->_get_error_message($rule, $row['field']);
-				}
-
-				// Is the parameter we are inserting into the error message the name
-				// of another field? If so we need to grab its "field label"
-				if (isset($this->_field_data[$param], $this->_field_data[$param]['label']))
-				{
-					$param = $this->_translate_fieldname($this->_field_data[$param]['label']);
-				}
-
-				// Build the error message
-				$message = $this->_build_error_msg($line, $this->_translate_fieldname($row['label']), $param);
-
-				// Save the error message
-				$this->_field_data[$row['field']]['error'] = $message;
-
-				if ( ! isset($this->_error_array[$row['field']]))
-				{
-					$this->_error_array[$row['field']] = $message;
-				}
-
-				return;
-			}
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get the error message for the rule
-	 *
-	 * @param 	string $rule 	The rule name
-	 * @param 	string $field	The field name
-	 * @return 	string
-	 */
-	protected function _get_error_message($rule, $field)
-	{
-		// check if a custom message is defined through validation config row.
-		if (isset($this->_field_data[$field]['errors'][$rule]))
-		{
-			return $this->_field_data[$field]['errors'][$rule];
-		}
-		// check if a custom message has been set using the set_message() function
-		elseif (isset($this->_error_messages[$rule]))
-		{
-			return $this->_error_messages[$rule];
-		}
-		elseif (FALSE !== ($line = $this->CI->lang->line('form_validation_'.$rule)))
-		{
-			return $line;
-		}
-		// DEPRECATED support for non-prefixed keys, lang file again
-		elseif (FALSE !== ($line = $this->CI->lang->line($rule, FALSE)))
-		{
-			return $line;
-		}
-
-		return $this->CI->lang->line('form_validation_error_message_not_set').'('.$rule.')';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Translate a field name
-	 *
-	 * @param	string	the field name
-	 * @return	string
-	 */
-	protected function _translate_fieldname($fieldname)
-	{
-		// Do we need to translate the field name? We look for the prefix 'lang:' to determine this
-		// If we find one, but there's no translation for the string - just return it
-		if (sscanf($fieldname, 'lang:%s', $line) === 1 && FALSE === ($fieldname = $this->CI->lang->line($line, FALSE)))
-		{
-			return $line;
-		}
-
-		return $fieldname;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Build an error message using the field and param.
-	 *
-	 * @param	string	The error message line
-	 * @param	string	A field's human name
-	 * @param	mixed	A rule's optional parameter
-	 * @return	string
-	 */
-	protected function _build_error_msg($line, $field = '', $param = '')
-	{
-		// Check for %s in the string for legacy support.
-		if (strpos($line, '%s') !== FALSE)
-		{
-			return sprintf($line, $field, $param);
-		}
-
-		return str_replace(array('{field}', '{param}'), array($field, $param), $line);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Checks if the rule is present within the validator
-	 *
-	 * Permits you to check if a rule is present within the validator
-	 *
-	 * @param	string	the field name
-	 * @return	bool
-	 */
-	public function has_rule($field)
-	{
-		return isset($this->_field_data[$field]);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get the value from a form
-	 *
-	 * Permits you to repopulate a form field with the value it was submitted
-	 * with, or, if that value doesn't exist, with the default
-	 *
-	 * @param	string	the field name
-	 * @param	string
-	 * @return	string
-	 */
-	public function set_value($field = '', $default = '')
-	{
-		if ( ! isset($this->_field_data[$field], $this->_field_data[$field]['postdata']))
-		{
-			return $default;
-		}
-
-		// If the data is an array output them one at a time.
-		//	E.g: form_input('name[]', set_value('name[]');
-		if (is_array($this->_field_data[$field]['postdata']))
-		{
-			return array_shift($this->_field_data[$field]['postdata']);
-		}
-
-		return $this->_field_data[$field]['postdata'];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Select
-	 *
-	 * Enables pull-down lists to be set to the value the user
-	 * selected in the event of an error
-	 *
-	 * @param	string
-	 * @param	string
-	 * @param	bool
-	 * @return	string
-	 */
-	public function set_select($field = '', $value = '', $default = FALSE)
-	{
-		if ( ! isset($this->_field_data[$field], $this->_field_data[$field]['postdata']))
-		{
-			return ($default === TRUE && count($this->_field_data) === 0) ? ' selected="selected"' : '';
-		}
-
-		$field = $this->_field_data[$field]['postdata'];
-		$value = (string) $value;
-		if (is_array($field))
-		{
-			// Note: in_array('', array(0)) returns TRUE, do not use it
-			foreach ($field as &$v)
-			{
-				if ($value === $v)
-				{
-					return ' selected="selected"';
-				}
-			}
-
-			return '';
-		}
-		elseif (($field === '' OR $value === '') OR ($field !== $value))
-		{
-			return '';
-		}
-
-		return ' selected="selected"';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Radio
-	 *
-	 * Enables radio buttons to be set to the value the user
-	 * selected in the event of an error
-	 *
-	 * @param	string
-	 * @param	string
-	 * @param	bool
-	 * @return	string
-	 */
-	public function set_radio($field = '', $value = '', $default = FALSE)
-	{
-		if ( ! isset($this->_field_data[$field], $this->_field_data[$field]['postdata']))
-		{
-			return ($default === TRUE && count($this->_field_data) === 0) ? ' checked="checked"' : '';
-		}
-
-		$field = $this->_field_data[$field]['postdata'];
-		$value = (string) $value;
-		if (is_array($field))
-		{
-			// Note: in_array('', array(0)) returns TRUE, do not use it
-			foreach ($field as &$v)
-			{
-				if ($value === $v)
-				{
-					return ' checked="checked"';
-				}
-			}
-
-			return '';
-		}
-		elseif (($field === '' OR $value === '') OR ($field !== $value))
-		{
-			return '';
-		}
-
-		return ' checked="checked"';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Checkbox
-	 *
-	 * Enables checkboxes to be set to the value the user
-	 * selected in the event of an error
-	 *
-	 * @param	string
-	 * @param	string
-	 * @param	bool
-	 * @return	string
-	 */
-	public function set_checkbox($field = '', $value = '', $default = FALSE)
-	{
-		// Logic is exactly the same as for radio fields
-		return $this->set_radio($field, $value, $default);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Required
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function required($str)
-	{
-		return is_array($str)
-			? (empty($str) === FALSE)
-			: (trim($str) !== '');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Performs a Regular Expression match test.
-	 *
-	 * @param	string
-	 * @param	string	regex
-	 * @return	bool
-	 */
-	public function regex_match($str, $regex)
-	{
-		return (bool) preg_match($regex, $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Match one field to another
-	 *
-	 * @param	string	$str	string to compare against
-	 * @param	string	$field
-	 * @return	bool
-	 */
-	public function matches($str, $field)
-	{
-		return isset($this->_field_data[$field], $this->_field_data[$field]['postdata'])
-			? ($str === $this->_field_data[$field]['postdata'])
-			: FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Differs from another field
-	 *
-	 * @param	string
-	 * @param	string	field
-	 * @return	bool
-	 */
-	public function differs($str, $field)
-	{
-		return ! (isset($this->_field_data[$field]) && $this->_field_data[$field]['postdata'] === $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Is Unique
-	 *
-	 * Check if the input value doesn't already exist
-	 * in the specified database field.
-	 *
-	 * @param	string	$str
-	 * @param	string	$field
-	 * @return	bool
-	 */
-	public function is_unique($str, $field)
-	{
-		sscanf($field, '%[^.].%[^.]', $table, $field);
-		return isset($this->CI->db)
-			? ($this->CI->db->limit(1)->get_where($table, array($field => $str))->num_rows() === 0)
-			: FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Minimum Length
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	bool
-	 */
-	public function min_length($str, $val)
-	{
-		if ( ! is_numeric($val))
-		{
-			return FALSE;
-		}
-
-		return ($val <= mb_strlen($str));
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Max Length
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	bool
-	 */
-	public function max_length($str, $val)
-	{
-		if ( ! is_numeric($val))
-		{
-			return FALSE;
-		}
-
-		return ($val >= mb_strlen($str));
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Exact Length
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	bool
-	 */
-	public function exact_length($str, $val)
-	{
-		if ( ! is_numeric($val))
-		{
-			return FALSE;
-		}
-
-		return (mb_strlen($str) === (int) $val);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Valid URL
-	 *
-	 * @param	string	$str
-	 * @return	bool
-	 */
-	public function valid_url($str)
-	{
-		if (empty($str))
-		{
-			return FALSE;
-		}
-		elseif (preg_match('/^(?:([^:]*)\:)?\/\/(.+)$/', $str, $matches))
-		{
-			if (empty($matches[2]))
-			{
-				return FALSE;
-			}
-			elseif ( ! in_array(strtolower($matches[1]), array('http', 'https'), TRUE))
-			{
-				return FALSE;
-			}
-
-			$str = $matches[2];
-		}
-
-		// PHP 7 accepts IPv6 addresses within square brackets as hostnames,
-		// but it appears that the PR that came in with https://bugs.php.net/bug.php?id=68039
-		// was never merged into a PHP 5 branch ... https://3v4l.org/8PsSN
-		if (preg_match('/^\[([^\]]+)\]/', $str, $matches) && ! is_php('7') && filter_var($matches[1], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== FALSE)
-		{
-			$str = 'ipv6.host'.substr($str, strlen($matches[1]) + 2);
-		}
-
-		return (filter_var('http://'.$str, FILTER_VALIDATE_URL) !== FALSE);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Valid Email
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function valid_email($str)
-	{
-		if (function_exists('idn_to_ascii') && preg_match('#\A([^@]+)@(.+)\z#', $str, $matches))
-		{
-			$domain = defined('INTL_IDNA_VARIANT_UTS46')
-				? idn_to_ascii($matches[2], 0, INTL_IDNA_VARIANT_UTS46)
-				: idn_to_ascii($matches[2]);
-
-			if ($domain !== FALSE)
-			{
-				$str = $matches[1].'@'.$domain;
-			}
-		}
-
-		return (bool) filter_var($str, FILTER_VALIDATE_EMAIL);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Valid Emails
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function valid_emails($str)
-	{
-		if (strpos($str, ',') === FALSE)
-		{
-			return $this->valid_email(trim($str));
-		}
-
-		foreach (explode(',', $str) as $email)
-		{
-			if (trim($email) !== '' && $this->valid_email(trim($email)) === FALSE)
-			{
-				return FALSE;
-			}
-		}
-
-		return TRUE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Validate IP Address
-	 *
-	 * @param	string
-	 * @param	string	'ipv4' or 'ipv6' to validate a specific IP format
-	 * @return	bool
-	 */
-	public function valid_ip($ip, $which = '')
-	{
-		return $this->CI->input->valid_ip($ip, $which);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Alpha
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function alpha($str)
-	{
-		return ctype_alpha($str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Alpha-numeric
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function alpha_numeric($str)
-	{
-		return ctype_alnum((string) $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Alpha-numeric w/ spaces
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function alpha_numeric_spaces($str)
-	{
-		return (bool) preg_match('/^[A-Z0-9 ]+$/i', $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Alpha-numeric with underscores and dashes
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function alpha_dash($str)
-	{
-		return (bool) preg_match('/^[a-z0-9_-]+$/i', $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Numeric
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function numeric($str)
-	{
-		return (bool) preg_match('/^[\-+]?[0-9]*\.?[0-9]+$/', $str);
-
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Integer
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function integer($str)
-	{
-		return (bool) preg_match('/^[\-+]?[0-9]+$/', $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Decimal number
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function decimal($str)
-	{
-		return (bool) preg_match('/^[\-+]?[0-9]+\.[0-9]+$/', $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Greater than
-	 *
-	 * @param	string
-	 * @param	int
-	 * @return	bool
-	 */
-	public function greater_than($str, $min)
-	{
-		return is_numeric($str) ? ($str > $min) : FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Equal to or Greater than
-	 *
-	 * @param	string
-	 * @param	int
-	 * @return	bool
-	 */
-	public function greater_than_equal_to($str, $min)
-	{
-		return is_numeric($str) ? ($str >= $min) : FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Less than
-	 *
-	 * @param	string
-	 * @param	int
-	 * @return	bool
-	 */
-	public function less_than($str, $max)
-	{
-		return is_numeric($str) ? ($str < $max) : FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Equal to or Less than
-	 *
-	 * @param	string
-	 * @param	int
-	 * @return	bool
-	 */
-	public function less_than_equal_to($str, $max)
-	{
-		return is_numeric($str) ? ($str <= $max) : FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Value should be within an array of values
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	bool
-	 */
-	public function in_list($value, $list)
-	{
-		return in_array($value, explode(',', $list), TRUE);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Is a Natural number  (0,1,2,3, etc.)
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function is_natural($str)
-	{
-		return ctype_digit((string) $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Is a Natural number, but not a zero  (1,2,3, etc.)
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function is_natural_no_zero($str)
-	{
-		return ($str != 0 && ctype_digit((string) $str));
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Valid Base64
-	 *
-	 * Tests a string for characters outside of the Base64 alphabet
-	 * as defined by RFC 2045 http://www.faqs.org/rfcs/rfc2045
-	 *
-	 * @param	string
-	 * @return	bool
-	 */
-	public function valid_base64($str)
-	{
-		return (base64_encode(base64_decode($str)) === $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Prep data for form
-	 *
-	 * This function allows HTML to be safely shown in a form.
-	 * Special characters are converted.
-	 *
-	 * @deprecated	3.0.6	Not used anywhere within the framework and pretty much useless
-	 * @param	mixed	$data	Input data
-	 * @return	mixed
-	 */
-	public function prep_for_form($data)
-	{
-		if ($this->_safe_form_data === FALSE OR empty($data))
-		{
-			return $data;
-		}
-
-		if (is_array($data))
-		{
-			foreach ($data as $key => $val)
-			{
-				$data[$key] = $this->prep_for_form($val);
-			}
-
-			return $data;
-		}
-
-		return str_replace(array("'", '"', '<', '>'), array('&#39;', '&quot;', '&lt;', '&gt;'), stripslashes($data));
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Prep URL
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	public function prep_url($str = '')
-	{
-		if ($str === 'http://' OR $str === '')
-		{
-			return '';
-		}
-
-		if (strpos($str, 'http://') !== 0 && strpos($str, 'https://') !== 0)
-		{
-			return 'http://'.$str;
-		}
-
-		return $str;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Strip Image Tags
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	public function strip_image_tags($str)
-	{
-		return $this->CI->security->strip_image_tags($str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Convert PHP tags to entities
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	public function encode_php_tags($str)
-	{
-		return str_replace(array('<?', '?>'), array('&lt;?', '?&gt;'), $str);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Reset validation vars
-	 *
-	 * Prevents subsequent validation routines from being affected by the
-	 * results of any previous validation routine due to the CI singleton.
-	 *
-	 * @return	CI_Form_validation
-	 */
-	public function reset_validation()
-	{
-		$this->_field_data = array();
-		$this->_error_array = array();
-		$this->_error_messages = array();
-		$this->error_string = '';
-		return $this;
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

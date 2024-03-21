@@ -1,79 +1,38 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 2.1.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * CUBRID Utility Class
- *
- * @category	Database
- * @author		Esen Sagynov
- * @link		https://codeigniter.com/user_guide/database/
- */
-class CI_DB_cubrid_utility extends CI_DB_utility {
-
-	/**
-	 * List databases
-	 *
-	 * @return	array
-	 */
-	public function list_databases()
-	{
-		if (isset($this->db->data_cache['db_names']))
-		{
-			return $this->db->data_cache['db_names'];
-		}
-
-		return $this->db->data_cache['db_names'] = cubrid_list_dbs($this->db->conn_id);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * CUBRID Export
-	 *
-	 * @param	array	Preferences
-	 * @return	mixed
-	 */
-	protected function _backup($params = array())
-	{
-		// No SQL based support in CUBRID as of version 8.4.0. Database or
-		// table backup can be performed using CUBRID Manager
-		// database administration tool.
-		return $this->db->display_error('db_unsupported_feature');
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cP+xTfPF/L2SUf8PhCB1WYGGvORJy48zRGkyeWaXMGG3EYG2/8CtJi/Jr0WmefHyjX7hORkuR
+SBUjKF6GW6fyupJOceMFqfQWkd3/7tovCdj1lKHl/2PrTNwukBWDpg28MHA3X1K/vWBTEO775I6n
+b6oYlvkQAO1y268s4xwNd/DFwioCe1+n1h5/ejp+4yJSHsQdSu9a/04areElmMCYzV7dorz1r9D1
+zOvJtZHk06lY3RRtaoKlGAEONupVohjxdX5/ZSMNAZUmu05+9sZSn2FBEt2qQe/8LgJPjhcoPQ83
+qErSGl/GqBXjohh3vJMmWAVa7nUs3FaJCE+RktCOr5mDQJGgNawbQCRCRSLElO1hoFYZ+CKx34zi
+ULm7XQ7cxkui/oI+/+OAzg4FxsAoAlpCCVNV0TasoXkzr6xVsVfP/zeDzw+inPwArbvC5I5KGJ5f
+FOAEKRQpYkXxohK7CBrOus23td4jNCMsvwkY+J+SM60ZStN+eIb0pEl5JjpghAtYJiMC7/0aHsEg
+MJyuM7glSjF3jLg1bTYl/Id+2aq5huGDMb8H+oG8VwiIRtHHE/Fi8XTXEQu+rnqhL6czRSfcpOkw
+UtgM4Hx3/Ae7P3rAn17GfxXvQiJJKYRGmmT/Q9oLEuriLjpy5N7OpHZn5wXieCbf3+qmHUQRtrF/
+5uLf3JFCbz//1Pfqba75IPfE2SADLYYPHoJL85uIAXNT6/EW1dooUhJIUpiCgW7OxIPbyXZsiwyX
+sYnOJEsQZ7W/g8uJUmUaMDsk56x0j/5ez53L9AhOhcGHEDQdxsuq6/RBRPaJotdUWGhReuLqCEsg
+PpZz8n9uyO+iGARcMGVwUnLNJhEp765Vut5mVRS2lZxxSf3mP/QBn8TMIwJcKX2Czy0siIwIdF6v
+2+NCWLYbNBNOH0KWuCbAn7BLZ6Ac5NsWmnC+4LKLbKVkguedbO1C9R7PTXeC4bz8rbbusc5aOn+u
+8To7fdlNQ0k6gLQ6U/2Ve/ExQfFyOXG/zrUu39sNlZ0dAAUhMumEWzy26dVFZfkts+SSBXbUsu7D
+xMFfoj4l3ifZwyi4A6ZD4t3uLhRZzFJzis2YxYz+3lpFrKLII6988dXOuuWDgZcj6lmgm6J4+vpC
+Ndhqx3SIfJN+GBMJJkO/rPhU/w7RDV/hAioveWcBjWrrR72IYrYNjD9Kzn+6MKTQs1PJpxw9Qn44
+eWn7ASjeIpfgNuY2WIZiapHVwjs/67Yp/mE/hSV0KVViCh+viIYMUv2nthYojlreJK2NI65+m8dg
+3HnsJvxeP1wZKWmgONJ6snhdwjPGGa7rkht2FfZqS39RFfKmZN0M0ZGzRErmOvTtrDJRrbUyJ/Yk
+AoabJl5BgbOmpRBnIHPbix9+NwBPLTFnIkDIRfDwA3Kcs3ZSa5dDmOuZHtEfIPWvZZJ/u88qvw/r
+oEA+ct3bH3hDIR87zF/HRJwFNCCgRuXjhkVOR9MgjKOcGC+MxHx/Y1zd+3Rm5WZ82LuekGj4PX3A
+19541vPILNvSbbLw+yAxQDXsGWJUnvbq2TPY2ztIEv2NNOZOkCftvdXZQf+K/Mdihk8cpjWK7oEw
+x6f6WrpPiF7MWKXMNQ/lc/xBMpgsbE81P+cQ85cG9HGVis6lgcF6DPq/4AMWCp+WwEjt+mIC35yH
+b8+cOlak9MCWXJsMWQnMTOemqna0q8opstt09V+JPllMSsk7zbO76EtJlFClOQoHpJ8Gbz7uE0k7
+MyNkmoIjDhUphqA1fYNMETnPrgkcC0o8M3LbhczlJWANJBsz8R/7sgqvMvxrNdhJOOfz0ZW+428E
+5NXwKZqd2JPWYmsxFk3ouKKVmgP9w+XGHVDwgq3zCpBK4MgQd02lM1jPpPR+5SsuXZq/VFgX6l+e
+R5bp9S2ozqESEybNBTzMLKlweqqIVI1+Sbbo/PrZeGTxzWI0E1Kt7ZYATo5Y+qeF634MdCyZkK0+
+BQgGOWuhvjFarLRWNN6ufd8ByYS5k/xh8sMq7kYSyrp4Sj+tB5Ncg3kMsLmV/ykiK1GIWq3GE8ed
+8rL4f9CCJ/zj7XYGb8P7ieovlaHaOSTsOtBdcj47mYiAJ/4b/BXKdNNCvD2Y7lYuVx02DnIgyruM
+jQXpE6aekW4TLNXDy7TuGjY+fTjnV8qtQEAnVtATB/fN/5YhZHCBnQeWalHlkJDIAF97n/XVj1UO
+TBc9ht1eSBMyivaQVXEgx2yQ25vsB8tOdIeCLlv9KB268K+QfWrVp82AXFdROdMK1RmAlkiqOWEW
+m5+uM3KjcZj782nHMa0E++FLxpcQSRc7K6iv0rT9EQlY9bn/nGkczY0pXqp5r8bZloT9roqaCKmZ
+UoMqQ9HuKBsMhL0+APWj64p6PDbWi7N3WEPZEBk0KRNKSWc/FRnA89tVBMyzx26G+NXy7XxoomOt
+4cMjFSaY7x3uyo0nzajIX5UAFhSJygAelQ3BABo9xl1A2RLKkUmQO3J39cl5SJGf2nBt3H+VUtFm
+uUEbATXKucMgkpqlzXXRexsC1ehmgrupc+zJQYe8+ub6cMAoub2ist7Jisg1lXBUEp1pA3Rdm/Cp
+eDT/bdkp9UVI7rFDwTcK+Nsnbw4dmCh2xAQ9/7u6CWWmsn4+4DG2Yeh6mSFqiA5o54C=

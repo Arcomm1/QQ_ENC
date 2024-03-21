@@ -1,980 +1,587 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-/* Call_model.php - Quickqueues call detail record abstraction */
-
-
-class Call_model extends MY_Model {
-
-
-    public function __construct()
-    {
-        $this->_table_prefix = 'qq_';
-        parent::__construct();
-        $this->cdrdb = $this->load->database('cdrdb', true);
-    }
-
-
-    /**
-     * Search calls
-     *
-     * @param array $where Array of values to match with WHERE clause
-     * @param array $like  Array of values to match with LIKE clause
-     * @param int $limit Limit for pagination
-     * @param int $offset Offset for pagination
-     * @param bool Whether random calls should be returned
-     * @return obj CodeIgniter database object
-     */
-    public function search($where = false, $like = false, $offset = false, $limit = false, $random = false)
-    {
-        if ($where and is_array($where)) {
-            foreach ($where as $column => $value) {
-                if ($value) {
-                    if ($value == 'isnull') {
-                        $this->db->where("$column IS NULL");
-                        continue;
-                    }
-                    if (is_array($value)) {
-                        $this->db->where_in($column, $value);
-                    } else {
-                        $this->db->where($column, $value);
-                    }
-                }
-            }
-        }
-
-        if ($like and is_array($like)) {
-            foreach ($like as $column => $value) {
-                if ($value) {
-                    if (is_array($value)) {
-                        $this->db->group_start();
-                        foreach ($value as $v) {
-                            $this->db->or_like($column, $v);
-                        }
-                        $this->db->group_end();
-                    } else {
-                        $this->db->like($column, $value);
-                    }
-                }
-            }
-        }
-
-        if ($offset) {
-            $this->db->limit($offset, $limit);
-        }
-        if ($random) {
-            $this->db->order_by('RAND()');
-        } else {
-            $this->db->order_by('date DESC');
-        }
-
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");
-
-        return $this->db->get($this->_table)->result();
-    }
-
-
-    /**
-     * Count calls
-     *
-     * @param array $where Array of values to match with WHERE clause
-     * @param array $like  Array of values to match with LIKE clause
-     * @return obj CodeIgniter database object
-     */
-    public function count($where = false, $like = false)
-    {
-        if ($where and is_array($where)) {
-            foreach ($where as $column => $value) {
-                if ($value) {
-                    if ($value == 'isnull') {
-                        $this->db->where("$column IS NULL");
-                        continue;
-                    }
-                    if (is_array($value)) {
-                        $this->db->where_in($column, $value);
-                    } else {
-                        $this->db->where($column, $value);
-                    }
-                }
-            }
-        }
-
-        if ($like and is_array($like)) {
-            foreach ($like as $column => $value) {
-                if ($value) {
-                    if (is_array($value)) {
-                        $this->db->group_start();
-                        foreach ($value as $v) {
-                            $this->db->or_like($column, $v);
-                        }
-                        $this->db->group_end();
-                    } else {
-                        $this->db->like($column, $value);
-                    }
-                }
-            }
-        }
-        $this->db->from($this->_table);
-
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");	
-
-        return $this->db->count_all_results();
-    }
-
-    public function get_last_event_timestamp($uniqueId) 
-    {
-        $this->db->select('timestamp');
-        $this->db->where('uniqueid', $uniqueId);
-        $this->db->order_by('timestamp', 'desc');
-        $this->db->limit(1);
-
-        $query = $this->db->get($this->_table);
-
-        if ($query->num_rows() > 0) {
-            $result = $query->row_array();
-            return $result['timestamp'];
-        }
-    }
-    public function get_recording($uniqueid = false)
-    {
-        if (!$uniqueid) {
-            return false;
-        }
-        $result = $this->cdrdb->get_where('cdr', array('uniqueid' => $uniqueid));
-        if ($result->num_rows() == 0) {
-            return false;
-        }
-        if ($result->num_rows() == 1) {
-            $cdr = $result->row();
-            $this->update_by('uniqueid', $uniqueid, array('recording_file' => $cdr->recordingfile));
-            return true;
-        } else {
-            // if somehow there are multiple CDR records, just go with the first one
-            // BUT SHOULD WE?
-            $cdrs = $result->result();
-            $cdr = $cdrs[0];
-            $this->update_by('uniqueid', $uniqueid, array('recording_file' => $cdr->recordingfile));
-            return true;
-        }
-    }
-
-
-    /**
-     * Get calls by number, whether source or destination
-     *
-     * @param string $number Number to search
-     * @param array $where Arbitrary WHERE filter
-     * @param array $like Arbitrary LIKE filter
-     * @param int $limit Limit results
-     * @return obj|bool CodeIgniter database object or false
-     */
-    public function get_many_by_number($number = false, $where = array(), $like = array(), $limit = 20)
-    {
-        if (!$number) {
-            return false;
-        }
-        $this->db->group_start();
-        $this->db->or_like('src', $number);
-        $this->db->or_like('dst', $number);
-        $this->db->group_end();
-
-        if ($where and is_array($where)) {
-            foreach ($where as $column => $value) {
-                if ($value) {
-                    if (is_array($value)) {
-                        $this->db->where_in($column, $value);
-                    } else {
-                        $this->db->where($column, $value);
-                    }
-                }
-            }
-        }
-
-        if ($like and is_array($like)) {
-            foreach ($like as $column => $value) {
-                if ($value) {
-                    if (is_array($value)) {
-                        $this->db->group_start();
-                        foreach ($value as $v) {
-                            $this->db->or_like($column, $v);
-                        }
-                        $this->db->group_end();
-                    } else {
-                        $this->db->like($column, $value);
-                    }
-                }
-            }
-        }
-
-        $this->db->limit($limit);
-        $this->db->order_by('id DESC');
-        // die($this->db->get_compiled_select());
-        return $this->db->get($this->_table)->result();
-    }
-
-
-    /**
-     * Mark for survey
-     *
-     * @param string $uniqueid Unique ID of call
-     * @return bool
-     */
-    public function mark_for_survey($uniqueid = false)
-    {
-        if (!$uniqueid) {
-            log_to_file('ERROR', "Call_model->mark_for_survey - no Unique ID provided, exiting...");
-            return false;
-        }
-
-        $call = $this->get_by('uniqueid', $uniqueid);
-        if (!$call) {
-            log_to_file('ERROR', "Call_model->mark_for_survey $uniqueid - Call not found, exiting...");
-            return false;
-        }
-
-        $queue_config = $this->Queue_model->get_config($call->queue_id);
-        if (!$queue_config) {
-            log_to_file('ERROR', "Call_model->mark_for_survey $uniqueid - Queue config not found, exiting...");
-            return false;
-        }
-
-        if ($queue_config['queue_enable_survey']->value == 'no') {
-            log_to_file('NOTICE', "Call_model->mark_for_survey $uniqueid - Queue has survey mode disabled, exiting...");
-            return false;
-        }
-
-        if ($call->calltime < $queue_config['queue_survey_min_calltime']->value) {
-            log_to_file('NOTICE', "Call_model->mark_for_survey $uniqueid - Call time is too short for survey ".$call->calltime." <> ".$queue_config['queue_survey_min_calltime']->value.", exiting...");
-            return false;
-        }
-
-        $grace_period = date('Y-m-d H:i:s', strtotime('-'.$queue_config['queue_survey_grace_period']->value.' days'));
-
-        // Check if caller already participated in survey
-        $calls_complete = $this->count_by_complex(
-            array(
-                'src'               => $call->src,
-                'survey_complete'   => '1',
-                'date >'            => $grace_period
-            )
-        );
-
-        if ($calls_complete > 0) {
-            log_to_file('NOTICE', "Call_model->mark_for_survey $uniqueid - $call->src Already participated in survey, exiting...");
-            return false;
-        }
-
-        // Check if caller is in survey queue
-        $calls_queued = $this->count_by_complex(
-            array(
-                'src'           => $call->src,
-                'survey_queue'  => '1',
-                'date >'        => $grace_period
-            )
-        );
-
-        if ($calls_queued > 0) {
-            log_to_file('NOTICE', "Call_model->mark_for_survey $uniqueid - $call->src Already in survey queue, exiting...");
-            return false;
-        }
-
-        $total_complete = $this->Call_model->count_by_complex(
-            array(
-                'survey_complete'   => '1',
-                'date >'            => QQ_TODAY_START
-            )
-        );
-
-        if ($total_complete > $queue_config['queue_survey_max_results']->value) {
-            log_to_file('NOTICE', "Call_model->mark_for_survey $uniqueid - Already completed maximum amount of survey calls, exiting...");
-            return false;
-        }
-
-
-        log_to_file('NOTICE', "Call_model->mark_for_survey $uniqueid - Marking call for survey queue");
-        $this->update($call->id, array('survey_queue' => 1));
-
-        return true;
-
-    }
-
-
-    /**
-     * Get list of calls in survey queue
-     *
-     * @param void
-     * @return mixed List of calls in survey queue
-     */
-    public function get_survey_queue()
-    {
-        return $this->get_many_by_complex(
-            array(
-                'survey_queue'  => 1,
-                'date >'        => QQ_TODAY_START
-            )
-        );
-    }
-
-
-    /**
-     * Try to make survey call
-     *
-     * @param obj $call Call object
-     * @return bool True on success, False otherwise
-     */
-    public function make_survey_call($call = false)
-    {
-        if (!$call || !is_object($call)) {
-            log_to_file('ERROR', "Call_model->make_survey_call - No Call object provided");
-            return false;
-        }
-
-        $agent = $this->Agent_model->get($call->agent_id);
-        $queue = $this->Queue_model->get($call->queue_id);
-
-        // $content =  "Channel: SIP/".$src."\n";
-        $content =  "Channel: SIP/trunk-2620000/995598412127\n";
-        // $content .= "MaxRetries: 1\n";
-        $content .= "RetryTime: 60\n";
-        $content .= "WaitTime: 30\n";
-        $content .= "Context: qq-survey-ivr-template\n";
-        $content .= "Extension: s\n";
-        $content .= "Priority: 1\n";
-        $content .= "Set: AGENT=".$agent->name."\n";
-        $content .= "Set: QUEUE=".$queue->name."\n";
-        $content .= "Set: QQ_UNIQUEID=".$call->uniqueid."\n";
-
-        // return $content;
-
-        $callfile = time().'-'.$call->uniqueid.'.call';
-
-        file_put_contents('/var/www/html/'.$callfile, $content);
-        // rename('/var/www/html/'.$callfile, '/var/spool/asterisk/outgoing/'.$callfile);
-        $this->update($call->id, array('survey_queue' => '0'));
-    }
-
-
-    /**
-     * Get list of calls we need to call back automatically
-     *
-     * @param void
-     * @return mixed List of calls in survey queue
-     */
-    public function get_auto_callback_queues()
-    {
-        /**
-         * TODO
-         * The starting time from which we select the queue should be in a config switch?
-         */
-
-         // Get the IDs of queues that have this enabled
-         $queue_ids = array();
-         foreach ($this->Queue_model->get_all() as $q) {
-            $config = $this->Queue_model->get_config($q->id);
-            if ($config['queue_auto_callback_enable']->value == 'yes') {
-                $queue_ids[] = $q->id;
-            }
-            unset($config);
-         }
-
-         // Get actual list of calls
-         $calls =  $this->get_many_by_complex(
-            array(
-                'called_back'   => 'no',
-                'date >'        => QQ_TODAY_START,
-                'event_type'    => array('ABANDON', 'EXITWITHKEY', 'EXITWITHTIMEOUT', 'EXITEMPTY'),
-            )
-        );
-
-        $result = array();
-        foreach ($calls as $c) {
-            if (in_array($c->queue_id, $queue_ids)) {
-                $result[] = $c;
-            }
-        }
-
-        return $result;
-    }
-
-
-    /**
-     * Try to make survey call
-     *
-     * @param obj $call Call object
-     * @return bool True on success, False otherwise
-     */
-    public function make_auto_callback($call = false)
-    {
-        if (!$call || !is_object($call)) {
-            log_to_file('ERROR', "Call_model->make_auto_callback - No Call object provided");
-            return false;
-        }
-
-        $queue = $this->Queue_model->get($call->queue_id);
-
-        $queue_config = $this->Queue_model->get_config($call->queue_id);
-
-
-
-        // $content =  "Channel: SIP/".$src."\n";
-        $content =  "Channel: SIP/trunk-2620000/995598412127\n";
-        // $content .= "MaxRetries: 1\n";
-        $content .= "RetryTime: 60\n";
-        $content .= "WaitTime: 30\n";
-        $content .= "Context: ".$queue_config['queue_auto_callback_dst']->value."\n";
-        $content .= "Extension: s\n";
-        $content .= "Priority: 1\n";
-        $content .= "Set: QUEUE=".$queue->name."\n";
-        $content .= "Set: QQ_UNIQUEID=".$call->uniqueid."\n";
-
-        // return $content;
-
-        $callfile = time().'-'.$call->uniqueid.'.call';
-
-        file_put_contents('/var/www/html/'.$callfile, $content);
-        // rename('/var/www/html/'.$callfile, '/var/spool/asterisk/outgoing/'.$callfile);
-    }
-
-
-    /**
-     * Get the very first call
-     *
-     * @param void
-     * @return obj Call object
-     */
-    public function get_first()
-    {
-        $this->db->order_by('id ASC');
-        $this->db->limit(1);
-        return $this->db->get($this->_table)->row();
-    }
-
-     /* Sats For Start Page */
-    public function get_stats_for_start($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('COUNT(CASE WHEN event_type = "DID" THEN 1 END) AS calls_unique');
-        $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS unique_incoming_calls_answered');
-        $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS unique_incoming_calls_unanswered');
-		
-		$this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS unique_outgoing_calls_answered');
-        $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS unique_outgoing_calls_unanswered');
-		
-        $this->db->select('COUNT(CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS calls_answered');
-        $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("INCOMINGOFFWORK") THEN 1 END) AS calls_offwork');
-
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS calls_unanswered');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("EXITWITHKEY") THEN 1 END) AS callback_request');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS max_calltime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS max_holdtime');
-        $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime >= 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
-        $this->db->select('COUNT(DISTINCT CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime >= 5 AND answered_elsewhere IS NULL THEN src END) AS users_without_service');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "no" THEN 1 END) AS called_back_no');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "nah" THEN 1 END) AS called_back_nah');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "nop" THEN 1 END) AS called_back_nop');
-
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND duplicate = "yes" THEN 1 END) AS calls_duplicate');
-        $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('MAX(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_max');
-
-        /* ------ FOR SLA: Hold Time ------ */
-
-        
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 0 THEN 1 END) AS sla_count_total');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 10 AND ringtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 20 THEN 1 END) AS sla_count_greater_than_20');
-
-        /* ------ End Of  FOR SLA: Hold Time ------ */
-
-        /* ------ FOR ATA: Hold Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHKEY", "EXITWITHTIMEOUT") AND waittime > 0 THEN 1 END) AS ata_count_total');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHKEY", "EXITWITHTIMEOUT"), waittime, 0)) AS ata_total_waittime');
-        /* ------ End Of  FOR ATA: Hold Time ------ */
-
-        /* ------ FOR Incoming: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_max_calltime');
-        /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
-
-        /* ------ FOR Outgoing: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_max_calltime');
-        /* ------ End Of  FOR Outgoing: Total & AVG Time  ------ */
-
-        $this->db->where_in('queue_id', $queue_ids);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-		
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
-		
-        return $this->db->get($this->_table)->row();
-    }
-	
-	// Get local calls count for start page
-    public function get_local_calls_for_start($date_range = array(), $agent_id=false)
-    {
-        if (count($date_range) == 0) {
-            return false;
-        }
-		
-		if ($agent_id === false){
-			$this->db->select("SUM(CASE WHEN call_type LIKE '%local%' AND call_type != 'local_fcode' AND call_type != 'local_queue' THEN 1 ELSE 0 END) AS calls_total_local");
-		}
-		else {
-			$this->db->select("SUM(CASE WHEN call_type LIKE '%local%' AND agent_id='$agent_id' AND call_type != 'local_fcode' AND call_type != 'local_queue' THEN 1 ELSE 0 END) AS calls_total_local");
-		}
-		
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-		
-        return $this->db->get($this->_table)->row();
-	}	
-
-    /* here we are for agents*/
-    public function get_agent_stats_for_agent_stats_page($agent_id = false, $date_range = array())
-    {
-        if (!$agent_id || count($date_range) == 0)
-		{
-            return false;
-        }
-
-        $this->db->select('agent_id');
-        $this->db->select('COUNT(CASE WHEN event_type LIKE "OUT_%" AND agent_id > 0 THEN 1 END) AS calls_outgoing');
-        $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" AND agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND agent_id > 0 THEN 1 END) AS calls_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS calls_unanswered');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS total_ringtime');
-    
-
-        /* ------ FOR SLA: Hold Time ------ */
-
-        
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 0 THEN 1 END) AS sla_count_total');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 10 AND ringtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 20 THEN 1 END) AS sla_count_greater_than_20');
-
-        /* ------ End Of  FOR SLA: Hold Time ------ */
-
-        $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS max_holdtime');
-        $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS max_ringtime_answered');
-
-        /* ------ FOR Incoming: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_max_calltime');
-        /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
-
-        /* ------ FOR Outgoing: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_max_calltime');
-        /* ------ End Of  FOR Outgoing: Total & AVG Time  ------ */
-
-        $this->db->where_in('agent_id', $agent_id);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-		
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");      
-      
-        $this->db->from('qq_calls');
-        return $this->db->get()->row();
-    }
-
-
-    public function get_agent_stats_for_start($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('qq_agents.display_name');
-        $this->db->select('qq_agents.extension');
-        $this->db->select('COUNT(CASE WHEN qq_calls.event_type LIKE "OUT_%" THEN 1 END) AS calls_outgoing');
-        $this->db->select('COUNT(CASE WHEN qq_calls.event_type = "OUT_ANSWERED" THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN("COMPLETECALLER", "COMPLETEAGENT") THEN 1 END) AS calls_answered');
-        $this->db->where_in('qq_calls.queue_id', $queue_ids);
-        $this->db->where('qq_calls.date >', $date_range['date_gt']);
-        $this->db->where('qq_calls.date <', $date_range['date_lt']);
-        $this->db->where('qq_agents.id', 'qq_calls.agent_id', FALSE);
-        $this->db->group_by('agent_id');
-        $this->db->from('qq_calls, qq_agents');
-		
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
-		
-        return $this->db->get()->result();
-    }
-
-/* Stats For Agents*/
-    public function get_agent_stats_for_start_page($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('agent_id');
-        $this->db->select('qq_agents.display_name, qq_agents.extension, qq_agents.last_call');
-        $this->db->select('COUNT(CASE WHEN event_type LIKE "OUT_%" AND agent_id > 0 THEN 1 END) AS calls_outgoing');
-        $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" AND agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND agent_id > 0 THEN 1 END) AS calls_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND agent_id >= 0 THEN 1 END) AS calls_unanswered');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS total_ringtime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-
-         /* ------ FOR SLA: Hold Time ------ */
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 0 THEN 1 END) AS sla_count_total');
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 10 AND ringtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-         $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 20 THEN 1 END) AS sla_count_greater_than_20');
-         /* ------ End Of  FOR SLA: Hold Time ------ */
-
-        $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS max_holdtime');
-        $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), ringtime, 0)) AS max_ringtime_answered');
-
-        /* ------ FOR Incoming: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_max_calltime');
-        /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
-
-
-        /* ------ FOR Outgoing: Total & AVG Time ------ */
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_max_calltime');
-
-        /* ------ End Of  FOR Outgoing: Total & AVG Time  ------ */
-        $this->db->where_in('queue_id', $queue_ids);
-        $this->db->join('qq_agents', 'qq_calls.agent_id = qq_agents.id', 'left');
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('agent_id');
-        $this->db->from('qq_calls');
-		
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
-		
-        return $this->db->get()->result();
-    }
-
-
-    public function get_queue_stats_for_start_page($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-            $this->db->select('COUNT(CASE WHEN event_type = "DID" THEN 1 END) AS calls_unique');
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type LIKE "COMPLETE%" THEN 1 END) AS unique_incoming_calls_answered');
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("ABANDON", "EXITWITHTIMEOUT", "EXITEMPTY") THEN 1 END) AS unique_incoming_calls_unanswered');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("EXITWITHKEY") THEN 1 END) AS callback_request');
-            
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type = "OUT_ANSWERED" THEN 1 END) AS unique_outgoing_calls_answered');
-            $this->db->select('COUNT(DISTINCT(src), CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS unique_outgoing_calls_unanswered');
-            
-
-            $this->db->select('COUNT(CASE WHEN event_type IN ("INCOMINGOFFWORK") THEN 1 END) AS calls_offwork');
-
-
-            $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-            $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS max_calltime');
-            $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-            $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-            $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS max_holdtime');
-            $this->db->select('MAX(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS max_waittime');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime >= 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
-            $this->db->select('COUNT(DISTINCT CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime >= 5 AND answered_elsewhere IS NULL THEN src END) AS users_without_service');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "no" THEN 1 END) AS called_back_no');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "nah" THEN 1 END) AS called_back_nah');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "nop" THEN 1 END) AS called_back_nop');
-
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND duplicate = "yes" THEN 1 END) AS calls_duplicate');
-            $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-            $this->db->select('MAX(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_max');
-
-            /* ------ FOR SLA: Hold Time ------ */
-
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 0 THEN 1 END) AS sla_count_total');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime <= 10 THEN 1 END) AS sla_count_less_than_or_equal_to_10');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 10 AND ringtime <= 20 THEN 1 END) AS sla_count_greater_than_10_and_less_than_or_equal_to_20');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND ringtime > 20 THEN 1 END) AS sla_count_greater_than_20');
-
-            /* ------ End Of  FOR SLA: Hold Time ------ */
-
-            /* ------ FOR ATA: Hold Time ------ */
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHKEY", "EXITWITHTIMEOUT") AND waittime > 0 THEN 1 END) AS ata_count_total');
-            $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHKEY", "EXITWITHTIMEOUT"), waittime, 0)) AS ata_total_waittime');
-            /* ------ End Of  FOR ATA: Hold Time ------ */
-
-            /* ------ FOR Incoming: Total & AVG Time ------ */
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-            $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-            $this->db->select('MAX(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_max_calltime');
-            /* ------ End Of  FOR Incoming: Total & AVG Time  ------ */
-
-            /* ------ FOR Outgoing: Total & AVG Time ------ */
-            $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-            $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-            $this->db->select('MAX(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_max_calltime');
-            /* ------ End Of  FOR Outgoing: Total & AVG Time  ------ */
-            $this->db->select('qq_queues.display_name');
-            $this->db->select('qq_calls.queue_id');
-                
-            $this->db->select('COUNT(CASE WHEN qq_calls.event_type LIKE "OUT_%" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing');
-            $this->db->select('COUNT(CASE WHEN qq_calls.event_type = "OUT_ANSWERED" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-            $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND qq_calls.agent_id > 0 THEN 1 END) AS calls_answered');
-            $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN("ABANDON", "EXITEMPTY", "EXITWITHLKEY", "EXITWITHTIMEOUT", "IVRABANDON") THEN 1 END) AS calls_unanswered');
-            $this->db->select('SUM(IF(qq_calls.event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), qq_calls.calltime, 0)) AS total_calltime');
-            $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-            $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-            $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-            $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-            $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-            $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-            $this->db->where_in('qq_calls.queue_id', $queue_ids);
-            $this->db->where('qq_calls.date >', $date_range['date_gt']);
-            $this->db->where('qq_calls.date <', $date_range['date_lt']);
-            $this->db->where('qq_queues.id', 'qq_calls.queue_id', FALSE);
-            $this->db->group_by('queue_id');
-            $this->db->from('qq_calls, qq_queues');
-			
-			// Exclude Internal Calls
-			$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");			
-			
-            return $this->db->get()->result();
-    }
-
-    // public function get_hourly_stats_for_agent_page($agent_id, $date_range = array())
-    // {
-    //     if (count($agent_id) == 0 || count($date_range) == 0) {
-    //         return false;
-    //     }
-    //     $this->db->select('DATE_FORMAT(date, "%H") AS hour');
-    //     $this->db->select('qq_agents.display_name');
-    //     $this->db->select('qq_calls.queue_id');
-    //     $this->db->select('COUNT(CASE WHEN qq_calls.event_type LIKE "OUT_%" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing');
-    //     $this->db->select('COUNT(CASE WHEN qq_calls.event_type = "OUT_ANSWERED" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-
-    //     $this->db->select('COUNT(DISTINCT(timestamp), CASE WHEN qq_calls.event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND qq_calls.agent_id > 0 THEN 1 END) AS calls_answered');
-
-    //     $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN("ABANDON", "EXITEMPTY", "EXITWITHLKEY", "EXITWITHTIMEOUT", "IVRABANDON") THEN 1 END) AS calls_unanswered');
-    //     $this->db->select('SUM(IF(qq_calls.event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), qq_calls.calltime, 0)) AS total_calltime');
-    //     $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-    //     $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-    //     $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-    //     $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
-    //     $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
-    //     $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-    //     $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-    //     $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-    // 
-
-    //     $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-    //     $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-    //     $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-    //     $this->db->where('qq_calls.agent_id', $agent_id);
-    //     $this->db->where('qq_calls.date >', $date_range['date_gt']);
-    //     $this->db->where('qq_calls.date <', $date_range['date_lt']);
-    //     $this->db->where('qq_agents.id', 'qq_calls.agent_id', FALSE);
-    //     $this->db->group_by('agent_id');
-    //     $this->db->group_by('HOUR(date)');
-    //     $this->db->from('qq_calls, qq_queues, qq_agents');
-        
-    //     return $this->db->get()->result();
-    // }
-
-    public function get_hourly_stats_for_agent_page($agent_id, $date_range = array()) 
-    {
-        if (empty($agent_id) || empty($date_range)) 
-        {
-            return false;
-        }
-    
-        $this->db->select('DATE_FORMAT(date, "%H") AS hour');
-        $this->db->select('qq_agents.display_name');
-        $this->db->select('qq_calls.queue_id');
-        $this->db->select('COUNT(CASE WHEN qq_calls.event_type LIKE "OUT_%" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing');
-        $this->db->select('COUNT(CASE WHEN qq_calls.event_type = "OUT_ANSWERED" AND qq_calls.agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-
-        $this->db->select('COUNT(DISTINCT(timestamp), CASE WHEN qq_calls.event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND qq_calls.agent_id > 0 THEN 1 END) AS calls_answered');
-
-        $this->db->select('COUNT(CASE WHEN qq_calls.event_type IN("ABANDON", "EXITEMPTY", "EXITWITHLKEY", "EXITWITHTIMEOUT", "IVRABANDON") THEN 1 END) AS calls_unanswered');
-        $this->db->select('SUM(IF(qq_calls.event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), qq_calls.calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND called_back = "no" AND waittime > 5 AND answered_elsewhere IS NULL THEN 1 END) AS calls_without_service');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY", "IVRABANDON") AND answered_elsewhere > 1 THEN 1 END) AS answered_elsewhere');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY") AND called_back = "yes" THEN 1 END) AS called_back');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-    
-
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-    
-        $this->db->from('qq_calls');
-        $this->db->join('qq_agents', 'qq_agents.id = qq_calls.agent_id');
-        $this->db->join('qq_queues', 'qq_queues.id = qq_calls.queue_id');
-    
-        $this->db->where('qq_calls.agent_id', $agent_id);
-        $this->db->where('qq_calls.date >', $date_range['date_gt']);
-        $this->db->where('qq_calls.date <', $date_range['date_lt']);
-    
-        $this->db->group_by('DATE_FORMAT(date, "%H")');
-
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
- 
-        return $this->db->get()->result();
-    }
-    
-
-    public function get_daily_stats_for_agent_page($agent_id, $date_range = array())
-    {
-        if (count($agent_id) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('DATE_FORMAT(date, "%Y-%m-%d") AS date');
-        $this->db->select('COUNT(CASE WHEN event_type LIKE "OUT_%" AND agent_id > 0 THEN 1 END) AS calls_outgoing');
-        $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" AND agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND agent_id > 0 THEN 1 END) AS calls_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("ABANDON", "EXITEMPTY", "EXITWITHLKEY", "EXITWITHTIMEOUT", "IVRABANDON") THEN 1 END) AS calls_unanswered');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-        $this->db->where('agent_id', $agent_id);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
-
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
-		
-        return $this->db->get($this->_table)->result();
-    }
-
-    public function get_daily_stats_for_start_page($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('DATE_FORMAT(date, "%Y-%m-%d") AS date');
-        $this->db->select('COUNT(CASE WHEN event_type LIKE "OUT_%" AND agent_id > 0 THEN 1 END) AS calls_outgoing');
-        $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" AND agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND agent_id > 0 THEN 1 END) AS calls_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("ABANDON", "EXITEMPTY", "EXITWITHLKEY", "EXITWITHTIMEOUT", "IVRABANDON") THEN 1 END) AS calls_unanswered');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-        $this->db->where_in('queue_id', $queue_ids);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('YEAR(date), MONTH(date), DAY(date)');
-		
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");	
-		
-        return $this->db->get($this->_table)->result();
-    }
-
-
-    public function get_hourly_stats_for_start_page($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('DATE_FORMAT(date, "%H") AS hour');
-        $this->db->select('COUNT(CASE WHEN event_type LIKE "OUT_%" AND agent_id > 0 THEN 1 END) AS calls_outgoing');
-        $this->db->select('COUNT(CASE WHEN event_type = "OUT_ANSWERED" AND agent_id > 0 THEN 1 END) AS calls_outgoing_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("COMPLETECALLER", "COMPLETEAGENT") AND agent_id > 0 THEN 1 END) AS calls_answered');
-        $this->db->select('COUNT(CASE WHEN event_type IN("ABANDON", "EXITEMPTY", "EXITWITHLKEY", "EXITWITHTIMEOUT", "IVRABANDON") THEN 1 END) AS calls_unanswered');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED", "COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS total_calltime');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), holdtime, 0)) AS total_holdtime');
-        $this->db->select('SUM(IF(event_type IN ("ABANDON", "EXITWITHKEY", "EXITWITHTIMEOUT", "EXITEMPTY"), waittime, 0)) AS total_waittime');
-        $this->db->select('AVG(IF(event_type in ("COMPLETECALLER", "COMPLETEAGENT", "ABANDON", "EXITEMPTY", "EXITWITHTIMEOUT", "EXITWITHKEY"), origposition, 0)) AS origposition_avg');
-        $this->db->select('SUM(IF(event_type IN ("COMPLETECALLER", "COMPLETEAGENT"), calltime, 0)) AS incoming_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("COMPLETECALLER", "COMPLETEAGENT") AND calltime > 0 THEN 1 END) AS incoming_total_calltime_count');
-        
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_ANSWERED") AND calltime > 0 THEN 1 END) AS outgoing_total_calltime_count');
-        $this->db->select('SUM(IF(event_type IN ("OUT_ANSWERED"), calltime, 0)) AS outgoing_total_calltime');
-        $this->db->select('COUNT(CASE WHEN event_type IN ("OUT_BUSY", "OUT_NOANSWER", "OUT_FAILED") THEN 1 END) AS calls_outgoing_unanswered');
-        $this->db->where_in('queue_id', $queue_ids);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('HOUR(date)');
-		
-        // Exclude Internal Calls
-		$this->db->where("(call_type NOT LIKE '%local%' OR call_type IS NULL OR call_type = '')");		
-		
-        return $this->db->get($this->_table)->result();
-    }
-
-
-    public function get_category_stats_for_start_page($queue_ids = array(), $date_range = array())
-    {
-        if (count($queue_ids) == 0 || count($date_range) == 0) {
-            return false;
-        }
-        $this->db->select('category_id, COUNT(*) as count');
-        $this->db->where_in('queue_id', $queue_ids);
-        $this->db->where('date >', $date_range['date_gt']);
-        $this->db->where('date <', $date_range['date_lt']);
-        $this->db->group_by('category_id');
-        return $this->db->get($this->_table)->result();
-    }
-
-    /* ----------- SMS API------------*/
-    public function get_number_for_sms($uniqueid = false){
-        $this->db->where('uniqueid', $uniqueid);
-        return $this->db->get($this->_table)->row_array();
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+RDCnjg3x0G4=

@@ -1,66 +1,49 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_create_queue_config extends CI_Migration {
-
-
-    public function up()
-    {
-        $this->dbforge->add_field(
-            array(
-                'queue_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 200,
-                ),
-                'value' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 300,
-                ),
-                'default' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 300
-                ),
-            )
-        );
-        $this->dbforge->add_key('queue_id');
-        $this->dbforge->create_table('qq_queues_config');
-
-
-        $data[] = array(
-            'name'      => 'queue_sla_call_time',
-            'value'     => '120',
-            'default'   => '120',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_sla_hold_time',
-            'value'     => '120',
-            'default'   => '120',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_sla_overflow',
-            'value'     => '10',
-            'default'   => '10',
-            'category'  => 'queue',
-        );
-
-        $this->db->insert_batch('qq_config', $data);
-
-    }
-
-    public function down()
-    {
-        $this->dbforge->drop_table('qq_queues_config');
-        $this->db->query("DELETE FROM qq_config WHERE name LIKE 'qq_sla_%'");
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+N0LlDmX0SxobfiyDpARaZPxr

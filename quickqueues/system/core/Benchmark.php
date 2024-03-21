@@ -1,133 +1,47 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Benchmark Class
- *
- * This class enables you to mark points and calculate the time difference
- * between them. Memory consumption can also be displayed.
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Libraries
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/benchmark.html
- */
-class CI_Benchmark {
-
-	/**
-	 * List of all benchmark markers
-	 *
-	 * @var	array
-	 */
-	public $marker = array();
-
-	/**
-	 * Set a benchmark marker
-	 *
-	 * Multiple calls to this function can be made so that several
-	 * execution points can be timed.
-	 *
-	 * @param	string	$name	Marker name
-	 * @return	void
-	 */
-	public function mark($name)
-	{
-		$this->marker[$name] = microtime(TRUE);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Elapsed time
-	 *
-	 * Calculates the time difference between two marked points.
-	 *
-	 * If the first parameter is empty this function instead returns the
-	 * {elapsed_time} pseudo-variable. This permits the full system
-	 * execution time to be shown in a template. The output class will
-	 * swap the real value for this variable.
-	 *
-	 * @param	string	$point1		A particular marked point
-	 * @param	string	$point2		A particular marked point
-	 * @param	int	$decimals	Number of decimal places
-	 *
-	 * @return	string	Calculated elapsed time on success,
-	 *			an '{elapsed_string}' if $point1 is empty
-	 *			or an empty string if $point1 is not found.
-	 */
-	public function elapsed_time($point1 = '', $point2 = '', $decimals = 4)
-	{
-		if ($point1 === '')
-		{
-			return '{elapsed_time}';
-		}
-
-		if ( ! isset($this->marker[$point1]))
-		{
-			return '';
-		}
-
-		if ( ! isset($this->marker[$point2]))
-		{
-			$this->marker[$point2] = microtime(TRUE);
-		}
-
-		return number_format($this->marker[$point2] - $this->marker[$point1], $decimals);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Memory Usage
-	 *
-	 * Simply returns the {memory_usage} marker.
-	 *
-	 * This permits it to be put it anywhere in a template
-	 * without the memory being calculated until the end.
-	 * The output class will swap the real value for this variable.
-	 *
-	 * @return	string	'{memory_usage}'
-	 */
-	public function memory_usage()
-	{
-		return '{memory_usage}';
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+8RsqGa/1

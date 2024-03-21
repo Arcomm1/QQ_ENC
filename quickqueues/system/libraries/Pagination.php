@@ -1,704 +1,217 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Pagination Class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Pagination
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/pagination.html
- */
-class CI_Pagination {
-
-	/**
-	 * Base URL
-	 *
-	 * The page that we're linking to
-	 *
-	 * @var	string
-	 */
-	protected $base_url		= '';
-
-	/**
-	 * Prefix
-	 *
-	 * @var	string
-	 */
-	protected $prefix = '';
-
-	/**
-	 * Suffix
-	 *
-	 * @var	string
-	 */
-	protected $suffix = '';
-
-	/**
-	 * Total number of items
-	 *
-	 * @var	int
-	 */
-	protected $total_rows = 0;
-
-	/**
-	 * Number of links to show
-	 *
-	 * Relates to "digit" type links shown before/after
-	 * the currently viewed page.
-	 *
-	 * @var	int
-	 */
-	protected $num_links = 2;
-
-	/**
-	 * Items per page
-	 *
-	 * @var	int
-	 */
-	public $per_page = 10;
-
-	/**
-	 * Current page
-	 *
-	 * @var	int
-	 */
-	public $cur_page = 0;
-
-	/**
-	 * Use page numbers flag
-	 *
-	 * Whether to use actual page numbers instead of an offset
-	 *
-	 * @var	bool
-	 */
-	protected $use_page_numbers = FALSE;
-
-	/**
-	 * First link
-	 *
-	 * @var	string
-	 */
-	protected $first_link = '&lsaquo; First';
-
-	/**
-	 * Next link
-	 *
-	 * @var	string
-	 */
-	protected $next_link = '&gt;';
-
-	/**
-	 * Previous link
-	 *
-	 * @var	string
-	 */
-	protected $prev_link = '&lt;';
-
-	/**
-	 * Last link
-	 *
-	 * @var	string
-	 */
-	protected $last_link = 'Last &rsaquo;';
-
-	/**
-	 * URI Segment
-	 *
-	 * @var	int
-	 */
-	protected $uri_segment = 0;
-
-	/**
-	 * Full tag open
-	 *
-	 * @var	string
-	 */
-	protected $full_tag_open = '';
-
-	/**
-	 * Full tag close
-	 *
-	 * @var	string
-	 */
-	protected $full_tag_close = '';
-
-	/**
-	 * First tag open
-	 *
-	 * @var	string
-	 */
-	protected $first_tag_open = '';
-
-	/**
-	 * First tag close
-	 *
-	 * @var	string
-	 */
-	protected $first_tag_close = '';
-
-	/**
-	 * Last tag open
-	 *
-	 * @var	string
-	 */
-	protected $last_tag_open = '';
-
-	/**
-	 * Last tag close
-	 *
-	 * @var	string
-	 */
-	protected $last_tag_close = '';
-
-	/**
-	 * First URL
-	 *
-	 * An alternative URL for the first page
-	 *
-	 * @var	string
-	 */
-	protected $first_url = '';
-
-	/**
-	 * Current tag open
-	 *
-	 * @var	string
-	 */
-	protected $cur_tag_open = '<strong>';
-
-	/**
-	 * Current tag close
-	 *
-	 * @var	string
-	 */
-	protected $cur_tag_close = '</strong>';
-
-	/**
-	 * Next tag open
-	 *
-	 * @var	string
-	 */
-	protected $next_tag_open = '';
-
-	/**
-	 * Next tag close
-	 *
-	 * @var	string
-	 */
-	protected $next_tag_close = '';
-
-	/**
-	 * Previous tag open
-	 *
-	 * @var	string
-	 */
-	protected $prev_tag_open = '';
-
-	/**
-	 * Previous tag close
-	 *
-	 * @var	string
-	 */
-	protected $prev_tag_close = '';
-
-	/**
-	 * Number tag open
-	 *
-	 * @var	string
-	 */
-	protected $num_tag_open = '';
-
-	/**
-	 * Number tag close
-	 *
-	 * @var	string
-	 */
-	protected $num_tag_close = '';
-
-	/**
-	 * Page query string flag
-	 *
-	 * @var	bool
-	 */
-	protected $page_query_string = FALSE;
-
-	/**
-	 * Query string segment
-	 *
-	 * @var	string
-	 */
-	protected $query_string_segment = 'per_page';
-
-	/**
-	 * Display pages flag
-	 *
-	 * @var	bool
-	 */
-	protected $display_pages = TRUE;
-
-	/**
-	 * Attributes
-	 *
-	 * @var	string
-	 */
-	protected $_attributes = '';
-
-	/**
-	 * Link types
-	 *
-	 * "rel" attribute
-	 *
-	 * @see	CI_Pagination::_attr_rel()
-	 * @var	array
-	 */
-	protected $_link_types = array();
-
-	/**
-	 * Reuse query string flag
-	 *
-	 * @var	bool
-	 */
-	protected $reuse_query_string = FALSE;
-
-	/**
-	 * Use global URL suffix flag
-	 *
-	 * @var	bool
-	 */
-	protected $use_global_url_suffix = FALSE;
-
-	/**
-	 * Data page attribute
-	 *
-	 * @var	string
-	 */
-	protected $data_page_attr = 'data-ci-pagination-page';
-
-	/**
-	 * CI Singleton
-	 *
-	 * @var	object
-	 */
-	protected $CI;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * @param	array	$params	Initialization parameters
-	 * @return	void
-	 */
-	public function __construct($params = array())
-	{
-		$this->CI =& get_instance();
-		$this->CI->load->language('pagination');
-		foreach (array('first_link', 'next_link', 'prev_link', 'last_link') as $key)
-		{
-			if (($val = $this->CI->lang->line('pagination_'.$key)) !== FALSE)
-			{
-				$this->$key = $val;
-			}
-		}
-
-		// _parse_attributes(), called by initialize(), needs to run at least once
-		// in order to enable "rel" attributes, and this triggers it.
-		isset($params['attributes']) OR $params['attributes'] = array();
-
-		$this->initialize($params);
-		log_message('info', 'Pagination Class Initialized');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Initialize Preferences
-	 *
-	 * @param	array	$params	Initialization parameters
-	 * @return	CI_Pagination
-	 */
-	public function initialize(array $params = array())
-	{
-		if (isset($params['attributes']) && is_array($params['attributes']))
-		{
-			$this->_parse_attributes($params['attributes']);
-			unset($params['attributes']);
-		}
-
-		// Deprecated legacy support for the anchor_class option
-		// Should be removed in CI 3.1+
-		if (isset($params['anchor_class']))
-		{
-			empty($params['anchor_class']) OR $attributes['class'] = $params['anchor_class'];
-			unset($params['anchor_class']);
-		}
-
-		foreach ($params as $key => $val)
-		{
-			if (property_exists($this, $key))
-			{
-				$this->$key = $val;
-			}
-		}
-
-		if ($this->CI->config->item('enable_query_strings') === TRUE)
-		{
-			$this->page_query_string = TRUE;
-		}
-
-		if ($this->use_global_url_suffix === TRUE)
-		{
-			$this->suffix = $this->CI->config->item('url_suffix');
-		}
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Generate the pagination links
-	 *
-	 * @return	string
-	 */
-	public function create_links()
-	{
-		// If our item count or per-page total is zero there is no need to continue.
-		// Note: DO NOT change the operator to === here!
-		if ($this->total_rows == 0 OR $this->per_page == 0)
-		{
-			return '';
-		}
-
-		// Calculate the total number of pages
-		$num_pages = (int) ceil($this->total_rows / $this->per_page);
-
-		// Is there only one page? Hm... nothing more to do here then.
-		if ($num_pages === 1)
-		{
-			return '';
-		}
-
-		// Check the user defined number of links.
-		$this->num_links = (int) $this->num_links;
-
-		if ($this->num_links < 0)
-		{
-			show_error('Your number of links must be a non-negative number.');
-		}
-
-		// Keep any existing query string items.
-		// Note: Has nothing to do with any other query string option.
-		if ($this->reuse_query_string === TRUE)
-		{
-			$get = $this->CI->input->get();
-
-			// Unset the control, method, old-school routing options
-			unset($get['c'], $get['m'], $get[$this->query_string_segment]);
-		}
-		else
-		{
-			$get = array();
-		}
-
-		// Put together our base and first URLs.
-		// Note: DO NOT append to the properties as that would break successive calls
-		$base_url = trim($this->base_url);
-		$first_url = $this->first_url;
-
-		$query_string = '';
-		$query_string_sep = (strpos($base_url, '?') === FALSE) ? '?' : '&amp;';
-
-		// Are we using query strings?
-		if ($this->page_query_string === TRUE)
-		{
-			// If a custom first_url hasn't been specified, we'll create one from
-			// the base_url, but without the page item.
-			if ($first_url === '')
-			{
-				$first_url = $base_url;
-
-				// If we saved any GET items earlier, make sure they're appended.
-				if ( ! empty($get))
-				{
-					$first_url .= $query_string_sep.http_build_query($get);
-				}
-			}
-
-			// Add the page segment to the end of the query string, where the
-			// page number will be appended.
-			$base_url .= $query_string_sep.http_build_query(array_merge($get, array($this->query_string_segment => '')));
-		}
-		else
-		{
-			// Standard segment mode.
-			// Generate our saved query string to append later after the page number.
-			if ( ! empty($get))
-			{
-				$query_string = $query_string_sep.http_build_query($get);
-				$this->suffix .= $query_string;
-			}
-
-			// Does the base_url have the query string in it?
-			// If we're supposed to save it, remove it so we can append it later.
-			if ($this->reuse_query_string === TRUE && ($base_query_pos = strpos($base_url, '?')) !== FALSE)
-			{
-				$base_url = substr($base_url, 0, $base_query_pos);
-			}
-
-			if ($first_url === '')
-			{
-				$first_url = $base_url.$query_string;
-			}
-
-			$base_url = rtrim($base_url, '/').'/';
-		}
-
-		// Determine the current page number.
-		$base_page = ($this->use_page_numbers) ? 1 : 0;
-
-		// Are we using query strings?
-		if ($this->page_query_string === TRUE)
-		{
-			$this->cur_page = $this->CI->input->get($this->query_string_segment);
-		}
-		elseif (empty($this->cur_page))
-		{
-			// Default to the last segment number if one hasn't been defined.
-			if ($this->uri_segment === 0)
-			{
-				$this->uri_segment = count($this->CI->uri->segment_array());
-			}
-
-			$this->cur_page = $this->CI->uri->segment($this->uri_segment);
-
-			// Remove any specified prefix/suffix from the segment.
-			if ($this->prefix !== '' OR $this->suffix !== '')
-			{
-				$this->cur_page = str_replace(array($this->prefix, $this->suffix), '', $this->cur_page);
-			}
-		}
-		else
-		{
-			$this->cur_page = (string) $this->cur_page;
-		}
-
-		// If something isn't quite right, back to the default base page.
-		if ( ! ctype_digit($this->cur_page) OR ($this->use_page_numbers && (int) $this->cur_page === 0))
-		{
-			$this->cur_page = $base_page;
-		}
-		else
-		{
-			// Make sure we're using integers for comparisons later.
-			$this->cur_page = (int) $this->cur_page;
-		}
-
-		// Is the page number beyond the result range?
-		// If so, we show the last page.
-		if ($this->use_page_numbers)
-		{
-			if ($this->cur_page > $num_pages)
-			{
-				$this->cur_page = $num_pages;
-			}
-		}
-		elseif ($this->cur_page > $this->total_rows)
-		{
-			$this->cur_page = ($num_pages - 1) * $this->per_page;
-		}
-
-		$uri_page_number = $this->cur_page;
-
-		// If we're using offset instead of page numbers, convert it
-		// to a page number, so we can generate the surrounding number links.
-		if ( ! $this->use_page_numbers)
-		{
-			$this->cur_page = (int) floor(($this->cur_page/$this->per_page) + 1);
-		}
-
-		// Calculate the start and end numbers. These determine
-		// which number to start and end the digit links with.
-		$start	= (($this->cur_page - $this->num_links) > 0) ? $this->cur_page - ($this->num_links - 1) : 1;
-		$end	= (($this->cur_page + $this->num_links) < $num_pages) ? $this->cur_page + $this->num_links : $num_pages;
-
-		// And here we go...
-		$output = '';
-
-		// Render the "First" link.
-		if ($this->first_link !== FALSE && $this->cur_page > ($this->num_links + 1 + ! $this->num_links))
-		{
-			// Take the general parameters, and squeeze this pagination-page attr in for JS frameworks.
-			$attributes = sprintf('%s %s="%d"', $this->_attributes, $this->data_page_attr, 1);
-
-			$output .= $this->first_tag_open.'<a href="'.$first_url.'"'.$attributes.$this->_attr_rel('start').'>'
-				.$this->first_link.'</a>'.$this->first_tag_close;
-		}
-
-		// Render the "Previous" link.
-		if ($this->prev_link !== FALSE && $this->cur_page !== 1)
-		{
-			$i = ($this->use_page_numbers) ? $uri_page_number - 1 : $uri_page_number - $this->per_page;
-
-			$attributes = sprintf('%s %s="%d"', $this->_attributes, $this->data_page_attr, ($this->cur_page - 1));
-
-			if ($i === $base_page)
-			{
-				// First page
-				$output .= $this->prev_tag_open.'<a href="'.$first_url.'"'.$attributes.$this->_attr_rel('prev').'>'
-					.$this->prev_link.'</a>'.$this->prev_tag_close;
-			}
-			else
-			{
-				$append = $this->prefix.$i.$this->suffix;
-				$output .= $this->prev_tag_open.'<a href="'.$base_url.$append.'"'.$attributes.$this->_attr_rel('prev').'>'
-					.$this->prev_link.'</a>'.$this->prev_tag_close;
-			}
-
-		}
-
-		// Render the pages
-		if ($this->display_pages !== FALSE)
-		{
-			// Write the digit links
-			for ($loop = $start - 1; $loop <= $end; $loop++)
-			{
-				$i = ($this->use_page_numbers) ? $loop : ($loop * $this->per_page) - $this->per_page;
-
-				$attributes = sprintf('%s %s="%d"', $this->_attributes, $this->data_page_attr, $loop);
-
-				if ($i >= $base_page)
-				{
-					if ($this->cur_page === $loop)
-					{
-						// Current page
-						$output .= $this->cur_tag_open.$loop.$this->cur_tag_close;
-					}
-					elseif ($i === $base_page)
-					{
-						// First page
-						$output .= $this->num_tag_open.'<a href="'.$first_url.'"'.$attributes.$this->_attr_rel('start').'>'
-							.$loop.'</a>'.$this->num_tag_close;
-					}
-					else
-					{
-						$append = $this->prefix.$i.$this->suffix;
-						$output .= $this->num_tag_open.'<a href="'.$base_url.$append.'"'.$attributes.'>'
-							.$loop.'</a>'.$this->num_tag_close;
-					}
-				}
-			}
-		}
-
-		// Render the "next" link
-		if ($this->next_link !== FALSE && $this->cur_page < $num_pages)
-		{
-			$i = ($this->use_page_numbers) ? $this->cur_page + 1 : $this->cur_page * $this->per_page;
-
-			$attributes = sprintf('%s %s="%d"', $this->_attributes, $this->data_page_attr, $this->cur_page + 1);
-
-			$output .= $this->next_tag_open.'<a href="'.$base_url.$this->prefix.$i.$this->suffix.'"'.$attributes
-				.$this->_attr_rel('next').'>'.$this->next_link.'</a>'.$this->next_tag_close;
-		}
-
-		// Render the "Last" link
-		if ($this->last_link !== FALSE && ($this->cur_page + $this->num_links + ! $this->num_links) < $num_pages)
-		{
-			$i = ($this->use_page_numbers) ? $num_pages : ($num_pages * $this->per_page) - $this->per_page;
-
-			$attributes = sprintf('%s %s="%d"', $this->_attributes, $this->data_page_attr, $num_pages);
-
-			$output .= $this->last_tag_open.'<a href="'.$base_url.$this->prefix.$i.$this->suffix.'"'.$attributes.'>'
-				.$this->last_link.'</a>'.$this->last_tag_close;
-		}
-
-		// Kill double slashes. Note: Sometimes we can end up with a double slash
-		// in the penultimate link so we'll kill all double slashes.
-		$output = preg_replace('#([^:"])//+#', '\\1/', $output);
-
-		// Add the wrapper HTML if exists
-		return $this->full_tag_open.$output.$this->full_tag_close;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse attributes
-	 *
-	 * @param	array	$attributes
-	 * @return	void
-	 */
-	protected function _parse_attributes($attributes)
-	{
-		isset($attributes['rel']) OR $attributes['rel'] = TRUE;
-		$this->_link_types = ($attributes['rel'])
-			? array('start' => 'start', 'prev' => 'prev', 'next' => 'next')
-			: array();
-		unset($attributes['rel']);
-
-		$this->_attributes = '';
-		foreach ($attributes as $key => $value)
-		{
-			$this->_attributes .= ' '.$key.'="'.$value.'"';
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add "rel" attribute
-	 *
-	 * @link	http://www.w3.org/TR/html5/links.html#linkTypes
-	 * @param	string	$type
-	 * @return	string
-	 */
-	protected function _attr_rel($type)
-	{
-		if (isset($this->_link_types[$type]))
-		{
-			unset($this->_link_types[$type]);
-			return ' rel="'.$type.'"';
-		}
-
-		return '';
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

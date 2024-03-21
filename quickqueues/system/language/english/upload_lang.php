@@ -1,55 +1,60 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-$lang['upload_userfile_not_set'] = 'Unable to find a post variable called userfile.';
-$lang['upload_file_exceeds_limit'] = 'The uploaded file exceeds the maximum allowed size in your PHP configuration file.';
-$lang['upload_file_exceeds_form_limit'] = 'The uploaded file exceeds the maximum size allowed by the submission form.';
-$lang['upload_file_partial'] = 'The file was only partially uploaded.';
-$lang['upload_no_temp_directory'] = 'The temporary folder is missing.';
-$lang['upload_unable_to_write_file'] = 'The file could not be written to disk.';
-$lang['upload_stopped_by_extension'] = 'The file upload was stopped by extension.';
-$lang['upload_no_file_selected'] = 'You did not select a file to upload.';
-$lang['upload_invalid_filetype'] = 'The filetype you are attempting to upload is not allowed.';
-$lang['upload_invalid_filesize'] = 'The file you are attempting to upload is larger than the permitted size.';
-$lang['upload_invalid_dimensions'] = 'The image you are attempting to upload doesn\'t fit into the allowed dimensions.';
-$lang['upload_destination_error'] = 'A problem was encountered while attempting to move the uploaded file to the final destination.';
-$lang['upload_no_filepath'] = 'The upload path does not appear to be valid.';
-$lang['upload_no_file_types'] = 'You have not specified any allowed file types.';
-$lang['upload_bad_filename'] = 'The file name you submitted already exists on the server.';
-$lang['upload_not_writable'] = 'The upload destination folder does not appear to be writable.';
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+i04o

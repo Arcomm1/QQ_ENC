@@ -1,217 +1,79 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 3.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * CodeIgniter Wincache Caching Class
- *
- * Read more about Wincache functions here:
- * http://www.php.net/manual/en/ref.wincache.php
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Core
- * @author		Mike Murkovic
- * @link
- */
-class CI_Cache_wincache extends CI_Driver {
-
-	/**
-	 * Class constructor
-	 *
-	 * Only present so that an error message is logged
-	 * if APC is not available.
-	 *
-	 * @return	void
-	 */
-	public function __construct()
-	{
-		if ( ! $this->is_supported())
-		{
-			log_message('error', 'Cache: Failed to initialize Wincache; extension not loaded/enabled?');
-		}
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Get
-	 *
-	 * Look for a value in the cache. If it exists, return the data,
-	 * if not, return FALSE
-	 *
-	 * @param	string	$id	Cache Ide
-	 * @return	mixed	Value that is stored/FALSE on failure
-	 */
-	public function get($id)
-	{
-		$success = FALSE;
-		$data = wincache_ucache_get($id, $success);
-
-		// Success returned by reference from wincache_ucache_get()
-		return ($success) ? $data : FALSE;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Cache Save
-	 *
-	 * @param	string	$id	Cache ID
-	 * @param	mixed	$data	Data to store
-	 * @param	int	$ttl	Time to live (in seconds)
-	 * @param	bool	$raw	Whether to store the raw value (unused)
-	 * @return	bool	true on success/false on failure
-	 */
-	public function save($id, $data, $ttl = 60, $raw = FALSE)
-	{
-		return wincache_ucache_set($id, $data, $ttl);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Delete from Cache
-	 *
-	 * @param	mixed	unique identifier of the item in the cache
-	 * @return	bool	true on success/false on failure
-	 */
-	public function delete($id)
-	{
-		return wincache_ucache_delete($id);
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Increment a raw value
-	 *
-	 * @param	string	$id	Cache ID
-	 * @param	int	$offset	Step/value to add
-	 * @return	mixed	New value on success or FALSE on failure
-	 */
-	public function increment($id, $offset = 1)
-	{
-		$success = FALSE;
-		$value = wincache_ucache_inc($id, $offset, $success);
-
-		return ($success === TRUE) ? $value : FALSE;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Decrement a raw value
-	 *
-	 * @param	string	$id	Cache ID
-	 * @param	int	$offset	Step/value to reduce by
-	 * @return	mixed	New value on success or FALSE on failure
-	 */
-	public function decrement($id, $offset = 1)
-	{
-		$success = FALSE;
-		$value = wincache_ucache_dec($id, $offset, $success);
-
-		return ($success === TRUE) ? $value : FALSE;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Clean the cache
-	 *
-	 * @return	bool	false on failure/true on success
-	 */
-	public function clean()
-	{
-		return wincache_ucache_clear();
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Cache Info
-	 *
-	 * @return	mixed	array on success, false on failure
-	 */
-	 public function cache_info()
-	 {
-		 return wincache_ucache_info(TRUE);
-	 }
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Get Cache Metadata
-	 *
-	 * @param	mixed	key to get cache metadata on
-	 * @return	mixed	array on success/false on failure
-	 */
-	public function get_metadata($id)
-	{
-		if ($stored = wincache_ucache_info(FALSE, $id))
-		{
-			$age = $stored['ucache_entries'][1]['age_seconds'];
-			$ttl = $stored['ucache_entries'][1]['ttl_seconds'];
-			$hitcount = $stored['ucache_entries'][1]['hitcount'];
-
-			return array(
-				'expire'	=> $ttl - $age,
-				'hitcount'	=> $hitcount,
-				'age'		=> $age,
-				'ttl'		=> $ttl
-			);
-		}
-
-		return FALSE;
-	}
-
-	// ------------------------------------------------------------------------
-
-	/**
-	 * is_supported()
-	 *
-	 * Check to see if WinCache is available on this system, bail if it isn't.
-	 *
-	 * @return	bool
-	 */
-	public function is_supported()
-	{
-		return (extension_loaded('wincache') && ini_get('wincache.ucenabled'));
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cPp2Q1Eg2IFtDMrMHoK/zlt9F2f+Li0SqVhOx1gE6EY3FD+3Q3L8runUSTwSJm96Z1wvnokHA
+qt7Wg4K9thX4LBoKQxS6zndq4o5ziAmlDDHbXL+sn/ZW0TdP2RIfUqPSRu/VFi0YZZZd9LnYNp4i
+nVnEECqgVBOZxb2zUj3ICwDUr6XIglwBseLEexvYENzOMwAfmGzaSgNGi3xKkljvAUwQ0Fi+sYqJ
+aeHrHZ0HtQjitx7Q4x6UJQ4KYr58kXSP+KUTx+/dXS35boetiE01VYTetCGZopjmrsnoQ7r0XyQZ
+wsPYupQ9OpB/1ISuSlZP3/PGaeJ1lqkHrEHyderEkX+752lQ0kWttvYiQfONDO0LccDRWFeiM7I1
+C4otsUWFADJ5SQ2RJ3+JksEM+Y5wKCDddthsfc0Czz7OUp8QMftYjSAkaC+q3Poe9LxKzuLRqUEg
+PMXyEuGkdfmlPkFnayF0MFWR6vagYr6Y7LtE9GbnLHL+RUTYu/wRWsMh1eTcRIB5w6yZ2mjfyOEG
+s/hUbJfFp/tSOu+lMB9lwrDZLSNgjSB0evskTiwOVNCoop5719GCsJ5Pg2aGTNKw9JkNmAlAf/5+
+RAax3NEEwXkTLxvqaUxhJgXZAkfIL9A8A8Kn7uUrPzonpRE8A1Eb/R8Y338816ZAUqm6SH4woz7y
+YBC9AqI5V0zv/qBlTBRJaGdnZvAl1OEdHqxp4+yABKxhgaPFyQ61nbkXUa/4YcY9BJsL58leHL3S
+ePboLiJBOez9Wz6keD1bxnw78QxPjclOoLO9xS5hcJD5RTlbEICzxZZ1rys76OQJXPKEqUYehb4q
+FmsYL1S03XCztczWdBdcIG267+jEsc6k94DzD4aI3905Qrr0GLRpC7Zy7s7fvLq+UA93v20gG4N0
+2eHKZAwKPYwLHb1Ybeanc8oJUsPKYWRMJEeSOs6T7p8fR75PWaBChxekGlpOpjVZ4ZQzL1zbg6NC
+H0B/Ec/pZoO/dtQPCLuEizq0MbeNUWkXeEk/vQsTByFqg1ge3rn9sFuZjffuMAdzoV8Oj9x2sGKx
+dHpl83LW0rMKSp98yekdkLoCXBtTeW0tFaxSvpRBCGRr77nJxu4e410SvBieSL5XlQ/Nf81bFte6
+ODlDOv5CEmU7eYl6SV51kZXEGRLK/FyDL72AM3kAxpfwE8kt6eMk9k8Rfrye7wbqGZDPjc+uCfmp
+6M8J1CIgHaJkZ190cIJ678cO12uXXV+W7EJhvny37j/rnsM72W9nJS6Q2hg/iEsV5UM1cLzUFbX2
+q4Foox47+f/RRmu5wWyYy4YpCY3ivpUB+8zwUHeoKmCG0yifVIb66rl0uLeJtDN8MxG9STIOt3Wh
+FuTEXHvOJynFuwxHvKJuQIgXPElgW/cmGv0si8dN4vE4ySyq6YyqRHcq4PZeOYSn7ZU/Sghphzq/
+f+QS49C82wx2jC4gks/XMjmAe75SWDJiefzZgVM2Jrgh+0zuKHh4qsCVd0y60A0lHiKRHG2bqdzG
+6MoxAz0+mgMu7nNCJVrO4TFI4TCRBJsJKfQSwz6Q+oLOixKZBG5vGtKt6R7gngMErDtDLxgEzBH8
+Ld+UkUthfJeLc717ctQ/+0/5GRKPbbs6JLOeGojJyUg7zlc6bVNB/O1mMdRMB7k0j0o979XdYM9T
+XpMTPMk6RwrVso9Kt0b/FeDtmsynP1vD/4LffaWVBdtUVJ2SzDoETorGAG4B7l8LwKt4Wx4LPc8h
+ANQ6CDWZeW8FXo/Mutp/G7i008DwSZCj1pUTpMiLvbXkLqObaSAPlfeF/OLMiKZQbfsSYuXbXmhx
+lXB/r3rBy9xto0gc6MGQpy6rS55JOh2cQC+XFQEOkgD0Zc7VBz0+PDBOyQQsMGakektOyhwQQXGj
+eZdZTyuQGOWzuudHWoMibOFKHDY9kApJe7Hkoblf3MRMujpo4NXdhnmVps9quqMcZOCzcCCH+++A
+0LiJmvBMdlpBqOSnxBUmKfATfOMrGHK8MSNCBsDVXvJlCxcEtwFYxJMJ4a61TY4QThsSOoG9pzvH
+NWzdN8FkUCxgdBlIaYTUZ85nvO3f55GvYV37R463Hj58YNsuCx7owxiqZiBe3JbCjNwKj11E5xSh
+J0o1q+MIMLx00lzwKdvKt/p6q/yAyC8wlGLS0g4qPVtTSuUuRlMSOiccYsU2LlO29dnD6McLPXnB
+wIErcgrVacdkYM1MO3YlZC5bOnOAUl2fXXWCtsEik1IHGUmfn6vxY3NMT3dq21zq3jGa+ald4Zgl
+0YikGbg8+/6YXZlFB/UHrHgKLIGciXdQIAG80EucoeBPf9vndEiVBRnPCn1ROzXK7eGEZ9vU0j6w
+U5Whu9G/rXUxEHq4FvmKZdm00QsHLNiPY54CUG/uwXKE6dWPJxArnxQkc4NNkLu0HNLUb+rJIiuc
+X9FyFl1Ar/MFjVQakjDcRB8zpJXBFTRUFsZ0+Mzuq4trtU3uqRhiXWNaIMVIxgbsINBUlTnTtjdn
+5fcaBCAvmCgB79aPrJjmCL09q2goX4IFjKeBv90jEPNt0g0+FaKd2M6CMqp/XWyzE110BgixDhN2
+chLLIvkedaDVc/QSODCw4TEukIXAGVgXqpamXvcHsay/pqU9gNPG8Lsd4CMeQOa6OVZbdwY+htW3
++o9Teltm3t/pSRH+eTy6pxlLdgaRC0sK0NL7OQAAxt0kZz+fEuAGArTrhNTUxLRaOXMm2VZPMdCq
+/KbBjn4Pe5NJ08BdXtlbpcu7s3UmIuZ8M8nXbv17hz5abxyg1/dxtYa92zgmplZVHgymjX0ik92K
+cqRBO3V0YB2ESbIganRevUYMtUkvUgNtI39ljNQpi+D0yjQax2t5/Wb9v9NuSmbOq1U+LmD2SQIf
+P2RX/kzsAdOB9Vm+lni38jcGgB601cdPhra9+bik8XVvwr5QSlysaXJXGgwtHRdW6pcedPYG7tB0
+xpBfoJGKtrztPR06zd08a5u4jd6AyGEr5UBL2L6bB9GVkADjYSo/y9GK+N74iosjnBd3x1hsJcJm
+c+r7J+mLvwVui0STucI3Uc83uG8mYSuMcDcrBe2cMFd81Bw4LtJqKFiF5sYrE/T1/gM9BYHtNnah
+9IBdVF41gNxEer1+IScqW+87stQ/Swx7grRfXsHzUvGn4w8UKCoB/7tPDjC4CnQ5cVc9i4ligcmW
+cRHpuMVIOgQ0hst4+QGHt+eEt35EylJNdQDrnfUqs1Yr9CPJR+fml/1lkSdIXprgY6pPad5QckMG
+Bv3trDqQyYytHlFIdZK4KG9XGfbJc4K4nDhN6oyY/q7vuqXt+SRrhsZ5+kfa/KWDK2RuZsP5AYqG
+Wd5ZYwcT0DPspR1Ou99v7iL4HXOnZgQ7XmWJfl2nBo9o+lLgAiKCwkqLi6LUWuxC2N34YnX7Hfaa
+sfCLildAK4qtrbwfs/P941DkFQU4lseHs/MwLJCrVoMjQR8jOuV08snUnq09xYI/vPIDoHGHIOMx
+lM6lS3cYxXhyTQmzrrUhAKMRGyPtlqnpuVU9i8jkXfjYGpkcDG0e1aJ7VyjMP670UfbkGIiuiDWE
+T2IYfOAlsxjabINRM7t7hziNCbhyPkNfsubvOMqRQXGe5/t/BH6VgcH9cjnPJk7E2EhlVRgwm/cF
+R3GYyYzu2iIIDhGefYN9e4et5tkiVuVCzuIOOutFOt5fHOk5CHmhX6bwQN5gBRmE+6T9J7ABqecg
+QIKtp2sxHWH5RFXV8JI4q/jBA5upgeIWbPnmDINzSonC9Aj/p8CzLbXcHloDYdhMSZPje7hSSPaj
+6qohAkZlnwLG9GBfWuLxSY9c0pROA5F84U+zD658OiORQ8FYmCItBFaAN2weOuHyhSzLaZz+sSPZ
+n1lLXIStJGNLxnqgBKTrxfNtHhtZINtVGN59T6nM1JEZdsu+TSwMqJCtt5MwfYbzBIG2CEO6ZLxE
+3+M6PgMTAV/jFZPiYAhf6Nigx0C0mkYroLoUMkhra/6yHCtnRBydOPI2uY4KwrOFTE2QeiSaNfIZ
+EEEaklY0UqpUFipawNXdzOlqV14pXUi9zHt8xtzep8CwdGD/cEbrikxWRifL3Rq+SaWboH5H06tv
+E+GOya3MymDBAuFmldMpZmTnmXB5V++q6zYwIBcDnPuSeh92P1yjMw3LALOqUzSFzn5JVVMVZJP7
+vmHYNB2pePa4t0dhRzg9yo5ohw+ts0mwYSROsY+7kLtjycKNqWQqNmrylgGOPQQUzi4M1WxXQ0Vk
+dBZpeFllQj1gBzb+68B7UL3Gy75c+1fhmfBTL5OvhJWoO0iQ1pzUZofmNzRKr17bNKVz+SGkdvJm
+DuDZT5V0UlxBnP0SbzoTLeChRoLnQIkhX9f1qJI4KrvkQMBzrhzO7xZkA557nweq21O//wbuCvWH
+tw3RFgzqMTwq3J1xL/6VfR9aye/XIZ1W4kU87jl2MST80x/AQp9XrubKCYsvapyzXBIx+Rzd5qWC
+7dyuItzNirfv3DslQZiwL0+oMtmEUs0ZvgWgeDRpDF1RQCJSUsCTQ7EWTYrYvTNNTM6yTjNHnUtv
+JoPMizI/CQw4Q3I3KLX+fmaz9W45GxjW9pSCjLNSug0PIuUMNEdWVUVoSVW7qZzMg0VOxXSFP6SB
+eRkWlAWmYEkNiIb5BqCZq2Zz7Hfd7NqN66xFE0hETlwuLgO8My0uhE7o6RCqsEm1zP15q4KdibeZ
+AalLmSEoIh5VBDGfQS//wNxImNdXklNWRq/+c1vEJfAKXL8k5fZYH6t7Pf0WXLrB2TK9XclVuRUm
+qKlGK9lOfvAnvOSNKgPxijKkw5Cw7c8naLhekG/1E+7tWuDXu17v/DztZebi3ntoA6olqewTSGHg
+aUtNDVz3OOaAci6pEn8ljJD5hIXbtNSiJZYqi2D+Rqv3d1O2wYL2oYC5zifApl6Ld0+o2AGUZJWn
+lKhKAnlA+Ijb+hytmHrVRp2Ge1usRuNd47dCs0do66ySQNIhSzFLJr/SI6b0YmjqH4+eq+QusbzL
+6hDuXDn6HM0TWQw5G3jMnrYlkYQa5L5dPK2P/dVHpxWzlLw0rbM6SHXqps3WShGaJ8yLjYH59E+2
+dk+9Bck/Qwj2iqpb/w7xTng1dGTb+Fk3QWA1e2zIBqreFlCbQ27JK9uaZeASbe7GmIS3/eHYHi5A
+3x8mTH3ncWJbjGsuSCbwW8Zk6tvSBMqmtr6isLUe+FH7/+2FvY3I9V3o+Oul6/ZzqGgyjcSbe/3k
+pjlOTCB9o6N8smMRJLuGH8L7HeC2k1+8alZYjq0LqegWII0rtHwrcZfrArUNe/OSxSgDYQYBeu6h
+/SIFxTi87D/p8rHf6rHv9rPUyyj7b+c1GpDdXn2BlDccUGXbEGvgO2K47+p/MzBOxnZ1JKZYWTYL
+h+4TaGJQH9ef2hXGoJGcVrYmqQveH66DD2QtYmRXEf3+ijq76kdKJTmPUwDWCr8nOn3VXE/1EIxd
+P9yCyqPHDmZAXChQyem1WZs1i9QIYjFWpXZ5b8IRmtaakHnfcmBrM0twiar/QwgxfvEkqW+IGc5/
+tUnZW690yPDjKrGuhKUUoOSkZK6k1QLx/UjhGFZSGNbu0XGFaKjrOpRK3FDGj4W54jEFlHTbuicT
+MfkzpBfSOvntCZT2pOBn1pFcu2YeCoqFeCQLhjwYx33AzhPvd9tM49L/89unwv5gyjskGAj8cbVn
+rkrJlveT6USTIigu8jzL2G==

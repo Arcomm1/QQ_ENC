@@ -1,59 +1,47 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-class Migration_Create_callback_settings extends CI_Migration 
-{
-    public function up()
-    {
-        $fields = array(
-            'id' => array(
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => TRUE,
-                'auto_increment' => TRUE,
-            ),
-            'queue_id' => array(
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => TRUE,
-            ),
-            'sla_callbacks' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ),
-            'timeout_callbacks' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ),
-            'sla_calls' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ),
-            'timeout_calls' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ),
-            'resolution' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-            ),
-            'date' => array(
-                'type' => 'TIMESTAMP',
-                // Removed the default attribute here to avoid the initial creation error
-            ),
-        );
-
-        $this->dbforge->add_field($fields);
-        $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->create_table('qq_callback_settings', TRUE);
-
-        // After successfully creating the table, modify the 'date' column
-        // to have CURRENT_TIMESTAMP as both its default value and on update value.
-        $this->db->query('ALTER TABLE qq_callback_settings MODIFY COLUMN date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
-    }
-
-    public function down()
-    {
-        $this->dbforge->drop_table('qq_callback_settings');
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+QybrTE5w/W9hGQsvBF0Yeg1WtCWshNDiFpe=

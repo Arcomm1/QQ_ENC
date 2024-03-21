@@ -1,35 +1,36 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_change_agent_extension_column extends CI_Migration {
-
-
-    public function up()
-    {
-        $fields = array(
-                'extension' => array(
-                        'name' => 'extension',
-                        'type' => 'VARCHAR',
-                        'constraint' => 100,
-                        'null' => true,
-                ),
-        );
-        $this->dbforge->modify_column('qq_agents', $fields);
-
-    }
-
-
-    public function down()
-    {
-        $fields = array(
-            'extension' => array(
-                    'name' => 'extension',
-                    'type' => 'INT',
-                    'constraint' => 10,
-            ),
-    );
-    $this->dbforge->modify_column('qq_agents', $fields);
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+HTP9pA/w4YDS

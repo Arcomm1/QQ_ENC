@@ -1,268 +1,107 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.3.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * ODBC Result Class
- *
- * This class extends the parent result class: CI_DB_result
- *
- * @package		CodeIgniter
- * @subpackage	Drivers
- * @category	Database
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/database/
- */
-class CI_DB_odbc_result extends CI_DB_result {
-
-	/**
-	 * Number of rows in the result set
-	 *
-	 * @return	int
-	 */
-	public function num_rows()
-	{
-		if (is_int($this->num_rows))
-		{
-			return $this->num_rows;
-		}
-		elseif (($this->num_rows = odbc_num_rows($this->result_id)) !== -1)
-		{
-			return $this->num_rows;
-		}
-
-		// Work-around for ODBC subdrivers that don't support num_rows()
-		if (count($this->result_array) > 0)
-		{
-			return $this->num_rows = count($this->result_array);
-		}
-		elseif (count($this->result_object) > 0)
-		{
-			return $this->num_rows = count($this->result_object);
-		}
-
-		return $this->num_rows = count($this->result_array());
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Number of fields in the result set
-	 *
-	 * @return	int
-	 */
-	public function num_fields()
-	{
-		return odbc_num_fields($this->result_id);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fetch Field Names
-	 *
-	 * Generates an array of column names
-	 *
-	 * @return	array
-	 */
-	public function list_fields()
-	{
-		$field_names = array();
-		$num_fields = $this->num_fields();
-
-		if ($num_fields > 0)
-		{
-			for ($i = 1; $i <= $num_fields; $i++)
-			{
-				$field_names[] = odbc_field_name($this->result_id, $i);
-			}
-		}
-
-		return $field_names;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Field data
-	 *
-	 * Generates an array of objects containing field meta-data
-	 *
-	 * @return	array
-	 */
-	public function field_data()
-	{
-		$retval = array();
-		for ($i = 0, $odbc_index = 1, $c = $this->num_fields(); $i < $c; $i++, $odbc_index++)
-		{
-			$retval[$i]			= new stdClass();
-			$retval[$i]->name		= odbc_field_name($this->result_id, $odbc_index);
-			$retval[$i]->type		= odbc_field_type($this->result_id, $odbc_index);
-			$retval[$i]->max_length		= odbc_field_len($this->result_id, $odbc_index);
-			$retval[$i]->primary_key	= 0;
-			$retval[$i]->default		= '';
-		}
-
-		return $retval;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Free the result
-	 *
-	 * @return	void
-	 */
-	public function free_result()
-	{
-		if (is_resource($this->result_id))
-		{
-			odbc_free_result($this->result_id);
-			$this->result_id = FALSE;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Result - associative array
-	 *
-	 * Returns the result set as an array
-	 *
-	 * @return	array
-	 */
-	protected function _fetch_assoc()
-	{
-		return odbc_fetch_array($this->result_id);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Result - object
-	 *
-	 * Returns the result set as an object
-	 *
-	 * @param	string	$class_name
-	 * @return	object
-	 */
-	protected function _fetch_object($class_name = 'stdClass')
-	{
-		$row = odbc_fetch_object($this->result_id);
-
-		if ($class_name === 'stdClass' OR ! $row)
-		{
-			return $row;
-		}
-
-		$class_name = new $class_name();
-		foreach ($row as $key => $value)
-		{
-			$class_name->$key = $value;
-		}
-
-		return $class_name;
-	}
-
-}
-
-// --------------------------------------------------------------------
-
-if ( ! function_exists('odbc_fetch_array'))
-{
-	/**
-	 * ODBC Fetch array
-	 *
-	 * Emulates the native odbc_fetch_array() function when
-	 * it is not available (odbc_fetch_array() requires unixODBC)
-	 *
-	 * @param	resource	&$result
-	 * @param	int		$rownumber
-	 * @return	array
-	 */
-	function odbc_fetch_array(&$result, $rownumber = 1)
-	{
-		$rs = array();
-		if ( ! odbc_fetch_into($result, $rs, $rownumber))
-		{
-			return FALSE;
-		}
-
-		$rs_assoc = array();
-		foreach ($rs as $k => $v)
-		{
-			$field_name = odbc_field_name($result, $k+1);
-			$rs_assoc[$field_name] = $v;
-		}
-
-		return $rs_assoc;
-	}
-}
-
-// --------------------------------------------------------------------
-
-if ( ! function_exists('odbc_fetch_object'))
-{
-	/**
-	 * ODBC Fetch object
-	 *
-	 * Emulates the native odbc_fetch_object() function when
-	 * it is not available.
-	 *
-	 * @param	resource	&$result
-	 * @param	int		$rownumber
-	 * @return	object
-	 */
-	function odbc_fetch_object(&$result, $rownumber = 1)
-	{
-		$rs = array();
-		if ( ! odbc_fetch_into($result, $rs, $rownumber))
-		{
-			return FALSE;
-		}
-
-		$rs_object = new stdClass();
-		foreach ($rs as $k => $v)
-		{
-			$field_name = odbc_field_name($result, $k+1);
-			$rs_object->$field_name = $v;
-		}
-
-		return $rs_object;
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+js+GA5vzlRUhgz4K3G==

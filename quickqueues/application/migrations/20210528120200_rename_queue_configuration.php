@@ -1,102 +1,61 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_rename_queue_configuration extends CI_Migration {
-
-    public function up()
-    {
-        $this->dbforge->rename_table('qq_queues_config', 'qq_queue_config');
-        $this->db->query("TRUNCATE qq_queue_config");
-        $this->db->query("DELETE FROM qq_config WHERE category = 'queue'");
-
-        $data[] = array(
-            'name'      => 'queue_enable_survey',
-            'value'     => 'no',
-            'default'   => 'no',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_survey_max_results',
-            'value'     => '20',
-            'default'   => '20',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_survey_hour_start',
-            'value'     => '09',
-            'default'   => '09',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_survey_hour_end',
-            'value'     => '18',
-            'default'   => '18',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_survey_min_calltime',
-            'value'     => '0',
-            'default'   => '0',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_survey_grace_period',
-            'value'     => '60',
-            'default'   => '60',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_sla_call_time',
-            'value'     => '120',
-            'default'   => '120',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_sla_hold_time',
-            'value'     => '120',
-            'default'   => '120',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'queue_sla_overflow',
-            'value'     => '10',
-            'default'   => '10',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'app_time_distribution_map',
-            'value'     => '15,30,60,120',
-            'default'   => '15,30,60,120',
-            'category'  => 'queue',
-        );
-
-        $data[] = array(
-            'name'      => 'app_holdtime_distribution_map',
-            'value'     => '15,30,60,120',
-            'default'   => '15,30,60,120',
-            'category'  => 'queue',
-        );
-
-        $this->db->insert_batch('qq_config', $data);
-
-        echo "Please don't forget to run tools reset_queue_config\n";
-        echo "WARNING: This is backwards incompatible change!\n";
-
-    }
-
-    public function down()
-    {
-        $this->dbforge->rename_table('qq_queue_config', 'qq_queues_config');
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+qJ5i

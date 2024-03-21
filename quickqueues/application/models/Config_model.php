@@ -1,111 +1,64 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-/* Config_model.php - Quickqueues configuration abstraction */
-
-
-class Config_model extends MY_Model {
-
-
-    public function __construct()
-    {
-        $this->_reqquired_fields = array('name', 'default');
-        $this->_table = 'qq_config';
-        parent::__construct();
-    }
-
-
-    /**
-     * Get value for specific item
-     *
-     * This is convenient shorthand for get_by() function, that returns directly value
-     * rather than object
-     *
-     * @param string $name Setting name
-     * @return mixed Setting value of false
-     */
-    public function get_item($name)
-    {
-        if (!isset($name)) {
-            return false;
-        }
-        $setting = $this->get_by('name', $name);
-        if (!$setting) {
-            return false;
-        }
-        return $setting->value;
-    }
-
-
-    /**
-     * Set specific configuration value to its default
-     *
-     * @param string $name Setting name
-     * @return bool TRUE on success, FALSE otherwise
-     */
-    public function set_default($name)
-    {
-        if (!isset($name)) {
-            return false;
-        }
-        $setting = $this->get_by('name', $name);
-        if (!$setting) {
-            return false;
-        }
-        $res = $this->update($setting->id, array('value' => $setting->default));
-        if ($res > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-
-    /**
-     * Update specific setting by name
-     *
-     * @param string $name Setting name
-     * @param string $value Setting value
-     * @return bool true on success false otherwise
-     */
-    public function set_item($name = false, $value = false)
-    {
-        if (!$name) {
-            return false;
-        }
-
-        if ($value == "") {
-            return false;
-        }
-
-        return $this->update_by('name', $name, array('value' => $value));
-    }
-
-
-    /**
-     * Get available setting categories
-     *
-     * @return array List of categories
-     */
-    public function get_categories()
-    {
-        $categories = array();
-        $this->db->select('category');
-        $this->db->group_by('category');
-        foreach ($this->db->get($this->_table)->result() as $cat) {
-            $categories[] = $cat->category;
-        }
-        return $categories;
-    }
-
-    public function use_pagination($param_name){
-        if (!isset($param_name)) {
-            return false;
-        }
-        $pagination=$this->db->get_where($this->_table, array('name'=>$param_name));
-        return $pagination->row_array();
-    }
-
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

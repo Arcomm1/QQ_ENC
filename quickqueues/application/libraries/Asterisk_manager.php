@@ -1,1029 +1,359 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-/* Asterisk_manager.php - Asterisk Manager Interface class for Quickqueues */
-
-
-class Asterisk_manager
-{
-
-    /**
-     * CodeIgniter instance
-     */
-
-    protected $ci;
-
-    /**
-     * Asterisk manager interface hostname
-     */
-    protected $ast_host;
-
-    /**
-     * Asterisk manager interface port
-     */
-    protected $ast_port;
-
-    /**
-     * Asterisk manager interface username
-     */
-    protected $ast_username;
-
-    /**
-     * Asterisk manager interface password
-     * @var [type]
-     */
-    protected $ast_password;
-
-    /**
-     * Socket errot
-     */
-    public $errno;
-
-    /**
-     * Socket error description
-     */
-    public $errstr;
-
-    /**
-     * Class status
-     */
-    public $status;
-
-
-
-    public function __construct()
-    {
-        $this->ci =& get_instance();
-        $this->ast_host = defined('HOST') == true ? HOST : $this->ci->Config_model->get_item('ast_ami_host');
-        $this->ast_port = $this->ci->Config_model->get_item('ast_ami_port');
-        $this->ast_user = $this->ci->Config_model->get_item('ast_ami_user');
-        $this->ast_pass = $this->ci->Config_model->get_item('ast_ami_password');
-    }
-
-
-    /**
-     * Create socket to AMI
-     *
-     * @return mixed socket or false on error
-     */
-    protected function create_socket()
-    {
-        $socket = fsockopen($this->ast_host, $this->ast_port, $this->errno, $this->errstr, 1);
-        if ($socket == false) {
-            $this->status = 'ERR_NO_SOCKET';
-            return false;
-        }
-        $this->status = 'OK_SOCKET';
-        return $socket;
-    }
-
-
-    /**
-     * Close the socket
-     *
-     * @return bool Based on success
-     */
-    protected function close_socket($socket = false) {
-        if (!$socket) {
-            $this->status = 'ERR_NO_SOCKET';
-            return false;
-        }
-        fclose($socket);
-        $this->status = 'OK_SOCKET';
-        return true;
-    }
-
-
-    /**
-     * Authenticate over AMI
-     *
-     * @param obj $socket Socket
-     * @return bool True of false based on success
-     */
-    protected function authenticate($socket = false)
-    {
-        if (!$socket) {
-            $this->status = 'ERR_NO_SOCKET';
-            return false;
-        }
-        $request  = "Action: Login\r\n";
-        $request .= "Username: ".$this->ast_user."\r\n";
-        $request .= "Secret: ".$this->ast_pass."\r\n";
-        $request .= "Events: no\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            $this->status = 'ERR_SOCKET_WRITE';
-            return false;
-        }
-        $line = "";
-        $response_lines = array();
-
-        while ($line != "\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                continue;
-            }
-            $params = explode(": ",$l);
-            if ($params[0] == 'Response') {
-                if ($params[1] == 'Success') {
-                    $this->status = 'OK_AUTH';
-                    return true;
-                } else {
-                    $this->status = 'ERR_AUTH_NO_AUTH';
-                    return false;
-                }
-            }
-        }
-        $this->close_socket($socket);
-
-    }
-
-
-    /**
-     * Get queue realtime status
-     *
-     * Executes QueueStatus Asterisk Manager Interface command
-     *
-     * @param string $queue Queue name/extension
-     * @return mixed Array containing queue information, false on error
-     */
-    public function queue_status($queue = false)
-    {
-        $socket = $this->create_socket();
-
-        if (!$socket) {
-            $this->status = 'ERR_NO_SOCKET';
-            return false;
-        }
-        if (!$queue) {
-            $this->status = 'ERR_NO_QUEUE';
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            $this->status = 'ERR_QUEUESTATUS_NO_AUTH';
-            return false;
-        }
-
-        $request  = "Action: QueueStatus\r\n";
-        $request .= "Queue: $queue\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            $this->status = 'ERR_SOCKET_NO_WRITE';
-            return FALSE;
-        }
-
-        $line = "";
-        $response_lines  = array();
-        $response_chunks = array();
-        $queue = array();
-        $queue['agents'] = array();
-        $queue['data'] = array();
-        $queue['callers'] = array();
-
-
-        // Read until event end
-        while ($line != "Event: QueueStatusComplete\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-
-        // Put separate event into respective array
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                $response_chunks[] = $chunk;
-                $chunk = array();
-                continue;
-            }
-            $params = explode(": ",$l);
-            if (count($params) == 2) {
-                $chunk[$params[0]] = rtrim($params[1]);
-
-            }
-        }
-
-        // Organize data
-        foreach ($response_chunks as $c) {
-            if (array_key_exists('Event', $c)) {
-                if (trim($c['Event']) == 'QueueMember') {
-                    $queue['agents'][] = $c;
-                }
-                if (trim($c['Event']) == 'QueueParams') {
-                    $queue['data'] = $c;
-                }
-                if (trim($c['Event']) == 'QueueEntry') {
-                    $queue['callers'][] = $c;
-                }
-            }
-        }
-        $this->status = 'OK_QUEUESTATUS';
-        return $queue;
-    }
-
-
-    /**
-     * Get active calls for specific queue
-     *
-     * @param string $agentnum Agent number
-     * @return mixed Array of calls or false on error
-     */
-    function get_agent_call($agentnum = FALSE) {
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return FALSE;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return FALSE;
-        }
-
-        if (!$agentnum) {
-            return FALSE;
-        }
-
-        $calls = array();
-        // first get all channels
-        $channels = $this->get_status();
-
-
-        foreach ($channels as $c) {
-            // if this is channel array
-            if (array_key_exists('Channel', $c)) {
-                // if channel matches requested agent extension
-                if (preg_match("/$agentnum/", $c['Channel'])) {
-                    // we only need channel arrays that contain 'Seconds' key
-                    if (array_key_exists('Seconds', $c)) {
-                        // in some cases this WILL result in multiple channel arrays.
-                        // if queue member will transfer call without Asterisk feature code,
-                        // say through physical phone transfer button, we will receive multiple channels
-                        // if member receives call and previous transferred calls is not ended yet.
-                        // this is up to controller logic to find actual active call if multiple channels are returned
-                        $calls[] = $c;
-                    }
-                }
-            }
-        }
-        // array_reverse($calls);
-        return $calls;
-    }
-
-
-    /**
-     * Get list of active channels - Status
-     *
-     * @return bool|array FALSE on error or array of channels
-     */
-    function get_status() {
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return FALSE;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return FALSE;
-        }
-
-        $request  = "Action: Status\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return FALSE;
-        }
-
-        $line               = "";
-        $response_lines     = array();
-        $response_chunks    = array();
-        $channels           = array();
-
-        // parse till event end
-        while ($line != "Event: StatusComplete\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-
-        // put each event into separate array
-        foreach ($response_lines as $l) {
-            if ($l == FALSE) {
-                $channels[] = $chunk;
-                $chunk = array();
-                continue;
-            }
-            $params = explode(": ",$l);
-            if (count($params) > 1) {
-                $chunk[$params[0]] = rtrim($params[1]);
-            }
-        }
-
-        return $channels;
-
-    }
-
-
-    /**
-     * Get status/hint of specific extension - ExtensionState
-     *
-     * @param string $exten Extension
-     * @param string $context Context
-     * @return bool|array Response data on success, false on error
-     */
-    function get_agent_status($exten = false) {
-
-        if (!$exten) {
-            return false;
-        }
-
-        $status_arr[0] ="Idle";
-        $status_arr[1] ="In Use";
-        $status_arr[2] ="Busy";
-        $status_arr[4] ="Unavailable";
-        $status_arr[8] ="Ringing";
-        $status_arr[16] ="On Hold";
-
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return false;
-        }
-
-        $request  = "Action: ExtensionState\r\n";
-        $request .= "Context: ".QQ_AGENT_CONTEXT."\r\n";
-        $request .= "Exten: ".$exten."\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return false;
-        }
-
-        $line               = "";
-        $response_lines     = array();
-
-        while ($line != "\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                continue;
-            }
-            $params = explode(": ",$l);
-            if (sizeof($params) >= 2) {
-                $extension_state[$params[0]] = $params[1];
-            }
-            // If for some reason we did not get Status, Set status 99
-            if (is_array($extension_state)) {
-                if (!array_key_exists('Status', $extension_state)) {
-                    unset($extension_state);
-                    $extension_state['Status'] = 99;
-                }
-            } else {
-                $extension_state['Status'] = 99;
-            }
-        }
-        $states = get_extension_states();
-        $extension_state['StatusMsg'] = $states[$extension_state['Status']];
-
-        $peer_status = $this->sip_show_peer($exten);
-
-        if (array_key_exists('Status', $peer_status)) {
-            if ($peer_status['Status'] == 'UNKNOWN') {
-                $extension_state['Status'] = 4;
-            }
-        }
-
-        $pause_status = $this->database_get('QQPAUSE/'.$exten);
-        if ($pause_status) {
-            $extension_state['PauseStatus'] = $pause_status[0][1];
-            if ($pause_status[0][1] == 1) {
-                if ($extension_state['Status'] != 4) {
-                    $extension_state['Status'] = 2;
-                }
-            }
-        } else {
-            $extension_state['PauseStatus'] = 0;
-        }
-
-        return $extension_state;
-    }
-
-
-    /**
-     * Execute QueueLog command
-     *
-     * @param string $queue Queue
-     * @param string $agent Agent
-     * @param string $event QueueLog event
-     * @param string $uniqueid Uniqueid
-     * @param string $data '|'-separated string of event data
-     * @return bool|array Response data on success, false on error
-     */
-    function queue_log($queue = false, $agent = false, $event = false, $uniqueid = false, $data = false) {
-
-        if (!$event) {
-            return false;
-        }
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return false;
-        }
-
-        $request  = "Action: QueueLog\r\n";
-        if ($queue) {
-            $request .= "Queue: ".$queue."\r\n";
-        } else {
-            $request .= "Queue: NONE\r\n";
-        }
-        if ($agent) {
-            $request .= "Agent: ".$agent."\r\n";
-        }
-        if ($uniqueid) {
-            $request .= "Uniqueid: ".$uniqueid."\r\n";
-        }
-        $request .= "Event: ".$event."\r\n";
-        $request .= "Message: ".$data."\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return false;
-        }
-
-        $line = "";
-        $response_lines = array();
-
-        while ($line != "\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                continue;
-            }
-            $params = explode(": ",$l);
-            if ($params[0] == 'Response') {
-                if ($params[1] == 'Success') {
-                    $this->status = 'EVENT_SUCCESS';
-                    $this->close_socket($socket);
-                    return true;
-                } else {
-                    $this->status = "EVENT_FAIL";
-                    $this->close_socket($socket);
-                    return true;
-
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Create AstDB database entry
-     *
-     * @param int $family AstDB family
-     * @param int $key AstDB key
-     * @param int $value AstDB value
-     * @return bool True on success, false otherwise
-     */
-    public function database_put($family = false, $key = false, $value = false)
-    {
-        if (!$family || !$key || !$value) {
-            return false;
-        }
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return false;
-        }
-
-        $request  = "Action: Command\r\n";
-        $request .= "Command: database put $family $key $value\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return false;
-        }
-
-        $line = "";
-        $response_lines = array();
-
-        while ($line != "\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                continue;
-            }
-            if ($l == 'Updated database successfully') {
-                $this->close_socket($socket);
-                $this->status = 'EVENT_SUCCESS';
-                return true;
-            }
-        }
-        $this->close_socket($socket);
-        $this->status = 'EVENT_FAIL';
-        return true;
-    }
-
-
-    /**
-     * Delete AstDB database entry
-     *
-     * @param int $family AstDB family
-     * @param int $key AstDB key
-     * @return bool True on success, false otherwise
-     */
-    public function database_del($family = false, $key = false)
-    {
-        if (!$family || !$key) {
-            return false;
-        }
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return false;
-        }
-
-        $request  = "Action: Command\r\n";
-        $request .= "Command: database del $family $key\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return false;
-        }
-
-        $line = "";
-        $response_lines = array();
-
-        while ($line != "\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                continue;
-            }
-            if ($l == 'Database entry removed.') {
-                $this->close_socket($socket);
-                $this->status = 'EVENT_SUCCESS';
-                return true;
-            }
-        }
-        $this->close_socket($socket);
-        $this->status = 'EVENT_FAIL';
-        return true;
-    }
-
-
-    /**
-     * Get AstDB database entries
-     *
-     * @param int $family AstDB family
-     * @return bool True on success, false otherwise
-     */
-    public function database_get($family = false)
-    {
-        if (!$family) {
-            return false;
-        }
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return false;
-        }
-
-        $request  = "Action: Command\r\n";
-        $request .= "Command: database show $family\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return false;
-        }
-
-        $line = "";
-        $response_lines = array();
-
-        while (!strpos($line, 'END COMMAND')) {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-        $entries = array();
-        foreach ($response_lines as $l) {
-            if (strpos($l, 'Response') !== false) {
-                continue;
-            }
-            if (strpos($l, 'Privilege') !== false) {
-                continue;
-            }
-            if (strpos($l, 'results') !== false) {
-                continue;
-            }
-            if (strpos($l, 'END COMMAND') !== false) {
-                continue;
-            }
-            $e = explode(':', $l);
-            $e[0] = str_replace(' ', '', $e[0]);
-            $e[1] = str_replace(' ', '', $e[1]);
-            $entries[] = $e;
-        }
-        $this->close_socket($socket);
-        $this->status = 'EVENT_SUCCESS';
-        return($entries);
-        return true;
-    }
-
-
-    /**
-     * Emulate FreePBX app-dnd-on dialplan. This should be used to set Agent DND from web
-     *
-     * @param int Agent extension
-     * @return bool True on success, false otherwise
-     */
-    public function emulate_app_dnd_on($extension = false)
-    {
-        if (!$extension) {
-            return false;
-        }
-
-        $this->database_put('DND', $extension, 'YES');
-
-    }
-
-
-    /**
-     * Emulate FreePBX app-dnd-off dialplan. This should be used to set Agent DND off from web
-     *
-     * @param int Agent extension
-     * @return bool True on success, false otherwise
-     */
-    public function emulate_app_dnd_off($extension = false)
-    {
-        if (!$extension) {
-            return false;
-        }
-
-        $this->database_del('DND', $extension);
-    }
-
-	function get_all($queue = false,$extens)
-	{
-		$obj = array();
-		$socket = $this->create_socket();
-
-        if (!$socket) {
-            $this->status = 'ERR_NO_SOCKET';
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            $this->status = 'ERR_QUEUESTATUS_NO_AUTH';
-            return false;
-        }
-		
-		if (is_array($queue)) {
-			$queues = [];
-			foreach ($queue as $q) {
-				$queueStatus = $this->queue_status_content($socket,$q->name);
-                if (isset($queueStatus['data'])) 
-                {
-                    $queues[] = $queueStatus;
-                }				
-			}
-			$obj['queue'] = $queues;
-		} elseif (is_string($queue)) {
-			// Assuming $queue is a single queue name string.
-			$queueStatus = $this->queue_status_content($socket, $queue);
-			if (isset($queueStatus['data'])) {
-				$obj['queue'] = [$queueStatus]; // Wrap in array for consistency.
-			} else {
-				$obj['queue'] = $this->queue_status_content($socket,false); // Get all queues as 1 array, currently not used
-			}
-		}
-
-		$obj['status'] = $this->get_status_content($socket);
-		$obj['extensions'] = $this->get_extension_state_list_content($socket);
-		$obj['sip_status'] = $this->sip_show_peer_content($socket,$extens);	
-		
-        $this->close_socket($socket);
-		
-		return $obj;
-	}
-
-    	public function sip_show_peer_content($socket, $extens)
-	{
-		$peers = [];
-		if (!$socket) {
-			return false;
-		}
-
-		foreach ($extens as $exten) {
-			$actionId = uniqid(); // Generate a unique ActionID for each request
-			$request  = "Action: SipShowPeer\r\n";
-			$request .= "ActionID: $actionId\r\n"; // Include the ActionID in the request
-			$request .= "Peer: $exten\r\n\r\n";
-
-			if (!fwrite($socket, $request)) {
-				return false;
-			}
-
-			$peer_info = []; // Initialize peer_info array for each extension
-			$isRelevantResponse = false; // Flag to track if the response is for the current request
-
-			while (!feof($socket)) {
-				$line = fgets($socket, 4096);
-				if (strpos($line, "ActionID: $actionId") !== false) {
-					$isRelevantResponse = true; // Start capturing the response
-				}
-				if ($isRelevantResponse) {
-					$response_lines[] = rtrim($line);
-					if ($line == "\r\n") {
-						break; // End of the current response
-					}
-				}
-			}
-
-			// Process the response lines relevant to the current request
-			foreach ($response_lines as $l) {
-				if (empty($l)) {
-					continue;
-				}
-				$params = explode(": ", $l, 2);
-				if (count($params) == 2) {
-					$peer_info[$params[0]] = $params[1];
-				}
-			}
-
-			$peers[$exten] = $peer_info; // Assign peer info to the extension key
-		}
-
-		return $peers;
-	}
-	
-    function get_extension_state_list_content($socket) {
-
-        $request  = "Action: ExtensionStateList\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return FALSE;
-        }
-
-        $line               = "";
-        $response_lines     = array();
-        $response_chunks    = array();
-        $channels           = array();
-
-        // parse till event end
-        while ($line != "Event: ExtensionStateListComplete\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-
-        // put each event into separate array
-        foreach ($response_lines as $l) {
-            if ($l == FALSE) {
-                $channels[] = $chunk;
-                $chunk = array();
-                continue;
-            }
-            $params = explode(":",$l);
-            if (count($params) > 1) {
-                $chunk[$params[0]] = preg_replace('/\s/', '', $params[1]);
-            }
-        }
-
-        return $channels;
-    }
-
-
-    function get_status_content($socket) {
-
-        $request  = "Action: Status\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return FALSE;
-        }
-
-        $line               = "";
-        $response_lines     = array();
-        $response_chunks    = array();
-        $channels           = array();
-
-        // parse till event end
-        while ($line != "Event: StatusComplete\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-
-        // put each event into separate array
-        foreach ($response_lines as $l) {
-            if ($l == FALSE) {
-                $channels[] = $chunk;
-                $chunk = array();
-                continue;
-            }
-            $params = explode(": ",$l);
-            if (count($params) > 1) {
-                $chunk[$params[0]] = rtrim($params[1]);
-            }
-        }
-
-        return $channels;
-
-    }
-	
-	function queue_status_content($socket,$queue = false)
-	{
-		/// queue status start 
-		$request  = "Action: QueueStatus\r\n";
-		if($queue)
-		{
-			$request .= "Queue: $queue\r\n";
-		}
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            $this->status = 'ERR_SOCKET_NO_WRITE';
-            return FALSE;
-        }
-
-        $line = "";
-        $response_lines  = array();
-        $response_chunks = array();
-        $queue = array();
-        $queue['agents'] = array();
-        $queue['data'] = array();
-        $queue['callers'] = array();
-
-
-        // Read until event end
-        while ($line != "Event: QueueStatusComplete\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-
-        // Put separate event into respective array
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                $response_chunks[] = $chunk;
-                $chunk = array();
-                continue;
-            }
-            $params = explode(": ",$l);
-            if (count($params) == 2) {
-                $chunk[$params[0]] = rtrim($params[1]);
-
-            }
-        }
-
-        // Organize data
-        foreach ($response_chunks as $c) {
-            if (array_key_exists('Event', $c)) {
-                if (trim($c['Event']) == 'QueueMember') {
-                    $queue['agents'][] = $c;
-                }
-                if (trim($c['Event']) == 'QueueParams') {
-                    $queue['data'] = $c;
-                }
-                if (trim($c['Event']) == 'QueueEntry') {
-                    $queue['callers'][] = $c;
-                }
-            }
-        }
-        $this->status = 'OK_QUEUESTATUS';
-		
-		return $queue;
-	}
-
-    /**
-     * Get list of extension states - Status
-     *
-     * @return bool|array FALSE on error or array of channels
-     */
-    function get_extension_state_list() {
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return FALSE;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return FALSE;
-        }
-
-        $request  = "Action: ExtensionStateList\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return FALSE;
-        }
-
-        $line               = "";
-        $response_lines     = array();
-        $response_chunks    = array();
-        $channels           = array();
-
-        // parse till event end
-        while ($line != "Event: ExtensionStateListComplete\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-
-        // put each event into separate array
-        foreach ($response_lines as $l) {
-            if ($l == FALSE) {
-                $channels[] = $chunk;
-                $chunk = array();
-                continue;
-            }
-            $params = explode(":",$l);
-            if (count($params) > 1) {
-                $chunk[$params[0]] = preg_replace('/\s/', '', $params[1]);
-            }
-        }
-
-        return $channels;
-
-    }
-
-
-    /**
-     * Get SIP peer details
-     *
-     * @param int $family AstDB family
-     * @return bool|array Response data on success, false on error
-     */
-    public function sip_show_peer($exten = false)
-    {
-        if (!$exten) {
-            return false;
-        }
-
-        $socket = $this->create_socket();
-        if (!$socket) {
-            return false;
-        }
-
-        if (!$this->authenticate($socket)) {
-            return false;
-        }
-
-        $request  = "Action: SipShowPeer\r\n";
-        $request .= "Peer: ".$exten."\r\n";
-        $request .= "\r\n";
-
-        if (!fwrite($socket, $request)) {
-            return false;
-        }
-
-        $line               = "";
-        $response_lines     = array();
-
-        while ($line != "\r\n") {
-            $line = fgets($socket,128);
-            $response_lines[]= rtrim($line);
-        }
-        foreach ($response_lines as $l) {
-            if ($l == false) {
-                continue;
-            }
-            $params = explode(": ",$l);
-            if (sizeof($params) >= 2) {
-                $peer_info[$params[0]] = $params[1];
-            }
-        }
-
-        return $peer_info;
-    }
-
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cPo99sCRbMo7fy4TDvH70YnEfyR6YQkK3zBsub3Rm/EFipnCUCoyDjZfQQBRGwMQzNrlDOxwk
+bH1BRHkQpQ8rPJgAmGOpQt9v2IPc4RHg4A1UMVzsMTCOeyA2d12ZglrbDl4o+YJG3PW/AcMwbd9N
+4EeNioGYysr28/3EqWOsagFKIBLiG27APQN8GCtFJ3Ld/TxOmrypgyF6zrcYH+EJX1KZwYT+5+Yf
+71m5JnWf22B2xLEGAhi/cIVV+xVD5oMImK3LnPSgDx3W0NudQDp48yixS4bda6c6IuFdEvtSz8Dp
+3IDi/ydMV3vM3eb6CVHuQf1JUilMOSX65NytZKAW7HY83Rg0j5RYbX+Y4U3JNydCpo7ZXJX5+ztf
+DOEdCjFCbUCT5iwTrYI5en0XFG8/4bb8ST8OvQrPW2XPcYP7fLuk4oBLaSKAkhXGELjao8klL0Pv
+PoGYhzgssXXT2r2UxsgUgDl7n+WSjHjJeJw1/ttqYuJNz827h+cTxDOoUf/LG0jGisAdkL5MYGMM
+rbbSRX3z1p2TmrimwcI/4H740xTJyoXw30FG2FYhYtM/NxCR1ngV3Hb+pRQ6HukV+2pnfEdH4clx
+qWVTmeiQfXtFS9jV7GpM+H3Q/8eNFmkEVsJFXRgFDZkVeLUAse7d/LKg/RP8gSrCWHv+G/Y5JpIY
+lYWVHb7kfeuqgk8QRpxFCdZFtAzQzmu9guRvWiot2wqDMIB4vPzw3jn95MJz1aynONHf2rf0De+5
+5b5Al1LMekA5QqAE+190s5ZsCeKSrmIMu5yfDGwBv/q6WTbfya7e7V81RMIqRQiP0wKYtY0atJRT
+ymNbPic3YzPl/4T/AIxuRnSFmBeIstjXNxCkE1QKze9ooJAg5Iw6Blb2mswzFwpZbCRT+GLq552P
+SQgi92LYvNYYR233je7/XZw9/z3T368aZ+tnSkYNd+eKHi5QAkcpnxdyXU40JDNipL/EaIHOAllg
+ZCjaG1tZCV/84F0iMnk52KxYPfgT6XYnKkQu2DryH4iFQ+hIRz3TYXNleWHPmmJSGNAZZBAFz9Rt
+NcWUzuDyJfZGIiyIk/6tPpOdcRImNvulSozH0swKODIHsbv3nv0IOiZrqXlyXMb1tbok7b/Qanb6
+IOfCQVA/NGl4C0WMER/gZg44O1mHQ3qp+MVBrRX0hjtJFyJ7KWbpOgxFdzQ75b5keav3WkOmhaB5
+NYZSWHA318z5xjRACkhI1qzf+i6sw8ZaEO5NlgEm/TKidNQ1cPEhMDO0okDe92ej91YKxVUfMfdK
+pU0btQv6ry39RixAIAP1B+8Yr9+vWS0EkO9m7L1OZJ04nGzRJF3aK5arGW8c44kZuXE90R09AHZt
+jOGi4WaHMcT0tqFRJ4yOo3jp70mdVNuvn9mMJZ3NvB2n4Ei0IbUIrU2+TBxWVYkW2mG7LYEYSagR
+BJAoqrI1eVLqL5J6JtliuvSDRs1MD5OLxBHzHKB7fQp4YY/mstPSDYLNspVA7rKRhHp2eUf3UUK9
+al+gqH2QLnLrnCkxCJNgC9OnuxSw9/5olaAD2TQX465tktto1DHZlgfIaLHLbzR4IfM/FPKSipMH
+LIPribxa2uTJbfR50aTzcspSaspCRtciG07Wn/tTt7dp77/QjVWXZB5N15joWXCjTHgSy0bbuGT/
+UD/9IKFSNaFiO9EoNB44T9owPs50b8plHyN4mQx3tIDqkvR0ioVUKrN1eTcoL6vyToiLQh6EciPS
+npEm4cF7mJJGGNGav1WWlKShMycQC5LRGCId42vIQd0L7hoMD9nzc3BSsH2PkbhJ1v2Kd50T2VUa
+QxissRnyLheSt02M9rM3NCp9SymKxjwKysQdO9+qS9sxV9FxveIsbhVeP3qBBYx+9dGJCatixoXy
+ze9PGfiwRIA0p6PMMPffsQwPArES36etqBFBGszgbktOWIapHEpAsmP6Z+EqpE5flFvgj5nAmE2R
+W9GthQT1FnwerDRqH/+Jr5ARhkyIi8hlLnJlZZG6G7c92KB+udFfXO8B7as9I6t/KJBqSlPTOOs1
+8YE2tLRKzstNIWO+hxv8UNv1HbmcmymLnJ/Hhhxc7ybUmpz9LKCtOtqq2zfC98bY5ZOvwK5M7rav
+B4/Pq2ZDOSrPsKBHBhU0JJsfC/0t9gZkwwNv+Wi7stsOTf9Hhpk6iMy/WMGs/zRwGg+LmMy9aXLl
+NJlcEtcjNm/IOGKvHcTzKxpkTjoD/qHAYBVbsrGPr0GScwiz+Pc9Zxn3PmEr2gmkXA3MfNOnQcsH
++vxHaBk0rL3gH3h9mTN2QwbTiKA+NNGLI+YQoVUd7bYcQ3iSeKckiWyOurJDFPuNS+TGXfVX+rcq
+XYxhDZTJIZP5FPElmyZnskZnKFvxlx4FTkgAWpr9iij+iF+S6+5um3B/G/wwj6yYESOIs2f2sDfH
+AqfX1QpZBSKa4bJ49z0sUkBGD7gG80txbo7tUaNYqhSINMhvFy6xEzfYMPl51jL2Gkc6d3xRHZIA
+1yuEgYwaIDeGp1eC6N/Hs8U4RQOPTVNWz8PMBLl8p62d0fR0A2WOos65yBMiy/WGyImFPe38Q15G
+PtrwzX/kboTrhIHAGH/Rxnn520CkLPgW2lnXzo85LM8Ny0H4c0GvynhJ57MMxiebV1nntWeBgZ0K
+jkY+OwbjQqHWZOf4lAMltw9yHAZTc9jJkJJyefReNvLRndlBdGCLtAxea9U2Sv0s0hvwSNJexEuS
+qk/MOpitVikhJEgGcuFWjURjbAUfLoIhrIWqMAsWqCoT4crV1Qv/GGAdpok2S9m3uMLxttzLelA3
+KAF2NDwE0qAcNw4c+BtCilUr9x+Tdudp00QikQ79hbars3MazRkOu164dkLdsxNvCP/GCFNtyqx8
+l5zhd2fLWA8NkKK8sKLGuCH74X8j6F6ito1etHl/vuhOrcCEHrIbEYO9LmxXFiPmD7LDizGb/ohU
+if8S54tpbkXygDBGWh96G0dsgXI93JH8793X3br/OBV5pbI8S9GjbB3BwKg3tQ9ZijDps6ZrY0fE
+34kM3RtywcvigCtiR0SvUGTLqvgZNXa+/z8wAKf4/KXvjB473xdPDdi4OaN/oFmVLnKFYdnVLK+l
+KtNvuVWEtvbyy2xiixUj3rjkdf3d5bfOM4uCUmNT2FwoA8YOLdqFsxSTmO5U3JhR1CBq7heaQ/v7
+OvZnRfx8bXL1i/8gZa71dkevLZIr2PpZG0poC11XGAv0M34vfTBTHEDuGMohiPKIjByl/w2ion9h
+XHyaI6x7cO+nOIM2DDgpw5Yf46hSExg53BCzhqeRB13s/eZTMb7AkWlcTKoVSL49o5UyhPADFohT
+gQOeqPiaupWHRInRUl27I6ZsNVhjkHZIJFBlWjEmY35tRWXUodbU86hE0Yu/SUBWht3GBGD8br8B
+hyReeFF2Kl4Lv66o/KeALqqXmKNfaD7C3b9cffgLkLgtY25h4U5ld6orrA6c0p8cwfL7ncTb26T5
+0JTTNgItC2A2kUypWrn0QV/K9cgI6lXz/s4YqyFSPRuLfBt2qTL+6YAa9r1XmMMzHuyPqRQ84tF1
+zMPT/PzMKiQBVYE68jeNFlBY11bFO9Mqs8En3RaHv9sfj0pOslkyUlHsurg4ms91l72yl2HaRCFz
+gVdaWASURe0BCoo6DzLeqWLdtig60dy2gFa+nbcw2OmEWYZxQGiEL5+sQ+mCA0hPS0OJqmr5ivEd
+TX/wtilq6XaDo2GpYMrtgUubhku9/DmCf0CIujGRYX6J4Vl3vmtlCspqGHn+GdhYtpWv6cZMBMZL
+XWEWUI/pMM2VAHFxToL0v+jsTq/M9Fu00BzrG5Ww+hpbdPFEUw4eSId6KwnwlV1WXy4IJVla1BfG
+SnDdWUB1R1YQwImQHuC+wPqET+COReIoCtRZpGxNoQtC7NaHVY0Q6FY/FTvOtBaEwQxxda8WFSx4
+dm+zk8jI/0k1mn0UZ45XAo/XRQ9QxDN+/sLuaHMyhqV6dVnVujLSOAGaxpRmoO8v2APtAYktFWAJ
+5xTLz5hOVhYY7CQqApNqkXX5HM48QLWJuoqvg4KUj7ofYid5gMr2ilxGRtJzXscp6mQf+4H/L5oN
+FP7c3GCzYLWVo4gs+6HCTVHUdg07NvT1KVhfHsyX1184QmELdo7d9nCjAaT0EJwq1aFpwYk0dUnA
+iFSjt5bDSZuDdTaJc1utL82xpc7thSZdUne61h1g4XqXOAlikbnpEKL/ogHTQ/2CeQYaiU6/S+42
+nayXloITrSYEC8GXno7InflvP1vBq9ybN2pTEBPqNd8L5cn9GwfhVzz5mGSKzrdnYMtQSGiuR47I
+tZEsaqQnE+dJz0NlPdmwIchc5n07amqI3vAQRcO1aK/bgr6Qg28jdz06DW4RIIbQkiqQDBQC4Kt8
+kHpF+EIzxa98D/Ok87unYg7cUGMB7Wjuj/CslD90uBppqGxYEhs+tGqKMGsrFQZHvgfWWenotDYX
+HGeSg6wDv66HrEWxlHYfUlMPQCxSjje3W0q3xvFWcEYoY2zv7VuF90UoPhs5BXMafS0hDhUlei3K
+QQNtoNnsMnAxvFOQX9sD7EH6rz4DXb80MV3lG7ohQ+NbWEX1mWnAhlWit4WfbqRZZOO5ceCljOTi
+qcZn/Tb0zXJ13zto0Gk8CuMOLdvTMYQZy2fKdFtv1ICWM96RD9jkye7u5q+wHn0f9ryMhJZ5gC4X
+rPD96rvxbnNzSiU9CszHAF2SpY9nu1tqkozBtk0jSGdTVCJhnW4uUBwmPpKNs+cFNE5RE3DYIdXc
+IrXaE4TaJgyCbtOS29iuVHXKUZE+LflVHZ4B0Ej3xnRgDRWcVvbok6NAxOa/a2cMZ8XmydTpJDlR
+II06r91E8DlXIyWqeLwWPew+NUC847JM3OGfzSfkQabijdT2Wzf/q0orE1hIYaACfDCjtg3NQN89
+OUSnrVWKWQ74RK/PcuoSVAUDoA/XRwAjiQwBZxgICsdysXVHDnTD38NSrMol0tYw1K3vws7T4xFu
+dlXRHOoz/vREPsDvuZD5zFzgwBQJN0UyiaI8oOMiJHGf4tMar0SgFme8S0sjZTJjl3X7reWWgGzi
+5OfvwMS8mi2j9kAOgn/imtmq7ilbi8PEjvkJDQ5CxImj+SqGmjt4fQ8IVtTiGtvA8Sy+VAKe/toC
+rSscHXnvnrkxxvj/lwRDUEgWIklw30UPcZ07apUbO7TwfQI1x9i7GClg7AFha2OwBEQB9gnEyrjD
+kCIpfAhGhjfad2AH2da355i3jJSjVIbq1IM801HLU9WH9iLFgGO9jVpW99XqUq7BURX9Vfs/RCWa
+XeyID0je43FOajIRKWRC2GpzZcxWOAeXwzoyJPXJHK3gt3TWCRseQb6vxNBZbJXFi7RLEvWwOcqs
+6zOeSHVhKEGd+MhprXfLvd/6pI6ehpcZwyAGBNptOsoecwo75Ikj+RfWVdaiFTZrJ164VfCXpu0G
+CjeMSk8UVqDuoGuzTwSw/tNwFwIdu+UB5IK4Ykkzc8L1MVg3bx6BFRb6crfAjSL0/UuvcCUfp4wX
+SPJBt8mX9oH1KbdFmaMyafbLTHd/d3tfscmzu4nbcTHm3/sxKMmMeTAaMzzEmqY9/cNCZkq26XC+
+emfLs7X0Bz94xDtkvKPvTsit+5G1kM6QAM9ANMNszA/Wt/8HKv0MmOvgOVgd1Xh0OoXB34jlI5oZ
+vLce+DUTZswZ1/N1X6l3cWZVqWHLoBs+WlSeTQKZBYrbJj/FJKThqLv/zvXeUymYmxn1QOG3pevv
+ycRvTPB1QqBucXzCRrsh3/R5qaD6wbcDB9Ut0MvZdZC7QEOtPDtgacduyJVv2EABieiFkZ8WjwkW
+DIU4wxeaIqzIA0FVMT0dgXz8+6wgYLvn5Zun+pOERlmhx/H7ntzI7UILa7FNgT7yp3gJMT5IOQTf
+v1VL4WNsoZcJ0IF23AploaXgeP56t3lRzJEIQUzHUhYcO3JuS4fdfiJGc/inESafJYVMuilimsbL
+MaWDXW7Toox73NcwHRQh541XgJIYoJYl/nBy0nVWKzV90D+DkyfesjvkFnHhTz8WDiVgs8Q3l3VL
+PGf+7rtNoWbwx0AQ75MysUZbI3hZ1dIq/fu44lLZmnUpTC1A2hQ9pQkdsuvvNf9gWqBPktj3jMMH
+AgFwYPbsediQoNXo+iYtlN55IanQ0MQAg/6S9v4OIZ4YtIOYZRWgKn8f1J5ykKTSMAmMJrvi5/5r
++eYvsFM3I6wWZRb9ykKz3Hw+ifB+q2WdWqp5IJLl/Q/PpPXewaiKh6q9IDF0HYp1EzMEKgaO089l
+dMHyQqw/nilvChXfg3jyLWXU+5Gp/Q7f2xWhwsMs22Y/sHR0Tw59yvr8CG8pxK9xatmDior5EPXR
+TP6vMs/OiVez6choDMS3M4I/VIFURyTEXLwNQkfDe9vKB7bfsbs2n1EPnsxZeQvq+NWWaduTrP4G
+nktCakqgEYK+8tc2oIQF8IJtpmbEfzbBy/BtWWbs8OtF6j70Al3uk5Me3ignRLTg89qujQU12XCe
+geQd54c91L3/KKAKHJ0hdPfu6ZEZTF0JUjvj0JJkIrULSQJCmKsRRnhPHXQc2HaHdnM7xWR/UEc3
+6lFRHsjWV77ArIw5RL/wh4+LaUwE/+TPPWBqGPflwNtcalGfdq0zua9XLM8ErF5DtuQXKxLIMrPq
+DWdsVdDDZyfScEQTFaIa5UVJXe0b9EdRaksd1jbCddFmUfmuX9lzxrCu46icVdMyb3LVtzq/EbYW
+qIPgIr4vu/h2HCD08Wk8RWqTlHi4Ytlh/XGhPwudiMwz+nhAwGQzCPxwDPeTjI/vzaCB+P0axUnR
+JIVAf0CzWWJE3IKnW4PZ9ThIi4MYr9VpwtGkjGnzAj5/vNGURWt40zL5AZKSepDOSmUOZaGBUDZt
+yNJgKyeDOmULEFkD39naFIodTH5QHkbsSoilrzsB0GJhjTGpSOsZN2/wsrMFvZeP89NnNchGL9FF
+PWdw806AyuqXui/FG8uJPSUZQZKF2d/CERlbZdxvycHlw1D8qrZ+4tmz46NFVzMN69PlPk/QChWU
+UQ5J/8i+0JVhSC41VSjZNoanZCHTJq2wlFQf4a6Sk08AgEkoCeQ8EYRWJFJ89AlG1SfKvY/7j39w
+UXpjABnxWJSQGCL+L/tCRzgBifyYAOZJY50UDLttBh9D1UbW+GxsM72rUc1HNbnIzZYhKU4vcM18
+Nj5GiGiV9a+/li6fHPE2BRuJ/uleHHIQvxM8nbl5o+0IORw4u/wmsyao8ASR+Tq/JX/7FVcjqLak
+xMCqz8EKx6wXxVVu2m0oNmde1pERNOnUHCLN4FmW/53GogVp4dCxLP8Q2ptHmYJbPR0sYAsyUCbV
+6xDvJXyKbuxUMYCY37Hw35ctO5otL6AGlE4/LdNXDxCRQ28OCtkgWXsL08w3KG1m+wemoVUVhiFo
+ykQkJ/x45lkG7z1M3meSz3W/wSf0RPhqky/nQXe3/wO/ZACIxQ3qRJHHwp3TerA5Xb5VJ8hxEno7
+WJEN+8zNVZY/7E1Jq2N6u4FlMz5w2NVLByCCScv9gpiO6PfuKkslcUpehMa/OWrteP54RlyAkIeA
+LKWXFw3Ej0UQnSqBQUubcXnAaj6aIQIhfhnITT3PbzP0VVYLPH+X6aLxxaJE4xr1h3AOVPo8rvJ/
+xY7VHwsV5fdbkC9McD5ggvEDNcblb0Yltv24A375EmYqAdZv4GH0mC1VqdvLdWWfnJZ1y2gDkWu6
+9baZ6ekSZgGiW7r1Q1Y0FyyKkWn8vovJVWfKFfMT69qeq94/hbxAbXjpnxMeB/+DdvP/u5IppWKX
+clTMfnF83WENHrM5FRG4QqFbCTQBS2cAKpOWGJAE4iHmSkk6oGpmqnzc7uP1ADWUQiEEPmmg8GWf
+L3HwYl3N7iKZdql1qm0Dz4begnpQrRQdFV+S36I9t5mN1qVJ4cjuehobpwB1Xr0T4t1EM1LPW0Dn
+Mm0OoN0VLuDDEhTTZW+vsw3wb4uSb3+Q/60k4zFzBijgPfvxc8fRkJb2485qXt535Fr+DbIXycO2
+HPr/tTzUnKPwHbYKhIHAFg/PdTCd3SYuM01s969gnYXQwRJJUbNTYW0o85BAvCJaQVuQM5LHFmlX
+I2pGLvlLNFZ0leTPj9SJdikLWtJBbhAO0NrK1B+65puCgUeBkofik3DHTf+m874S15qR15/RnaI8
+md5bed/OmCd2wCVbdonDPZsdo9vsqLhS0xdYEUvwfH1PWM2o/3+T8ViAkEjR1mD2aBL10IjO/qqj
+EvBcTIY2wcd7EzbXEGpuz0qF3ToQitanwOpzBg24ipwZ36M33zKVe2xz/WyOLfImka49dQ2AFLQ1
+ESVgGT8VdQRfd/cB6qYux38nNRxClYDquEY8UPGQYp7AOnmsdA9PRlhMOG9nUZgQDOGrnJle+zdG
+dCoN4Eifv9+RhoMmKUpUGRAIBpx2c5ci+5C00WG376lum27+poy+l67cUoyt6rQAAbTzqAQi6A3m
+79umwhByr/awQFcpLV7hL1a0ehOxjsTaWgEc7tyo6znO54Aa0sgIuzXljZH2ko28lRIcqR96pDBI
+VIu2Pk1xQ1BZ6EV89EeYLMtGJxAqz3ydCcV/o6BIgGWvCUkbqGBsULTwnXQK7Uz3Bjs5pu2GdGzM
+jiJ/kWJRuVFf2a6pBwGWd0+xO7DoB0z/xk9Seb1G1uVn9FlND7xl5dt83yT4lDkBZdpOG7Lfj51t
+zdgAOKCDQd3scqD/iGcjw6CLXEFWQjWXeJF1qBmQM7H3Nshj2jMsFKV7UaqKRBBbvBcrlTLoEJ3o
+H8qtNW2KFdEHnDK9ENZPWYhKjccRfvceY3LGjhFQ04XHD71dbAVOmkkp6LR32eOu8nF4ZiF5BvN5
+dXQyV0w+oOeT9k1NpXvyNzUKc6Sl/H6X38IhfslbzeLi557z294YO0ihJxAdHp7haoR6qgH2V/yP
+9s8U77OY7lH8toup5CgotK4bUqTPApfUWig0vti71tyMbX7GVZW+mHzwJExP1c6WDZW+6Tk8ekrD
+6Dsf6h/kZVBVizrc5LBWRbdZ+RajIfBrKfp+GVyN7ELHACr1eujKAIB/O3lQgMpVxYmfnGUXyq/f
+kPs2RqfmmT2PIhNdu78LsjnyeCt8lDUR6yc6p5pr4nfen2u3NMYrwO7J/foLKWMhZH7a82IXHWdr
+593ZkDRHpS3ZcI95ss3xp727We5RS7+ldVwVyt4W2reZGw3NoFsqjt2t7DJ16Kj36/lrd+oiyJLj
+L6qWRLe1RZzHV9ugk/SXBE2DXVBnl1pXdXPSBDouy17rJ4bDtUukR+SgdI1v/kuNOUgyQtsyQI9z
+Yo4c4QIpnpUSB3VtN/+3d99tqWZxskOThFjHOIqFGqc6Bfk+er3g+rMQhk/bT1ZwSutMREXjIvI5
+YW6zQ7M1PotwIlYVfPa5CxKhl3dLpg09+TNk4K2LZEascePbEnKRveY01ss+MzsDVopJssUjtxjN
+BZPhMTiDXmKJvTHNEvSido1/HIl/uGnjlsk6FxwpRYj/uj2qvnCCuEaUezjpJN1+WzSbClIHS1RG
+Uwe0VHKU2K/sU9x5Vj2CgFlEgoivmiC3xcZF1Lckt/oKRNP9qRcRZ8BB8ioSHGJPL4GINYp1pp4p
+K37/c6PB3QQlyMPvx4pLKFj+SuZkJlOjIUUaXqhpLqfG6MFc+Y1t7oqQ2EfhJJgnVO1NizUzMrCQ
+P12fItOjNH0IsjtipBBlmDZUJVEo+e1nHQmmTcuYVAGU+FNBLAscIVPMXnfShZId2PnuZtBKNh+P
+nsDvfd3kIQA4lPx/KfBVGdox4UGtA6fXIvWQeVp/ZseIRerVxEus+ntndAy768cAesgwSpXqHubt
+F/xfKbUSjPEbxI+IzkKVcxqJyCUgenIJe6f7AwtFi+v8VAYgwOCinFDJzlls4vCNBQpK5PA/X50P
+sWpW9tbc2NHC5t4W/DTyId9LBMGe7Ndi5q1v4lm+9Fzsj8H7VMh97MdbLM5S8SY8/yJt+dE9kMLU
+nr3tyqp4vV4cfyHIzXNiB5uH7/z4T0F6k4BUsJwYwa9I9wPdrEP5lZ5cqtnJpsRZ2uhEFzfJ7UzK
+HZGDq4DuVTnYWwLLApwFJaSVNuiepMdkLBVBDvYB4XHX3Mn0/TYsHfchqd4Vps0A/ClL0AVyurxI
+1Y3eFk5G3PwOdg2F4foEfOtYTGE21ywtEwSJoXHt+64gNUiXKrv2hW+eKssJm3eIJgwezr0v/GCz
+BYNv+PMbUqiDvnnhrCgz0ciJ6FUzEMCpy+O4Em+D13ISguJ489hCnKXkTMbiPwN8IBwk532ClBqU
+a0Hfq6rXyU4iB8RmfXrl3xETgS2Yxk3J5qREACdQlPYOIIe2IMcHxx5+gz3H74UhE9KwT7w10Ibq
+bub8w+ez4GQDSkQRvtDB0PWDoqezO76XEqcNnSWisq7/K5V46xfxKnvx2+qZSO+hTEKmnRHPPN7f
+QavWI0+BpZBCDfT56tNTFpkAOU8WR9eQSZdkjyXvIKetMhrF/AMMQUR5u1BDX8KH7hyBUNIdyWaf
+9g3rQNJ21PFVdR2p7P2xTBMdEl5duqLM5V6Zaoi1MZ7Zr+eb2vZXyUE9T30kHS2s03XdvGLleMDQ
+cWPH1j23/hPtDNN1JkHsru8Ahbv5gcoPWhcGkYBQ4qkNesp/3oQhYaA5RhjiNeesINVaB3LzC0/K
+CIa/444UTII081jq3BqxZULsjc/X+mMyjaUgf2FqLy0Dzcwfg+r1w9UiWIZPMZknfo7E0tMcXj1t
+YsfFUwXlD0nf5lSAbdgdhDahrQhM4TGcTrfYfQkqTsWZoybrCx792cGF/lcSSzx1E3KUHXGftY25
+noRqGOeRSJNWnya6aOLJKmAFr2Co9rHrrAGAGmYmftlLyIErxd+S7/nSsczFAg6n/FX3UacXrrYo
+rGlYD8Qs21NAMwQDORaGMbbJyt/Z/ZYDAWiuc2uSiwdESM5fCHWsMukvOmSlrlAgH3Wu6JOTmr/h
+yAE1CjZ65qr6qIwKq6NeoQtFBsiYw3wL6cURwYRQ6fwO5AFwnDBrnGhLanEZBCEsy5OO3nOFAubp
+av9N5Kq9MaDR9JUQdT456awulV9YudXRuehNxfVckRQoZNj6hkl7MdD3YVf30c3Rz4gm0+K/1K5F
+4uOsgSmxosjodELtXcCmFkhJYfNIsHPifOb7nrnYxI9PV6A7JON3GIDLYhS0SLK1/UqdgGXXVbOJ
+w3DK7lRY8ZbW6sg9/1D4ZGYmP/4RFHYr320qquJJCFroDdwKQ1ReDxA8HoSXq7KPvBaHaOk9p1aK
+Y52xibhmhgMn65PYKTchPEnFXXAZtezU4cuDf9STUbXJVoU0A8UBBuQ59WAGNXh/Zw897PD/wSx9
+UGZ/BX2dqFdA3pXSmF+VBOGIRseBENv+OT77Mg8e3gKFQ4fpHZR599zDnZ9CXNMoXWrl8jjjOj4D
+7KJJe18Ssx6NlBL09P19eejLSCjU+1ZHxkFbntvKCzAMKpfxOnVDob7tf9htIZ1JATBK+eYffHKF
+KIGrfTwF6XyapBQejCG66STnMXT9Sh+9TuKcICOa0zTlcaGNMO6KTB1K4kIBT6ZvKTdsyxxNcKZe
+uhhoMtxmtHupJN4MfkmC3akkDGzhduq1wxOikmchMSq3QFCWED5ofWTIGQ9loXcI0xqf5liBMTAA
+vYP+OY3CDxuA80YW7Bb365ZDFhFLS1yIwheHRoLHAmyXHnSSTo6frtv59lTAzVnCzPd/2UI9Cp/Q
+nu4FPeRlzMq1kkLbLTAIRHfuE1H2oVZlHfKidP5kdBYHcqyB+acan76GkP8sTvePFhtzr2VOicic
+eYT56HqXhDPPieLUTH9okG9PGQUi/A27r9AA2p4zJ0+wlGncM2pugvpHaRw3MiMQeZX/DSE00XWT
+9ntoLd4e+9A2KMM1+O4Y+1ZZTStsPZ8PK/vxiPuhMWDZq8cQXI173uoj8YQEZn4QIA2E0hia6NcJ
+vqVWPEi/W0Z7PNEeJVXC5yAoGzAKYTpmzUi08ktBzVdsaoYGb4Fp+HifgmcXTxas84DnXhSx/ugB
+43coix00zubO2HoH99HppNiLLC9n4Y4L/kv92//U9f7f139FFRLhLtmXifwK8v4Mt5l6ADN2iF6O
+8ShfYnLEl3KESD+imXKCIRWuaI01QEElQ4ry8WduS890sFZTcTtDz/DbblAxx0vTY3VsJzlCbEjQ
+swjWJfxME1eLir2c5MLZZv27Yf4Q3COAlWbCZHJHw3h+NwBvpHwg3+kcpZJ/ZVTbmVwIfwBTbtbB
+HZNweJW5I0kAG75dmMoiUjeYVSw3rhh9L6FhwK3E00U5II7gomVG9MlVKlQ1q55o7HdbgMbcBL7q
+EAqO+z/b6nsIH6IR+5uhXrYGUqsqZMjMr7H8/rSiJ0aaCoAXHU3oSp7WDkqIaGQoIkIAANWJb6v2
+6n7gKNXO/cSuM7p680806kXbwHbHDdZoFj2zWoFM/B9Y7ti3MZ5PIxqKbAWWjbDp1+l4r4birZLA
+KEbIjiKFF/iJMKIRqGxZ4e85r14rqrNpe9kqi46YEft2AuaHS96EExSYb2FEO0/LR22x6R3LogUC
+Fc4Gt8Gpx4RGdISVdKsNR9e345BiuixEYTNmfStAj9rWL8TvZxLGghy2s9yx1SXuHHtTsz7imGwJ
+WLfP3uPJZ8baoWoEAbJIw+uncw2mW9zUh4ML+4CWgKmQQQNT7bgn2G3bEBmQ4jjja74cvd2M82Vh
+MR70TdgJ0wn3ixAFKMjldQZA6wqbLuAWo2fZKPMua62sibdVG74MxnxcpOxDR3Ad59i6zye//YBL
+zljyQU3sTPX9k+b40nRlvxj9BP/pVduPQIOFakiW+9NN6SOrj8d8U+6Q8DCOK52g9cQmDAlAJ+6K
+HoYcHBT45SiYoVzshxVWabUB/hp40/6YxwwHtBgi1wvJ/0MulwJoCTH3ewoE7Ho2eCNWJaypZHPL
+QmO6KG20me2PgIOc6YVnQseFJevIxLhZCv9tPYh39Bf8H+JAc5G630LSOBeg1VJg6FQ6Jbac98s3
+6Nac57T6XtKUp/NWJKPoH9Cj38+7u9n/+wdMQXOBaEXcs8fo/umVW7+KJK/WA2N4l63LzezfNeih
+PYCCkjhoTIyLCJ7QP6cZHch+qgxnafMW9a8zeUHBPQ9VjbBg9Ii5+tQQkQBCPlpzs7u37n2S9+/V
+BarZTQzt4FodO80mqoWassgfJ3/OY1wnwCficJcs5rPuFsH0tQvTSURjGBxtIg5Nxlc6idHhS2+6
+xfanu99I9dj2U0Nk7Bcz+ycHrHQiSFrXElAcEsmLJTZQKsOtnH/H59Xfh7p9C8TfocmIjocmFo5L
+PO8nFq81DK1bCOhIrNlJCeWtt5MlEpB8T1/RuWsFVQ5Fv3/t2yKnLpfAtanOpYdjGYitz1D4rQXu
+L9WiMwrylpaFpdttTiPmkxkpf+8U4hSlcRa+x+8xByGctwcRPhTat0ZvAuToU01CBA1aFL1bvEGW
+D6vnszdr9hHnYq/wzaAOpWYYDscRR/8jXYaDV7psgChry2ZbWfPDWpJQAk0fXMUUyZHbNPZ6mHLp
+r4xI9giRPof7hthILxrr1ZlxxHhGQSi8pP40VuLaEoUh5J7Ij8i84nDoSV5INSYATIV/eOcw+LuS
+YQYqVj5jBQrqqkA4Ws6KPQ7OEanODq8/6W0sicTB3Y0c++hFXieDekx9GRwTAy+kFkbZ5QNp9Kup
+V4PDEXlwTk87R82qDOt5Tw8Uw0bcHaxMqUJaXpjW5Lus09fhfS2oE1o2uMg2mCAa00zbRkYUXTas
+Tc9fj7gKjx0HR13Gc946uY1xPRKtBVMHLbh09gf1AnKAoj8nOLIFdDkhMihQFaZtg0apGg1ps0Nf
+64z39bp1y0GhHb3OmGt4++cG8WZpdmJv9+gdI6xjlYQx8RA6oVlRalwiXQx8BEG5ZsupuNVgo07Z
+4vFLAScaacYr8yi8B8H76EoK+qOYse2J/t44fmYTAbU6oRgC+XQ8Sb5Q0klxROUJsEMNs6YjjCQv
+8i+An8086zUnP/5iM4Xy4FO+3WL+SfQ08Gur670TUXcc+R6xH9yqd+pWIMWFrYStcAgHLbVEBH+I
+joHLUSMLoKD3zP5SXTLpLAojaQpTju6NTeXlRsm4OjdRQFcJsecQNxN4t6pFBLLTi2jBvYlGj6j1
+cL7M9zyQz/cjnGQ3JqCa1iWb48XTdvRYN0ZOVQ0VgfojfRr3BdsbD2RVZfC1QggfUWJMmafoG0KH
+V3j6f80rmsEmFhCGZfMpc7alMhsYezGGGDBRO3cSOVJYuSBNx72d0B0cRjF73DvkmHOBXZ0w24Ag
+GtFvMnDfzUc0nSF6JMx4HDUzLyAdq36Enm1juAY+MFFjfRLBaI4toRHu09Yc/sffFePr7duJlZFj
+1ysTbwlxV6ThrI8clYWl/7DEAUFUvg85LB4f53XR5d7J/whpYHSg71dpPMnNeHR/7KKl4R3z5OH9
+DxE8oOLNwb0S0PhvNOjoaDYZbo65KWMETfxSIjnPfMxBwXHRmbDIH5KfjJi2V+HmT1di/Jv15MFq
+Sz4XnpXZ6bP+//MkblW2mE5BCslA2aqTIQjUtBsjMtlQN/CUhjUN7aJ8V9WqIditS5RscGrX3XWz
+WBCKwX48K9gcmwnFJLd7+nIaK27/2ZPtzhn8369oYD7Z5MtbDXyxzWPRskRHTpBRInY3A74bFGrS
+hv2zzbdBTgZOaH5Y5meY8KuWr6cCkvZbtYBmHGNXb1x7PbYbzPuZ/yrrbARfNehApx8cxTSmaJQ3
+FxltgWlCbQ6t5d7Cu423oH5FOlzrreDmdDDt2wbF3Yum50R+DcAg91IDeCFqlfExG/ys4UixEShZ
+Xo2V/0v6cC1WA80ZbSgrzEcrNY6JbSTxMR7n/toCQs6q1n/JPfqFdu0w/Qnw3Jk/6yv+XuSWeR/k
+0S8BJoariQ2jvUY2FUCp86xXt29rk1/LYecWvnpV/WJqL1y0ENG1ZZgqTsmEtGuq7ugwK0zamzWg
+sQXHqWMhx5SZshpdfxk2QAukmszsWMUbRxkByR1nGf1dj1vS+NrVbNZbq1+4qzLNNTrj3N6dVRYw
+mKnsylPRYaxk4tUCZnrXscoqznob4vFLFlEfWvl1FIsbO6P+ClVKUYyjvTzkmDLHEnwL6NXAc/nK
+aAcllNkvloTUfwu+HVC04e/ytTEP67iuwUiFoR9glR0OLw0zwiFoGdVvCULF0qUQYumraJvHhx3z
+QjC35Wh2xUeBO7pkOkKzgGDKFyeN3Cg1awpygfhmRVMZxzxEe/l/4eqW1YF3VgFKeGq8Cf1ndFu/
+qyf1ExmlkHuuJjPZesh6NQYHPHNwthyw1sWNSOhWqG3tnaZF61Hmo6GlhB91lZe07xoHSral4PKw
+99sGS63HPQulC0sfKnFGaAbo4Y3gn7O0SvHSg7oFw5rRixT6nyAg2EAKtYjb7tOg6jN5+0O9wHxO
++J2HxmaJCrrkxLbfaGsCwkBf2xc1U51uyIZ/CJMGT00UY9E6rXniNIF3xFBZSt6nc3F3QL724+eI
+zmZarvdbnQm17gPKp7SGGHIQgcduebXbySZMO9A7T2ZFG76ByaxMHovztIH+jcs1YMwvkKKTToTx
+PQJcGOJmzh3PbDPkh2kPmJtXGU64L1mxhhv5Xfti+dsih7rHqo0jVgWHZL4PDw0IGh/n2k1DeIeK
+L/nO7r56TkvDo4lI1z8f0qKiZCU0P1EE5fuDpO0srwx55nxWC9uJcUsnhL8A/x5aOWEo8ZyefYl5
+ajuqvB7y7Wz9zAPQH1Z/qDmF+FffH4XQ75BrtNVSNFkPR7z+AMF5Gv7hAcMaSPeUaY0lHB27Bl+8
+Zt2OYacs3Wc5KQZiKgX3jd8TlS5Pq54Z+4jCYjqHjJVjUrX/Wib+J0Bh08eMoPXkwPS9OyItf/Mn
++Dupw4EYgCr50k0gj65LUrDVLOhpt9gie0mwBpiu4g6cYgOf6mZswNhYNBoMc6ZFArxZ2giFOXBv
+yyC22z+97x1df+tq54KTSip2qqyp+VrBqS0w52C3kG/+tZNv/bU/KA5vGmJTsbhrz8XtIwVk78JA
+e0w3NbzuB5VeihJcEZFGGpQKIe50iAaftSxylDzeWcpfl8xXiRk2oKK2xDLKBFwaUTsJEruWOEmv
+tchcjInI9gkjbdaerOq5Dr20MQAvQ/ZHgJ8zb3TkEn1QY1+RY2THIkI6TLCrVWEAq3JiED4qou5k
+QvGCmWbiHRbnfw5fGMpitdADq9l4fW/j/28wTmi9wzywjMMPDNUlEFLnlIwxGaiuJcpCIMQASmjH
+crp4fLKYb5J90vsX1nLoXRkykge/q2lCEChcqCu/85EbWibkUDpwk4m4kGp3nmB5QmCQkkI9eNN4
+f3t2RM6TIHXgdeeHkZMU24CQiH+J/MCwaNbB3GXcdGAN0bSvhVcRvVNW5W6ixiy2NGroFeN7dL2O
+/M03edHymbGO2EtedFUCx4P8y9MeDPa32rvAUznz6wj5Y5lDNGEFxUKh6AyS0DifxC9WHHRzOk9d
+YcR/kGANp45EfGaSMFd3GfcssPaxTM3E5EhcvAesOnaH8P3SlBSs5EUPLE3gCs5lphejM1CZqUcB
+wBFoPEuhgfzFYdvobR3JMkpIdtoBSRYucCz0mPuk+Ju8Ts1Sw9q6MpJ43Wk00w67UBWjK5BO9/Id
+sbwmAQnAiWZ0qm5SpbPwz9EKb0gwSY2xHawHvlgFOAhprboZbIfcpd+61jZBjWLohBz87Ws+s8j4
+8nGRKpqPNLVCZ49eHakBEoefbhQH7t9DNHqZhnTpGqbhYDmUI0CFgKP27tfi3lRUMYTx+u6ZpCPX
+MWviwMqJ9dfo9VgFX+GVcVgoYUfSxTq36e+6yWn9RsTYfknBOKeqP62wIKV6E2w3vOX3N+uGXZ8F
+QmAyN39JQKVieExfghBjCRn5ncCDyaNhQPaNeOOrhA3A0qepCmdjeiy4wfR3rCIdFRDbOwVI9pWg
+obaMG3WTXGNgAOAFPuy3KNNwb0w3ZrLEbxe+52bqqV/mpZZ1+yfUip8m41fLnb+IRB8PiC/9BJVE
+RJg4IHJYGki6saeVsRTdAXoqhrc3diTRf/gjrq24/vCzeroppehBdgoSFwN1s9RW4bsnKknGXeGC
+lXL8nXTOagg0gMqafaq6kMiCNNXzy249rw5QkmuY60+v3kWzkcFtShJyob+D95Ca3K60uIc/eFs4
+t7s2pKWp/wlkLl8N6nZ07PcYeP7DB28vGAQtRZ2UXAFr8YqJM5woKTQU/HiQGkkMp0bu8F3s+sQY
+GUkXrtMgCftiBP2W42LHfZR5gJHiu0brwiQtdWcywBMK7urDV2GpjvIfaqd85dBVJVJLURLmPklY
+zU0FZd/D1Zs9Cr3EP5Qpma6YqvEdfC25vbgRPaPMyX2ip6tUi5uDVXDGXWX7RfbsP8+YlWRmhRB2
+6oeWq80cH4nGOMqTJ0Ilefr6oJUE3wMijOd0Hmgmgh3HfURvblrzgHA1TyPjBaMzafBmeumjvVSH
+unHLd3P5OOCioUe6uhrz4TsjZDwVQ6qkfnG+K7jaEAwmzds6gRinfdzX9ti/8vl2s69Hvcp8FzZh
+VzKxC84YMG02a9GzXSXVDutiQQ3rMr90FQBWtYYThTeHfeubPvTIiUGNtyRIX9N3X7A9i36Yaxod
+9vWh2J0AX3lrmBs/knrRaf4RGEBd2ed+pBQFVCeEdiaK9qz5sdnFfp37qwJbIC0K/zliZJSY9K+T
+fJT2u9Ans5M3B4S9JWNp86Jcz0v4xqLO97Ciis19afzwegdsbl13+U3XmN2VOWzVEkjHw1M6Ew/8
+uDEAXgrm1Jra3A8FbsHmDROSjr6FE7BV4/C4CKHo5ZCGEGzV11ruDy2aghIoRLwuSXdmoQsHunPH
+b8fosfatA63qk9Si6E28lSV2YJI0nNnBfHYA63hjLMgUI3a/H7PtRjSJ4aWdhOIuxrRbg5i/fm+A
+G9R4GKtPEWcrxJi6D7eSZ2t7lIoE2UnSMoeu8t9TuDATowNeHco/z+Gl1gaCvUaKMR6ZryJyd5MT
+SR7wlPSdp+ElKVbFjrm14ip1PfcfO5cizNXUBebAiOL+hg0s7Nk00dLkdb+9tuqVCeovabLbDVyt
+wCRDtskw6HbE3QApYra9ngwXf1kkmX2tGyenvm/hmjTcBaIHPQQ4v7WRr5o3JknZSQN4zHoeRdVu
+UfI3EDsaXL26HPXrL1wBKDcplPswIy1xbr8wmvnlZMv/NqGs0jPE/Rx/q7nI/sY7aZGi7ufbGMgb
+GCLhrjMOQSrymL5A0G9f7cPjD07gDSWWSzKO8ezBTr3xc0IFuoH8dLwZfm2e+Ag5AKpsHAAV5UtO
+hpYLq0Z4dr/FCepdUaB/FOkHX8jTth9Blr1mk7oZtssCTQtHUCaXqPkRrIfo57jBRm9A9/wfRlXf
+FbWKgN9xIYljAnwqoz4JvI/jVPaW+OjZqQXXw5MhXJQeJQQO0dxJrzXQ0PFazXIek3CqNCQg0VIa
+81K+yP7rME2gv70RvfruDPd79Lw4Bh2X+k9Nne6mZ4Ti/WAS0obA2qaMDKuSIdGNEChQGvavGmD7
+41LYl4/IQWXJbXKnrFYZnGAGb6H4hsriYuzzI0WzT28gCeaEZXWZI+kqaYAsdQugDBDNQxZUeBhc
+wpug39+20hDwvjYQdTCoWz72VNrftziYK2+FlegvCXfH8p8QfOcTfyhszLFAyWQmIDHpB2GiznHe
+S6xIHQYYUMH3Ugv6LpkgSVLGHDYmtUCMqnVBLF2giFCti4x9W/SwVfriXnf5/vbGWXGVRimkebSW
+pbmcuMCEX6wQpR+vNe4/rAxQCKyo2Egx9yxbIOCSWV7FNXWoNXmOIhPfsWF/MYS9DU3nHtv4fscI
+bVOApkT8NRo3tmxOmB0fja1HGh4p0e15EZSM4DYhXydKcosk5RRV4HQm1szGLdxI9/z+QzESDf5V
+rf9D8rTqyhq87gv1X+/ikAVGabYs6LxkXFCbZt1wr117sRW2TWiXlxbNjooo0NOMW2AbAxTRX54F
+793fHWhqnPGmT2nM3cHp9SwoPTSg8hP3BcZZlRyYquTkBMifzm6pDzACJ4UO+0uFnjR0r6jdTvWB
+tqIWTeYERJvhYFjFl1WBwPDSWxy5v7NV7dFo6TCC/znl8UNb+4psrw+3ikYzlHzZQ+AdHG1r8ObA
+WE/9UUhst49ef7hSFTjygqwYEz/kZSistE8hrOXCv/2VvcqVOlK65oW+QhyVQ0IT97Z3qPhJDoFa
+gC6aZUQmlNVQWHU4o+heYfoTFMGU6ngCpeU1VtUcrxqn1SoHR+6ocDNUTI3Kt36Myfvc0kFaUbzz
+pYOoRC9s5AC6X+uwtcfhcEXkKe6zYY45mgxM4nLyI8hOvOSufzwFUt9FxQx4hm39KbDRMUgQBVxZ
+ECcj1uASh5Uw1dnD7OFXxdipLbHGbs/+ZjvsOEHDfYfdPlDDA2wCH5cu+agHQB7Qx0rzqka01mzF
+MGjVxZTqqD8p1mkFh9mO5RKsZ7cdc9i0foU7MNXgE4ajbyRsOg7orQ9YpvKJETQKoDv3r3cqgIjM
+i5h78luuB0ko4d/EI5MMuh0ryHvsoA0jnWhyra4aT5x0Qz2/FURw+IDki0WPxD+4LWu+y6GDh85e
+9OzUPKGTpuct68GCK1V8yH5+/4ivzzz8P9OKNa4sJ9DDuy34c90NJvuXiYX1102yiKrAI64q5wam
+OcoS5aJdfXcClA+OXAUgE0z1ZJ8IwGu3LRoXiL+kE74fGwtj0h2lmi+GRh9WUiW/ZnDe1AkE9klW
+W/teHCRXSi3avyk3N/j+5sbxNIzkJw+9iYtzTfJaRbFgNLPSqwUGQckA0XBFnPMviDeXuwpO0hcF
+uKAZMLin4SIi9N5+C8j52ot/egQvDeTfgHM8g8yZKJfp87PlzJ4EKW6eqM3eD8BV8svLcPOksFks
+2X9ZvRa8VBQqrmaI1IG8edIwBI28SnsxUOo3UVnE0pddJOlsXAkWhrCA5tdKHFlnaC9/Oe0mLPz0
+9aLzJStMBhC4VlJQxLRkxCDSbqkSwOOE4TtIbXReu6Py0e7EqQcN1Nh89xiGdzonA+WJaeFGev0c
+HnMYrpGqzmACNzpaDwJ+Jy1s7J83mCHjsswXJwr1e3xZyDMna3EePMMSytbNv80hfjeRgSKA5LlS
+Ct0MZHOo2kZovBjijWA67+YIRGLerXUJoSm6e/gYoB2Bycvg22Xa/G5cOq7fUJ8/EVCGMYYYsfs8
+i/flfDzDddP+extCKbZ0k1UEGQy5GBk03eaOvDwR1HN4Xvw9o/4DTEZ/DT+0jSRe6UmtU3YqIXVE
+tfqDaMJ50q/NuO5EsEtnsmIZt7peZrxmg7Cs7TggxzoMpeMrlVG5GjSJBsO8nzn3pnFd6CIcnhBD
+cKVVlX+WczDmRdk7r3VRgw3gWzr/ScCvUd4Pob89HRQKeKZYunB6ybxbgreKXWS4ZbwtruvDFLhR
+WBisXS8McWKIjXfu38e5WCohJNlneDOxJkVsiHAaS8uqBWqaefImKk9oqUiRQEmuKr84l3XY5/96
+5+mIcuMIFKRAnHJS5gSYDiY4sEsZSeIMZLTiT5xt5MAtlA+RKgruGNhSXjoP2Lp0EX6ClShK+VHU
+r8wJBoRbjNVYGar+PMNQiLw4rLWKspighDNvCH0Wwn3hMGq7+N9T6SmYdIOaLNxgpB/uoQMKPXNr
+5dlBwCxtE5WNGCxI+jvgWm9ba8w3dPr4XhjwCD3kp+rV3FXDJBujRIlxHJvZ13SJfVBC9zP8sR4v
+yVkqeuPCOUs4aGoceaMhWJVWw9hCFP3JJbv/QrLBinRCX4ADDQYpazXXgsRyDEu9fblE8w6CnY4G
+5InCDeSaiWVxAI2+/M1LvjWL4xttAh1ZVWdLAtmQLDZs38gBzCpDV/JK2UzVEGr4qEStPdcq2cHX
+gSUBKlbZzWmJjjFID0Zk+L/44rVrFwKM8SC6LysGPeemLU9ICuPoBmtYPgZgZipQqSklWjATWWKO
+TDdneHn6RFsBX9Qgv0Cgxqal5Drjx2ZPHV1LKzc86YlyELNGsU8sOnfNWXZBdmi7CvzKX8pw7Oi0
+maDK/lBnjDghM4an3L4r7eNVKQaLa/UNi4zVZ+iMlLHeBjkx/Ahu3DIza7EalbRPJKAr07qRxqkI
+15oIkNcdrWmjNm6Wy8sZjvuqNnYpuJwReXQlVPU7JzeYf/1gYnAXjSl6bCleDp3HUFNBJuLuJD3b
+p2jzNUWr+2+jVQtLaLhe3gTLL+jTEyEBez7Ahb1e8gWS5m3uifpw3HOKXvrY5sS4t0vNUE4I6oDF
+qhJA72An6oR0dlC7AWV2LfmiEYSWhUlN8IHboag1YmnU1lcgeGg5vmaEisgblcuMwRztXCfYVmy7
+rOojObsqR5r5hjouke1FIJivcQ+MHjA+Xv3GNYM6FjC97CM4Hj178p7t2slkPtaX2hAafkWeSFzQ
+/5Uv2mqhKlj42QdzuzEkz5rDndT97SuX5dZdwfQEbxRio+EMOCm18nADuSzE2GHVYROrghnxAFw3
+PGpr9QttenFkYCeDEHz4TmuZ6nCaljX7p3eYM6ZjQxaXb3Hk82MnW2iPrAeQaGt1yvwY0ZCzdB7H
+KAAsnkK/2aWxPsRgBicgwiAOemCez54n4UlkVdP5VAG+u72rwARYKkFoGeTM92aUTkUWLWppLop0
+7/Vr5ZNNhwF/ffc5FtOGsBNa0TQLr8FsVuxBNK0jCLuCZGUJukhHeVVDq3dsdejwNQDMjOaRjqge
+E9spiZHl9tz3kjUK1lmzpbMg2wRDEWiwjkcphMs6xigdBWNAUIw/N4LgDyMb2xRukmuEO9PFFekc
+rvdxGuj7cRtVWmveUQGrbLypCWbLActOK6aNsvfb6JIPLRZsTcrPlcaPtkDCXYOI2cxZV756GEJY
+c1/1C9BICm285zbkRT4uEdtsBHY9/Z/myWDecPv03reZ+Vrs95DjWNV8hm9Ng82YifXgQhOYJuUo
+w+08wWL6VuB7GXCDJzqxMfz0TSb+PKwu9lN8YLMRkl6NcBACsEbl6kwJhdNhFgMDHnTQVXx7TWh5
+qtffgmXq84tZhrMKV9XCU17KOG1dk5s3BNMypuAM+ONJS0OSujZoQN1n3l0dmejLOAwnAUjUNwPq
+yjSoqh3/klAMsme9YLTAZnWSW5Bc60fy/1XbbUjzZNFByey5b3aG1nMDya2TiLwv0NbaCBmiVflG
+wJ8safybV45mbZL30qIsEwl+8LfvRX868Gyqoapt7wNNxb9FIQDzIh/nWG1DnV9EfRGFdIcVwTxm
+EG5m1csRvAVKzHuhX+c9m42I6YdBL87T7MSLl8l4kyJgJBM7y3f6buYQIjf9piYof4HI6MmbxBdx
+4RI8DCdmAsemYIzoNmqnY0y4hDKzdcOVvVu27C0/PQwGsH8LEA/yb2lqSIWfEj4jLQ4HVWxWtLxo
+gETSAZw6CNgh9hJd8SsVX3G1ZeT/2pQEKj0G2FzuHoj//D9xTsgaupz5s7LNx6yb4SdMxiu9l11l
+ZGcpmKpJSBbmJIF1mbYoJGogGs6fj53lRq1prhAgaRsOuPpmvKS/1lJVlKTqRAKhW+qx/TVIvtI0
+wCSVfWGsrk+MoCAGirtylNPvBYnidBSVG1Lc6uKKOgPNJWwR6FnCUqjLPlIs71Y3Yvits8Td+C8x
+rDqREGoQZ2SK3vhaD3azWg52ZGBpj7v9c/0asOV+dMfmVvbH7CWzBBlJ/43Mki6+2uQE4bmU7BIc
+nQo0vIS+m3b4HbkobxDd72AjO2eOb6hujAicE8o5spcctHNl50Nca2JisSUSEg3GcrvO+kR2DVKb
+CxzbllXYsYPEmFnjoPrA+d7PmFa3Zfru/JDddtEahIOEHbr0DR92jqIT+GCSWBHgXicregx4fRE5
+C5h1y/P6mb8qGKDGfajNHZQCCeFgefO9JQ1embk9TU858in/CieSNTE6zT8o2P55SwiASAjLv9Z7
+JdACwSwfB5St01Wf4vc9U4stcxl1qepDs8gkz7evsp+t3E2BztB89pk8Aj/3Rt9WzTNkq/exf5SV
+e9VMkwInI5v3Jq670oe409EnJojHuP13qaY8g/LlN5AGz2f5wF+oPBMpRbM0hC45OmJZNF0J02MC
+7r5b/+99cX41SnGpG+6VS4Yr4BF2YUSIh244ve7m5Z0VFIZyZG8rZ5Z2+rM3Wq31RkmPLh7QqgLV
+r0sVS0SxYn5mDBrIg8zb1vOWRCEKxGG0M6cciVSOc0MDQFeky2fVJo8zsCUG3KTjdNtQzSB4rHWq
+h2p6wmku302S8OpEvVzz/6PwKVmG9yCH3uLMEV+BbHc1L6oKXJlKeI2VNZllp/ubnLmWCnJVNO1M
+Q4Z+cHdKEz/gqYc1lYJU35odFRic5NrV3qJZgVJoaYcI77SViUDuClaVHCA9MRFQow/lU8cVdZwA
+HgwWTiVMpZY/sHxDQ3f6LmCjMlKa24NatlUZIs2qf78ktjkbB6/3d3xg1tvFKj5ewyawrMH6DTTk
+ZYCdQqJUAdrBcQDbyuDG0ug0QJTQ9P98IZPXJUVQow1cxKNW6hm94A3LxkdPdaQ67+mQTU/oB7OA
+sQwqDUt5MP2AZyvALi0R1PVZ58XJqfsAbJMPA0CPC8kjd5es5xfx1MHXtITor/2PysoxrymV83Xb
+NdteGhsI7iKZfKsakVoheLDU43xUB/h8N8DBjsXaMGcyBNIx9Cg5et89PpUw+nLP14Gkd3q68agx
+JpIrcgsPqVnoh/7Pxl0GSnvPY+HaddzWkTgW7FYUCjSel8rl7+085TRpPf4qnHHCTy4+48Ny6sgO
+nyl3k4DJD/JP0nqPKOHAssjoj+n42wWrS0yE2vuKIzAvswi+MuR1fOFNPxcSq7nObqTSNf8TZOVx
+olmEZaTzP2gfIYwCUObI74UtHR0lhj9wUGdoQ81GO84tbIgkMfcm0KHM7qDOOKdk9pwxyihE3Hy6
+apLvMfAkNYz9iSD1rO5sJMbfCBfjlB4sAhBys6KQvgwAtZ3TOYeEne6hh3zIIPR4PrvPke1W1WMg
+QPplrmXaTHAPrYsFw4z7BX5eR0gTQ1zPFpMKqZ/2f7z7SHfqjuCtETgBoU4AvjuKygV2WfM17EBX
+YuTx3YT0r7d7zSXe7Z1TldS9T/p+N+ifNXZzd2h8mOKaen1AENbc2AQLkB9fIEncyQNllpxJKn6R
+MZqQsQUbzn79DPoRCT/nJHaszfMoQA3LBJMAyPtmCEnju9D8mkr0X36U0TRxC2wWidejIwkF98rA
+VI1288bS0xPwGrji2jvv3EHx69YUqfrdtvf5ITFa2nVSPZNWoiso+pYdpn2nsoc+dm28Y/2YAMub
+aLqWdQDOAeb47LxymjDZLrUiBnmpesCd2eiv3fXpjLTZY4Lzo99VzDlVoQdD1iCL/YjWVY1ov1ln
+jRUxu5ffKUJ2K50OghSQGjnbs+McgoQE+YctreJzxB+FZv1fIgor+6IymIuHRPyDRY/3GXkm1cyh
+NI5q4175m0//skI/vMjPqWn9hHN/fJ6tRCVBFVlWkTkbbi3K9/o8rcv6LFZ573a9mwuuLTx6INZ4
+Ha3N738Anm443S2fIoAxL2CH2c5lahU3Z3XWidr1irwxuUIC7fgrKfG5lQ2emB2srs9EwcznJHb8
+Y63kJrlqq2pxlyfKy5UXKhZdqIfLjusaRv5pXPurUklCowj8IGpbEQGMznJIzacJuC2hOCTw2aWE
+8uvdRveG0BXEZKfGrSnyQZJNcnpThYlvWilwuPS1tvXIvR1c3c16ute8WTGF5OXiGXy+upisVtSA
+I5GWpXTRbWlXkEF6xBmgjOfUQjxTfR6vIZkFAA39GYt3r28oAD0b6obTUbW/hG6dP7N1oyQrL5xi
++dNEyyE2PXqGI83e25GRKGxB4Ie2eiEpeCHaFlFM8+KiOHtawxESBIoWMQmIn1LTsXfQxS8JgOzV
+RmFcy5Bv2sH3v2R4ayA0GMZ00SUwyVrbGnFI861u8NPQCOuHTH+/gFV7swHeyf08/VJLrNE46dCI
+Ob0Kry9rMHILKqVMr/jrKouwamaBC6+UYN7ulBw/gKuMQ59QWIM56uNQlqc42j1DBxwZFOOiBI2c
+daEBh7DruCDdtD80+ei3C4LtYB7CqA/QGuVVyG3i0sEHEu9XOkBE8j1Ae4vfM0By3mrePm0p3R0A
+Ss5lRC1J+HAqfYRcCQo294Y9eNnBXyk7jtJrRpihourm3nFnxGiE3yLBbCcpcTSUqrOKG5YGHIkr
+wry+AAzl+nHRqXM1o4xZj552bDc83QsnXx3heKkRI6N9Xsge72UziwL5rEfLGMtq+7OQVbj1SqpC
+C8LdgfT1zA3oSdvX6hauuxOFTiWjZqwoMSyX8/vP9zcCK1KVqyORqUtMsyUOBDuPJUzMLQ4Kurk0
+SruhcJye12ph+8KH4b7nPVHR18a7YjT+JZijn0ReqfYUoARcHvf7U1pdvFmkeCH0gt/F8tgYtc5q
+HLPckxERYuCjC+Tixn9hRIxks+VI3V9PgvHgzpwp0qKpvIkOfnNn7zYs6EeVJLvhA5/I++zb2qRv
+0QRm2t8f/7587e3SYTSxMOZJDmw63Q4WUXfd4xS5sBHKvoG2xH50hxrHXBwxHsUIv0a9+lCZHBYc
+ERwoYQGzovCFd97l7vdkQ7BlH2mecCVwRPKdlb8l8CAG/h31CFOmiGF9sLDC9vlUlcRL68Fcv/xO
+jOi7i/v0kjM8AC42U7RoiL1PfEYg54ewfqD+qZ3R7KvbYLFL0Cqg28IC5vBTxbrz2DDDLj2DLqDs
+EOfT0muc0TZW+a+ygEMhfIaYU3BUCqFwKyFu1HTwjmfgLjce1jTkJFOSwValyaE6gaibKSq3jHZL
+RV0PKrsbAgIRBgUZ2fby7RECui/N+xGH2RiTDwC+S36ZCilR9WSh0tje4SI0oQe/Iq2ErTKZTuCg
+6bACW2pVL64da7KCGbF/SnwFtU+/BLnksS1jySkxVpOBpw61kEz1Jo+Ux+dh0FrINdScIk7FlWYD
+aoBs7QqmzRLPlC7HUeYnrM3RbJyuVA/IupFSrA1ypOm60i0WP+6T84084Ty3lCtw1iI3IK23z41f
+Ma6w9PJO2SGNpJGp30tiY3Cbl0MlFWfrJjzEH/o2fxL93ujY3Fz/g/3gL9TMqjYP88ZrlNLSocKx
+dnX4bXHkMABwYoVTPh30HETYkeydlpycWWYy2HbZHLOOLUfnxL0GPtCmJAxLedujI6LJidAvT4PD
+r55BKC9q2/JH17Ko/4Xp/xxBq9te/Uhx6wxRuO4u/Y7XYrZxJsbC2AaE0d41/N4TrTAApAT0wlXD
+8H7hSDNfabiKnLaUGIj6k/bDrVITe2DfsoTpS82oaMhX5wjl8BLajAb+NrvkPY8iXv3nV4vdRavP
+B71SfeNOq2uj/IpZGjWpSakrnL98TMe1aU7NQxkT84MoKU23KBNq5wxXj9nPiNcMs5cbPedrig8o
+O4ULuouKrbr9GiSDMtyZZNrqqVVXQuRM5XrF3uYiIIV50yhm24AF0PyNzNySoiqKnAhR2zSPTTFr
+iwWQJA4wB/6d57dZR1fRD+ZCNwcJG9MtChwftX1iN7NrTRDsdM+zBt44wbqbE+c5exW1b2Jc7Izl
+VN3OqqW4rvN7RbjyaSRD8zRD9t7hyCfMhvq2QT52bCwJzpIyQgN1MHvWLohovCb38DVaME/PE8/Y
+qtsZp65KiSvdAA6FJJOV0FX9c0Z98zBHHRcFpb9wenZjM+nJKKlfgGg2QHpkRJARXisO/E6qXmnX
+xbKNlffIve5UjAD6VigtBL83uhVLy4OpoDtRqKfQhNSNtxh4n8A2fQ++8ZSEauyBXgY0FYrjfVnu
+FQLcmMxT0TAIUCEef1k31qDbtO2mrvynuSNnAG0xGObQpGidp2XYLLnHTbj1tUpxhfO1+gtvj84V
+nYLxMtv09G+a1Rd4bRe0

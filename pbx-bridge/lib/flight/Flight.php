@@ -1,96 +1,48 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-/**
- * The Flight class is a static representation of the framework.
- *
- * Core.
- * @method  static void start() Starts the framework.
- * @method  static void path($path) Adds a path for autoloading classes.
- * @method  static void stop() Stops the framework and sends a response.
- * @method  static void halt($code = 200, $message = '') Stop the framework with an optional status code and message.
- *
- * Routing.
- * @method  static void route($pattern, $callback) Maps a URL pattern to a callback.
- * @method  static \flight\net\Router router() Returns Router instance.
- *
- * Extending & Overriding.
- * @method  static void map($name, $callback) Creates a custom framework method.
- * @method  static void register($name, $class, array $params = array(), $callback = null) Registers a class to a framework method.
- *
- * Filtering.
- * @method  static void before($name, $callback) Adds a filter before a framework method.
- * @method  static void after($name, $callback) Adds a filter after a framework method.
- *
- * Variables.
- * @method  static void set($key, $value) Sets a variable.
- * @method  static mixed get($key) Gets a variable.
- * @method  static bool has($key) Checks if a variable is set.
- * @method  static void clear($key = null) Clears a variable.
- *
- * Views.
- * @method  static void render($file, array $data = null, $key = null) Renders a template file.
- * @method  static \flight\template\View view() Returns View instance.
- *
- * Request & Response.
- * @method  static \flight\net\Request request() Returns Request instance.
- * @method  static \flight\net\Response response() Returns Response instance.
- * @method  static void redirect($url, $code = 303) Redirects to another URL.
- * @method  static void json($data, $code = 200, $encode = true, $charset = "utf8", $encodeOption = 0, $encodeDepth = 512) Sends a JSON response.
- * @method  static void jsonp($data, $param = 'jsonp', $code = 200, $encode = true, $charset = "utf8", $encodeOption = 0, $encodeDepth = 512) Sends a JSONP response.
- * @method  static void error($exception) Sends an HTTP 500 response.
- * @method  static void notFound() Sends an HTTP 404 response.
- *
- * HTTP Caching.
- * @method  static void etag($id, $type = 'strong') Performs ETag HTTP caching.
- * @method  static void lastModified($time) Performs last modified HTTP caching.
- */
-class Flight {
-    /**
-     * Framework engine.
-     *
-     * @var \flight\Engine
-     */
-    private static $engine;
-
-    // Don't allow object instantiation
-    private function __construct() {}
-    private function __destruct() {}
-    private function __clone() {}
-
-    /**
-     * Handles calls to static methods.
-     *
-     * @param string $name Method name
-     * @param array $params Method parameters
-     * @return mixed Callback results
-     * @throws \Exception
-     */
-    public static function __callStatic($name, $params) {
-        $app = Flight::app();
-
-        return \flight\core\Dispatcher::invokeMethod(array($app, $name), $params);
-    }
-
-    /**
-     * @return \flight\Engine Application instance
-     */
-    public static function app() {
-        static $initialized = false;
-
-        if (!$initialized) {
-            require_once __DIR__.'/autoload.php';
-
-            self::$engine = new \flight\Engine();
-
-            $initialized = true;
-        }
-
-        return self::$engine;
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+DgBdbyp/mk++lMvbQW==

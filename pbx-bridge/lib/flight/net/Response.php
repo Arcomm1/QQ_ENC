@@ -1,299 +1,119 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight\net;
-
-/**
- * The Response class represents an HTTP response. The object
- * contains the response headers, HTTP status code, and response
- * body.
- */
-class Response {
-    /**
-     * @var int HTTP status
-     */
-    protected $status = 200;
-
-    /**
-     * @var array HTTP headers
-     */
-    protected $headers = array();
-
-    /**
-     * @var string HTTP response body
-     */
-    protected $body;
-
-    /**
-     * @var bool HTTP response sent
-     */
-    protected $sent = false;
-
-    /**
-     * @var array HTTP status codes
-     */
-    public static $codes = array(
-        100 => 'Continue',
-        101 => 'Switching Protocols',
-        102 => 'Processing',
-
-        200 => 'OK',
-        201 => 'Created',
-        202 => 'Accepted',
-        203 => 'Non-Authoritative Information',
-        204 => 'No Content',
-        205 => 'Reset Content',
-        206 => 'Partial Content',
-        207 => 'Multi-Status',
-        208 => 'Already Reported',
-
-        226 => 'IM Used',
-
-        300 => 'Multiple Choices',
-        301 => 'Moved Permanently',
-        302 => 'Found',
-        303 => 'See Other',
-        304 => 'Not Modified',
-        305 => 'Use Proxy',
-        306 => '(Unused)',
-        307 => 'Temporary Redirect',
-        308 => 'Permanent Redirect',
-
-        400 => 'Bad Request',
-        401 => 'Unauthorized',
-        402 => 'Payment Required',
-        403 => 'Forbidden',
-        404 => 'Not Found',
-        405 => 'Method Not Allowed',
-        406 => 'Not Acceptable',
-        407 => 'Proxy Authentication Required',
-        408 => 'Request Timeout',
-        409 => 'Conflict',
-        410 => 'Gone',
-        411 => 'Length Required',
-        412 => 'Precondition Failed',
-        413 => 'Payload Too Large',
-        414 => 'URI Too Long',
-        415 => 'Unsupported Media Type',
-        416 => 'Range Not Satisfiable',
-        417 => 'Expectation Failed',
-
-        422 => 'Unprocessable Entity',
-        423 => 'Locked',
-        424 => 'Failed Dependency',
-
-        426 => 'Upgrade Required',
-
-        428 => 'Precondition Required',
-        429 => 'Too Many Requests',
-
-        431 => 'Request Header Fields Too Large',
-
-        500 => 'Internal Server Error',
-        501 => 'Not Implemented',
-        502 => 'Bad Gateway',
-        503 => 'Service Unavailable',
-        504 => 'Gateway Timeout',
-        505 => 'HTTP Version Not Supported',
-        506 => 'Variant Also Negotiates',
-        507 => 'Insufficient Storage',
-        508 => 'Loop Detected',
-
-        510 => 'Not Extended',
-        511 => 'Network Authentication Required'
-    );
-
-    /**
-     * Sets the HTTP status of the response.
-     *
-     * @param int $code HTTP status code.
-     * @return object|int Self reference
-     * @throws \Exception If invalid status code
-     */
-    public function status($code = null) {
-        if ($code === null) {
-            return $this->status;
-        }
-
-        if (array_key_exists($code, self::$codes)) {
-            $this->status = $code;
-        }
-        else {
-            throw new \Exception('Invalid status code.');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Adds a header to the response.
-     *
-     * @param string|array $name Header name or array of names and values
-     * @param string $value Header value
-     * @return object Self reference
-     */
-    public function header($name, $value = null) {
-        if (is_array($name)) {
-            foreach ($name as $k => $v) {
-                $this->headers[$k] = $v;
-            }
-        }
-        else {
-            $this->headers[$name] = $value;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Returns the headers from the response
-     * @return array
-     */
-    public function headers() {
-        return $this->headers;
-    }
-
-    /**
-     * Writes content to the response body.
-     *
-     * @param string $str Response content
-     * @return object Self reference
-     */
-    public function write($str) {
-        $this->body .= $str;
-
-        return $this;
-    }
-
-    /**
-     * Clears the response.
-     *
-     * @return object Self reference
-     */
-    public function clear() {
-        $this->status = 200;
-        $this->headers = array();
-        $this->body = '';
-
-        return $this;
-    }
-
-    /**
-     * Sets caching headers for the response.
-     *
-     * @param int|string $expires Expiration time
-     * @return object Self reference
-     */
-    public function cache($expires) {
-        if ($expires === false) {
-            $this->headers['Expires'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
-            $this->headers['Cache-Control'] = array(
-                'no-store, no-cache, must-revalidate',
-                'post-check=0, pre-check=0',
-                'max-age=0'
-            );
-            $this->headers['Pragma'] = 'no-cache';
-        }
-        else {
-            $expires = is_int($expires) ? $expires : strtotime($expires);
-            $this->headers['Expires'] = gmdate('D, d M Y H:i:s', $expires) . ' GMT';
-            $this->headers['Cache-Control'] = 'max-age='.($expires - time());
-            if (isset($this->headers['Pragma']) && $this->headers['Pragma'] == 'no-cache'){
-                unset($this->headers['Pragma']);
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * Sends HTTP headers.
-     *
-     * @return object Self reference
-     */
-    public function sendHeaders() {
-        // Send status code header
-        if (strpos(php_sapi_name(), 'cgi') !== false) {
-            header(
-                sprintf(
-                    'Status: %d %s',
-                    $this->status,
-                    self::$codes[$this->status]
-                ),
-                true
-            );
-        }
-        else {
-            header(
-                sprintf(
-                    '%s %d %s',
-                    (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1'),
-                    $this->status,
-                    self::$codes[$this->status]),
-                true,
-                $this->status
-            );
-        }
-
-        // Send other headers
-        foreach ($this->headers as $field => $value) {
-            if (is_array($value)) {
-                foreach ($value as $v) {
-                    header($field.': '.$v, false);
-                }
-            }
-            else {
-                header($field.': '.$value);
-            }
-        }
-
-        // Send content length
-        $length = $this->getContentLength();
-
-        if ($length > 0) {
-            header('Content-Length: '.$length);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Gets the content length.
-     *
-     * @return string Content length
-     */
-    public function getContentLength() {
-        return extension_loaded('mbstring') ?
-            mb_strlen($this->body, 'latin1') :
-            strlen($this->body);
-    }
-
-    /**
-     * Gets whether response was sent.
-     */
-    public function sent() {
-        return $this->sent;
-    }
-
-    /**
-     * Sends a HTTP response.
-     */
-    public function send() {
-        if (ob_get_length() > 0) {
-            ob_end_clean();
-        }
-
-        if (!headers_sent()) {
-            $this->sendHeaders();
-        }
-
-        echo $this->body;
-
-        $this->sent = true;
-    }
-}
-
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

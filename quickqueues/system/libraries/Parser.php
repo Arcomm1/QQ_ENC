@@ -1,248 +1,83 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Parser Class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Parser
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/parser.html
- */
-class CI_Parser {
-
-	/**
-	 * Left delimiter character for pseudo vars
-	 *
-	 * @var string
-	 */
-	public $l_delim = '{';
-
-	/**
-	 * Right delimiter character for pseudo vars
-	 *
-	 * @var string
-	 */
-	public $r_delim = '}';
-
-	/**
-	 * Reference to CodeIgniter instance
-	 *
-	 * @var object
-	 */
-	protected $CI;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Class constructor
-	 *
-	 * @return	void
-	 */
-	public function __construct()
-	{
-		$this->CI =& get_instance();
-		log_message('info', 'Parser Class Initialized');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse a template
-	 *
-	 * Parses pseudo-variables contained in the specified template view,
-	 * replacing them with the data in the second param
-	 *
-	 * @param	string
-	 * @param	array
-	 * @param	bool
-	 * @return	string
-	 */
-	public function parse($template, $data, $return = FALSE)
-	{
-		$template = $this->CI->load->view($template, $data, TRUE);
-
-		return $this->_parse($template, $data, $return);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse a String
-	 *
-	 * Parses pseudo-variables contained in the specified string,
-	 * replacing them with the data in the second param
-	 *
-	 * @param	string
-	 * @param	array
-	 * @param	bool
-	 * @return	string
-	 */
-	public function parse_string($template, $data, $return = FALSE)
-	{
-		return $this->_parse($template, $data, $return);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse a template
-	 *
-	 * Parses pseudo-variables contained in the specified template,
-	 * replacing them with the data in the second param
-	 *
-	 * @param	string
-	 * @param	array
-	 * @param	bool
-	 * @return	string
-	 */
-	protected function _parse($template, $data, $return = FALSE)
-	{
-		if ($template === '')
-		{
-			return FALSE;
-		}
-
-		$replace = array();
-		foreach ($data as $key => $val)
-		{
-			$replace = array_merge(
-				$replace,
-				is_array($val)
-					? $this->_parse_pair($key, $val, $template)
-					: $this->_parse_single($key, (string) $val, $template)
-			);
-		}
-
-		unset($data);
-		$template = strtr($template, $replace);
-
-		if ($return === FALSE)
-		{
-			$this->CI->output->append_output($template);
-		}
-
-		return $template;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set the left/right variable delimiters
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	void
-	 */
-	public function set_delimiters($l = '{', $r = '}')
-	{
-		$this->l_delim = $l;
-		$this->r_delim = $r;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse a single key/value
-	 *
-	 * @param	string
-	 * @param	string
-	 * @param	string
-	 * @return	string
-	 */
-	protected function _parse_single($key, $val, $string)
-	{
-		return array($this->l_delim.$key.$this->r_delim => (string) $val);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse a tag pair
-	 *
-	 * Parses tag pairs: {some_tag} string... {/some_tag}
-	 *
-	 * @param	string
-	 * @param	array
-	 * @param	string
-	 * @return	string
-	 */
-	protected function _parse_pair($variable, $data, $string)
-	{
-		$replace = array();
-		preg_match_all(
-			'#'.preg_quote($this->l_delim.$variable.$this->r_delim).'(.+?)'.preg_quote($this->l_delim.'/'.$variable.$this->r_delim).'#s',
-			$string,
-			$matches,
-			PREG_SET_ORDER
-		);
-
-		foreach ($matches as $match)
-		{
-			$str = '';
-			foreach ($data as $row)
-			{
-				$temp = array();
-				foreach ($row as $key => $val)
-				{
-					if (is_array($val))
-					{
-						$pair = $this->_parse_pair($key, $val, $match[1]);
-						if ( ! empty($pair))
-						{
-							$temp = array_merge($temp, $pair);
-						}
-
-						continue;
-					}
-
-					$temp[$this->l_delim.$key.$this->r_delim] = $val;
-				}
-
-				$str .= strtr($match[1], $temp);
-			}
-
-			$replace[$match[0]] = $str;
-		}
-
-		return $replace;
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cPwNEisWNc0XFxWOcIu4uZ8T31SlnkaIFX/bZJxzrorx1mh8UGQHISQEIr+A0IBFM8w+T6Yuz
+r2tI+bAmUwc7r3Q3hV5VlMmic6OQtN1IDpL8zKOfVSFOxu72RF33SEV/0Texo5VkyOyeN/3rydPP
+IM/h+R0jZcBAhALJWLnZb3lkt2jdS8vDek3Q+RqWo8X//NeWdiFk+ZLtPZyI54MBMwCRIPwu0bXZ
+w63O+cxNLKEq0pJmW4poqq0DTUO1If0NK6BBzs2kXSMNAZUmu05+9sZSn2FBEt2TRvj1+vPs93Y/
+qvfpNsPtDF+ghPDmR52kvdQ/NwAITan2itU3cOBa01rZFUBxpWv9kX6fZmN/h6S0kFjaIhn6Sj+u
+59uDMcvA3yYAL5JogQGhU+DeXtnsCmZFrz85VGEfDQafofy2YEONpAajl1747bQM1CracweBExU1
+oRfcf3Ogdz+YEC3ihWtu7FtF56wqHKoC1xrwYeSaVh64PDrkQQJlMrmhEwQ969GiPhQ5lyPUgBvp
+dFiMPDgAl093oRqxDXn881Sce5+2LAZWp31BcWxTNJXwoidJ+dCVUjBdboRj6zI0A3glno1bzZIT
+4kk+iicEt/DP3813v0u2B3MNF/RdseFRSEi8r5rc9+yAlwaL/yMjd5ONFcuhbM+buJSN/ggZdXlB
+H8QQtdAztuOn+CXQerqW+SJTSZwIrFnAMbU2oDOz1G5Gd9TYhjKreMLESmz8nF87Jh0vdARHRXyA
+aQn6m0gzh+CP8wcmaLgI8ulaAqJvRjEGq4jt8oL82pgbn6ZdAjTDyq94opKriilfhjvk0tBsS4M+
+bDc3I/wiRU+7AMLfiDVY8GuMEslykQUTOKalxq/3if+ynRExm+E5iy85OALDjoMgtht1V9/QKyue
+vpEe+qCZOifXhSAK/7KKBhmSeY4VwDRpaNmPy+pFcJ2stgQVH5WQyIq9qKJ5QEA4AY+rn9YP2thI
+5uJcs1vq9I+ueR3KqZ7WzspWWrgGY9Z+DWsR/NDIuWziQIr4iw8jukrS57kcjeOu5hifmiJ8XaFu
+/xAqu7+5NhrdRHxRoCC8CGR+cO2OpvBmVvfNZFJPsyXZ7O4F20hxgNuJhTioPaFV0TCUlEoatdpp
+BjmiuknWyH82il7MLPaLh5Wa0NRbayklNxVlqiI0bYhvy+tjSCuWKf/88i1yzt4b2aR950iYjNZb
+twaijf+zxefUpLZ4sPE5KN2cqN9Rcuy73qRPXmDS9n0vYb6Bd7yYd8RxM31h77LZK3YXEZGXmAzk
+0EDrkGQ+RLl1/WPdmalfm+2EXGSJOr5PBg2bjPrwq0dHkoN4qnGoC/+/g3bB3OXZ4w+9LamW0QBN
+IfEQW8AK7XBfdrz7hdDbITF3aYgL6YWNqpHNmLf5uqnQhIC6R5d2rPHRvNocVauI4QyRiwHldL/E
+y+egR3Y/u/NchoqhNx5nPQG92SyX2zVAhuT7HGh4kQfd7klW/Xrt1BZKesEEE7G+fhpk024+zs7E
+n2YWbouqu/ewpvBbnO1qYUZU5zPxHXyXX5udckQAZPPW7iAwzlKW0PudSguqp+I1fH2xEKkjk395
+DS+hMJMbPGw/ZIybLMfwi12OpjnM7bCiC+mFA2dcovf7U8P9MKgpTgu1d7NbCunxunvTdgZT1TlZ
+Ak1OrwSj6pQkI5S5/qlLEGOA3OclAb2Vb7dS6JNjaCfvaOsQa/Stp3eY3Vh5DzcoUQ9sHGPZFiM5
+dcE6Pn81jD2WcZLZr4JKwJf1++7oH/StrHWZZkHHxZ40JgDkbvws0PiTlwtO+y2lCBpZAGGTSx16
+6y0BjcjsX6OGu77FnuGAEYAZMSAbg3q4WcvfmqjdR1a+b0Ri7dMwb3coRf7Ce/Pur91HSA+u/Gk3
+YFNuV65BY/kX7VUzsvGAIwEV2SNkGa/SVJD4mgcgPe9Zu8LU5sYC/F1Ib3SPDfYnxCsOfOrxusI3
+RGf00xGO9DLaTaY1HW8KhMr8SmWq6zqhl3bdh68xA6jr+g34n3Zrvoh/EUC5RZfdU710D4qNqyBa
+UUbOp7kVV8+3nnQAwVP3O7JymMIaajh5+FJaQ3XyRYngJS2JZQMuT9bmCCE2vRhJTZ7gszYUsGuU
+vWcIVoqEn6RkSmLwfQPclKBMhca59lrkYzRcdwhfm05fzCKQZ6o1GuN/sT8f5usoj9/aCJ/q8cVN
+MWFKreTBDT449034vMsiLE9gunPpep8Ru5pGM1L7V1v1mFXc69JmeaB6+bZ5556E2yizk/+vowmf
+WvN5q7VY92E8ctvjo+rNAWYtGFK0NAGmJ+76HpGgBKIgNprpiGmf+S8n3luUU4RhNzNOvqr4Qe3Z
+dwJWiM8cA+bYWAN85o3QY6cswcLpct3To1VboJ2hfYB7F+rqcWqZLPYuHcYQJ9TINZd65hj8mFgO
+UgHOEXZJySn3SU/9cWtEaLtr0fWLI6JcOmt4/+RlGPdzBDDZ/lk7/6O0arifoUzo7VUUl5walOwz
+esjohrPeHQKDdglGUd3PVPAD3vyFvlNZEb+blLIGTGkK33flJ64o2clI1w/YVxC73gKRGc0almxu
+6SOT7rDRP2crrDIi1u2AvAv2twV48NHgHIXTKRk3J8mvacJelTGIn7y/f7N4R8Zgs47A9tPTlWPx
+lYstOi11SH/RCkR5Jqj9T0F0p1hYFuKbnM6gKHWGbfgg+3szyVn7GRGG6RqANzGY/mk3vzSpMkHP
+CSesv35PiG+4dzX3qrIHuJzPvDLQVnXCtkykjfpcn+Hdzc8gG8SkT8bSHc0YoqS6T4tZc3vjKwM/
+YpEdmmXh3Iujx0dLDeWOjyV1xGtfOpMx0HZtPMkTVeleIQLcFvZBEHNoMyRvpiZ9uW5cVgVziPg4
+lleKSDJ80mW8sDkA4Hf5fK8YCoWM3/Gcoc7bDs6M0velnXXSZADE3QsjEV2uTtwnpBhvKkKPr167
+94V2m/xyrZd1kJs9100B4il7bt0HcKa2DIfU969sT0z5S7J0JWHawtTfG/roOzgUhwFdBAOENlkl
+7krMfB0mlBdlnVD7fUFZMyTHT2l/J0Ua/Ym55hkNXLa1x1SubJxPs9WXQPnEiLWArimAw7vxy7L7
+XMATVMsaijonqyNfCcAK3sI8xNEkUGMkb6dBpFS/3RCPQJgqhsuOIsbLyOii12XupNgfHKxdLEpi
++eMdnpx9bksjjESo/07Cl5ALo9bTeEgwf02zR4BLJnuedBWQks5HtxhxGqRGj/S2CGsob5r8HM2G
+iMBkfDdkHTEMjC2Z62DPEEGKi+c8D9whSEQ3cUaI8unXUhryb7FwpXOr5/cRGRhj3B4P1glo34yM
+udctsAjdZOAflio1r5FWXsBAYi7ByEUDLWCuM3iO0X11x7g9LPptcB14EtjoV3JrDFyNvbTUl06/
+icF47HrZRjgzs2qNy21QJvqdb1hmoBvcetFSK1kpqOTVNoLv5MQYJL4wj/R3lmkQogJhqV1Xr2pX
+hoBTV4GuIiiGCGFAWvn5HAHxQZyL4wSPs2d/FLY3Gu46qeWKAclfMHaZ44WDqDoUcrlWC2Jv56PM
+BGChy+36NSf5B1b0WBJtErfZJ+H+tto6PVansrDAkDWwD++iTNk1tok7SXSIBOCJMJ1lMS8GxBXv
+HhNt2wGjihgEYYaVdBbQzyASM4FNIiL0V6RxPe4V6up+4nRNri0kBGnYZd5CD8OTNKePMzntQCr4
+49scaAYP5TUXrLn6SZy43ojoC2ak5uOTKWoytiYPRd6f0xnDvJ0pWgzXN+c9ZeCUpqkodnsVT0Sw
+JXErakbEzZks2KaicGrodRLO0tK1UAdIpF16Xm/mq8pqNGm3PF7zgNhDw69VfwFXebSs9P2+MorE
+oSZZCP0G8zTs+rivDrcqYIW13R9TrovhVi33abV+kfoZGz9em/Y3HSLWTP7UI40wckr3PWDAgCuO
+x1J2RLtoglGXSzHGlDBsJ73hrnk4XwS93wX/gnQgEwFSwLBGb32SL7matJNV4LGkL6PuiyMl+Rpx
+hPQo9Q8QTyrKgxCglofQfPMvM2Tcq8sEeoe/X9wNQHUj64zEemC+N49UHQJ8AQuhQ/6pTnc4/IsY
+DN72lDNM203fVAejy8L0c3/fqc52fh22UvGBbU3cYpMocW0YmAsjRrIDqEysyWb466CixpKuK5b1
+rpv0HfWAm8P1PZO7UpNWJ5WmeoMVTZN/CoYw9X5LosEo2xV6++2Z+pu6EsbnCB6rJk/aUdF20yog
+z/QRaIh/0265nNj3BiKWZNQ4JnJheBwcjMOKNFxQYqnChwMOVp/6I2qTS+WDVp8kZQicN6qFCd50
+M+QFWUxlHPtiSoezMP/+oi75I+1wc64fWu2zYuQRfhLjHZg9kOvsT/Gl3Csh0TyOG1AjMkU8BQZi
+7HCL+Ur/Txq77n/9+xnD9UTxmqzjdCouIUUQVvyx1oopHOJqw1Ab1jEgheGhv+ypUmAREunkNIQ8
+YMY6w6weAAmTFPzQtNpi+bUaeuVxSocFFkwIH7EF6ZeOLq5H2uD1A4/IUOwHbojgSpf5yE5nQaWc
+Qh3amn1M0fDdA7SheUiab8vTaOj85HDGJa3deihtcM+FiEX/sP89rtWhkTRNa2yYj/03vM7U+j50
+h4hJoffKEsWdBJAs2wdPKX+xfBPEWi0eecrD7CfzDsXa/GkDpFOSCEAyTKeMTN+Lag0cGrwM+1AT
+rvzWFH/SypSnrRGeaHxYL8ZZD33FoxFqr4WYnHXqaIWqYGt7AX0Bq5BCzrsMO9sGk5rNeznR1VTg
+cuFvDiK2z9Mfrb8at6qqSgsPB5WLt8Ir0/0MAkRZkniC8fbUBLpBl0dMbSO2iNc4AJj97K6nybbz
+ZePt3gmafYHlEvv6y3Ni+9PsA+6imVokIgpseg1kArwly1PENt19xygHJkQaIx5dkx8IJksSsypx
+8ORfd3eVcUpQ2J4Fg/EU/fY1QZ/MA1DJKGwRjU03oMojiUAP/NbCc/xpgBzHeO5449CdpR6MzZBx
+Au21kpHGpL7nQn81g95ugXReVuL6R68cvNFugAi48ImN/+Bn4cb2DDKZ75HX2dL/uvCDznR0XJ7t
+nHeAyZE4GLeYMt1MsL0WYNGZf8nswMpG/xGYmLNeGfC4qPsuyGmS5AHkZ6JHDjxbZgkE1O5IaCuL
+t7+pLualELaECoUkFrSRlIvpuBphhkVDV2+45wz5WSbQAM9dl/zveMdALmQMBoAh+9m2Wl21yUDG
+coynAvhbCy6V2/JD1Flt15u6TgBzHvNUkj1O658DKurFetdQi32IDyYrl4xsLqv+xj2uPjNHXO72
+e6Hfsn+CLGdPeVegiKSe4pk03UnCuChhsZzwc5F/svpy5s63uIP0BllgK/075zDdogVj7F5JYVF5
+oTuMfH3EWv2WxKnCLAUp16eHBcQgSa52M2c4YNyjkAcWYYmb6F/qEdQI6gVM7TJv3UrVW9fImkpG
+n4C8Q2d5au2WvuRXvzSO3ARbPVzjccjxis32kRB5rd3h7YlTwSu6kuIdGxMjSvGEHZGKyRmU2vlJ
+WiN0aavomoj2EBIxrfdUgH1jPprNUJ7p74SxLz4o6KqicZifKFs24+G7ooVkm2PLhTR7wC9OyvQ7
+vYzwDf0zbd02En5TfNx30Bkw5IKpe7q1UvXL6f3O/Skulgv1ODgm3MK7386Ii5R81+D+XgsOx8jC
+vnnHLMgDX/b3iQs+DRHkIodSLmetI2ikp+QBJUAeyRYUYIA665xG2ULnj3fSzD6jxXnYT5snB3UO
+R63UZDHwn9gy8wbj0gsGpjBobzRS+ZdscRn+EcGTjQsqW6Rh8EmnaAgGpWnXpXv5WIapBqsZADv5
+dW8az4+fytkuPlasckAYzHgE7AqwcxojOoLNM67cRCKzgCynLcDdt0Azx4zOg49zNOncuCwep9kL
+2OjQZiqbJTYGe6n5GK9NaYcuwBd4ZIzZFQ3grXPMa7WNaKCCNJcF+axuadciqPW/ccTfoVb0pQXn
+OEPFZxlWBAgILlxG

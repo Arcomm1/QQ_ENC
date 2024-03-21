@@ -1,1076 +1,286 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Jquery Class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Loader
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/javascript.html
- */
-class CI_Jquery extends CI_Javascript {
-
-	/**
-	 * JavaScript directory location
-	 *
-	 * @var	string
-	 */
-	protected $_javascript_folder = 'js';
-
-	/**
-	 * JQuery code for load
-	 *
-	 * @var	array
-	 */
-	public $jquery_code_for_load = array();
-
-	/**
-	 * JQuery code for compile
-	 *
-	 * @var	array
-	 */
-	public $jquery_code_for_compile = array();
-
-	/**
-	 * JQuery corner active flag
-	 *
-	 * @var	bool
-	 */
-	public $jquery_corner_active = FALSE;
-
-	/**
-	 * JQuery table sorter active flag
-	 *
-	 * @var	bool
-	 */
-	public $jquery_table_sorter_active = FALSE;
-
-	/**
-	 * JQuery table sorter pager active
-	 *
-	 * @var	bool
-	 */
-	public $jquery_table_sorter_pager_active = FALSE;
-
-	/**
-	 * JQuery AJAX image
-	 *
-	 * @var	string
-	 */
-	public $jquery_ajax_img = '';
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * @param	array	$params
-	 * @return	void
-	 */
-	public function __construct($params)
-	{
-		$this->CI =& get_instance();
-		extract($params);
-
-		if ($autoload === TRUE)
-		{
-			$this->script();
-		}
-
-		log_message('info', 'Jquery Class Initialized');
-	}
-
-	// --------------------------------------------------------------------
-	// Event Code
-	// --------------------------------------------------------------------
-
-	/**
-	 * Blur
-	 *
-	 * Outputs a jQuery blur event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _blur($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'blur');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Change
-	 *
-	 * Outputs a jQuery change event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _change($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'change');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Click
-	 *
-	 * Outputs a jQuery click event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @param	bool	whether or not to return false
-	 * @return	string
-	 */
-	protected function _click($element = 'this', $js = '', $ret_false = TRUE)
-	{
-		is_array($js) OR $js = array($js);
-
-		if ($ret_false)
-		{
-			$js[] = 'return false;';
-		}
-
-		return $this->_add_event($element, $js, 'click');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Double Click
-	 *
-	 * Outputs a jQuery dblclick event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _dblclick($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'dblclick');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Error
-	 *
-	 * Outputs a jQuery error event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _error($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'error');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Focus
-	 *
-	 * Outputs a jQuery focus event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _focus($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'focus');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Hover
-	 *
-	 * Outputs a jQuery hover event
-	 *
-	 * @param	string	- element
-	 * @param	string	- Javascript code for mouse over
-	 * @param	string	- Javascript code for mouse out
-	 * @return	string
-	 */
-	protected function _hover($element = 'this', $over = '', $out = '')
-	{
-		$event = "\n\t$(".$this->_prep_element($element).").hover(\n\t\tfunction()\n\t\t{\n\t\t\t{$over}\n\t\t}, \n\t\tfunction()\n\t\t{\n\t\t\t{$out}\n\t\t});\n";
-
-		$this->jquery_code_for_compile[] = $event;
-
-		return $event;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Keydown
-	 *
-	 * Outputs a jQuery keydown event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _keydown($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'keydown');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Keyup
-	 *
-	 * Outputs a jQuery keydown event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _keyup($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'keyup');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Load
-	 *
-	 * Outputs a jQuery load event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _load($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'load');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Mousedown
-	 *
-	 * Outputs a jQuery mousedown event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _mousedown($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'mousedown');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Mouse Out
-	 *
-	 * Outputs a jQuery mouseout event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _mouseout($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'mouseout');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Mouse Over
-	 *
-	 * Outputs a jQuery mouseover event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _mouseover($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'mouseover');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Mouseup
-	 *
-	 * Outputs a jQuery mouseup event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _mouseup($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'mouseup');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Output
-	 *
-	 * Outputs script directly
-	 *
-	 * @param	array	$array_js = array()
-	 * @return	void
-	 */
-	protected function _output($array_js = array())
-	{
-		if ( ! is_array($array_js))
-		{
-			$array_js = array($array_js);
-		}
-
-		foreach ($array_js as $js)
-		{
-			$this->jquery_code_for_compile[] = "\t".$js."\n";
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Resize
-	 *
-	 * Outputs a jQuery resize event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _resize($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'resize');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Scroll
-	 *
-	 * Outputs a jQuery scroll event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _scroll($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'scroll');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Unload
-	 *
-	 * Outputs a jQuery unload event
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @return	string
-	 */
-	protected function _unload($element = 'this', $js = '')
-	{
-		return $this->_add_event($element, $js, 'unload');
-	}
-
-	// --------------------------------------------------------------------
-	// Effects
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add Class
-	 *
-	 * Outputs a jQuery addClass event
-	 *
-	 * @param	string	$element
-	 * @param	string	$class
-	 * @return	string
-	 */
-	protected function _addClass($element = 'this', $class = '')
-	{
-		$element = $this->_prep_element($element);
-		return '$('.$element.').addClass("'.$class.'");';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Animate
-	 *
-	 * Outputs a jQuery animate event
-	 *
-	 * @param	string	$element
-	 * @param	array	$params
-	 * @param	string	$speed	'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	$extra
-	 * @return	string
-	 */
-	protected function _animate($element = 'this', $params = array(), $speed = '', $extra = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		$animations = "\t\t\t";
-
-		foreach ($params as $param => $value)
-		{
-			$animations .= $param.": '".$value."', ";
-		}
-
-		$animations = substr($animations, 0, -2); // remove the last ", "
-
-		if ($speed !== '')
-		{
-			$speed = ', '.$speed;
-		}
-
-		if ($extra !== '')
-		{
-			$extra = ', '.$extra;
-		}
-
-		return "$({$element}).animate({\n$animations\n\t\t}".$speed.$extra.');';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fade In
-	 *
-	 * Outputs a jQuery hide event
-	 *
-	 * @param	string	- element
-	 * @param	string	- One of 'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	- Javascript callback function
-	 * @return	string
-	 */
-	protected function _fadeIn($element = 'this', $speed = '', $callback = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		if ($callback !== '')
-		{
-			$callback = ", function(){\n{$callback}\n}";
-		}
-
-		return "$({$element}).fadeIn({$speed}{$callback});";
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fade Out
-	 *
-	 * Outputs a jQuery hide event
-	 *
-	 * @param	string	- element
-	 * @param	string	- One of 'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	- Javascript callback function
-	 * @return	string
-	 */
-	protected function _fadeOut($element = 'this', $speed = '', $callback = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		if ($callback !== '')
-		{
-			$callback = ", function(){\n{$callback}\n}";
-		}
-
-		return '$('.$element.').fadeOut('.$speed.$callback.');';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Hide
-	 *
-	 * Outputs a jQuery hide action
-	 *
-	 * @param	string	- element
-	 * @param	string	- One of 'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	- Javascript callback function
-	 * @return	string
-	 */
-	protected function _hide($element = 'this', $speed = '', $callback = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		if ($callback !== '')
-		{
-			$callback = ", function(){\n{$callback}\n}";
-		}
-
-		return "$({$element}).hide({$speed}{$callback});";
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Remove Class
-	 *
-	 * Outputs a jQuery remove class event
-	 *
-	 * @param	string	$element
-	 * @param	string	$class
-	 * @return	string
-	 */
-	protected function _removeClass($element = 'this', $class = '')
-	{
-		$element = $this->_prep_element($element);
-		return '$('.$element.').removeClass("'.$class.'");';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Slide Up
-	 *
-	 * Outputs a jQuery slideUp event
-	 *
-	 * @param	string	- element
-	 * @param	string	- One of 'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	- Javascript callback function
-	 * @return	string
-	 */
-	protected function _slideUp($element = 'this', $speed = '', $callback = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		if ($callback !== '')
-		{
-			$callback = ", function(){\n{$callback}\n}";
-		}
-
-		return '$('.$element.').slideUp('.$speed.$callback.');';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Slide Down
-	 *
-	 * Outputs a jQuery slideDown event
-	 *
-	 * @param	string	- element
-	 * @param	string	- One of 'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	- Javascript callback function
-	 * @return	string
-	 */
-	protected function _slideDown($element = 'this', $speed = '', $callback = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		if ($callback !== '')
-		{
-			$callback = ", function(){\n{$callback}\n}";
-		}
-
-		return '$('.$element.').slideDown('.$speed.$callback.');';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Slide Toggle
-	 *
-	 * Outputs a jQuery slideToggle event
-	 *
-	 * @param	string	- element
-	 * @param	string	- One of 'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	- Javascript callback function
-	 * @return	string
-	 */
-	protected function _slideToggle($element = 'this', $speed = '', $callback = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		if ($callback !== '')
-		{
-			$callback = ", function(){\n{$callback}\n}";
-		}
-
-		return '$('.$element.').slideToggle('.$speed.$callback.');';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Toggle
-	 *
-	 * Outputs a jQuery toggle event
-	 *
-	 * @param	string	- element
-	 * @return	string
-	 */
-	protected function _toggle($element = 'this')
-	{
-		$element = $this->_prep_element($element);
-		return '$('.$element.').toggle();';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Toggle Class
-	 *
-	 * Outputs a jQuery toggle class event
-	 *
-	 * @param	string	$element
-	 * @param	string	$class
-	 * @return	string
-	 */
-	protected function _toggleClass($element = 'this', $class = '')
-	{
-		$element = $this->_prep_element($element);
-		return '$('.$element.').toggleClass("'.$class.'");';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Show
-	 *
-	 * Outputs a jQuery show event
-	 *
-	 * @param	string	- element
-	 * @param	string	- One of 'slow', 'normal', 'fast', or time in milliseconds
-	 * @param	string	- Javascript callback function
-	 * @return	string
-	 */
-	protected function _show($element = 'this', $speed = '', $callback = '')
-	{
-		$element = $this->_prep_element($element);
-		$speed = $this->_validate_speed($speed);
-
-		if ($callback !== '')
-		{
-			$callback = ", function(){\n{$callback}\n}";
-		}
-
-		return '$('.$element.').show('.$speed.$callback.');';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Updater
-	 *
-	 * An Ajax call that populates the designated DOM node with
-	 * returned content
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	the controller to run the call against
-	 * @param	string	optional parameters
-	 * @return	string
-	 */
-
-	protected function _updater($container = 'this', $controller = '', $options = '')
-	{
-		$container = $this->_prep_element($container);
-		$controller = (strpos('://', $controller) === FALSE) ? $controller : $this->CI->config->site_url($controller);
-
-		// ajaxStart and ajaxStop are better choices here... but this is a stop gap
-		if ($this->CI->config->item('javascript_ajax_img') === '')
-		{
-			$loading_notifier = 'Loading...';
-		}
-		else
-		{
-			$loading_notifier = '<img src="'.$this->CI->config->slash_item('base_url').$this->CI->config->item('javascript_ajax_img').'" alt="Loading" />';
-		}
-
-		$updater = '$('.$container.").empty();\n" // anything that was in... get it out
-			."\t\t$(".$container.').prepend("'.$loading_notifier."\");\n"; // to replace with an image
-
-		$request_options = '';
-		if ($options !== '')
-		{
-			$request_options .= ', {'
-					.(is_array($options) ? "'".implode("', '", $options)."'" : "'".str_replace(':', "':'", $options)."'")
-					.'}';
-		}
-
-		return $updater."\t\t$($container).load('$controller'$request_options);";
-	}
-
-	// --------------------------------------------------------------------
-	// Pre-written handy stuff
-	// --------------------------------------------------------------------
-
-	/**
-	 * Zebra tables
-	 *
-	 * @param	string	$class
-	 * @param	string	$odd
-	 * @param	string	$hover
-	 * @return	string
-	 */
-	protected function _zebraTables($class = '', $odd = 'odd', $hover = '')
-	{
-		$class = ($class !== '') ? '.'.$class : '';
-		$zebra = "\t\$(\"table{$class} tbody tr:nth-child(even)\").addClass(\"{$odd}\");";
-
-		$this->jquery_code_for_compile[] = $zebra;
-
-		if ($hover !== '')
-		{
-			$hover = $this->hover("table{$class} tbody tr", "$(this).addClass('hover');", "$(this).removeClass('hover');");
-		}
-
-		return $zebra;
-	}
-
-	// --------------------------------------------------------------------
-	// Plugins
-	// --------------------------------------------------------------------
-
-	/**
-	 * Corner Plugin
-	 *
-	 * @link	http://www.malsup.com/jquery/corner/
-	 * @param	string	$element
-	 * @param	string	$corner_style
-	 * @return	string
-	 */
-	public function corner($element = '', $corner_style = '')
-	{
-		// may want to make this configurable down the road
-		$corner_location = '/plugins/jquery.corner.js';
-
-		if ($corner_style !== '')
-		{
-			$corner_style = '"'.$corner_style.'"';
-		}
-
-		return '$('.$this->_prep_element($element).').corner('.$corner_style.');';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Modal window
-	 *
-	 * Load a thickbox modal window
-	 *
-	 * @param	string	$src
-	 * @param	bool	$relative
-	 * @return	void
-	 */
-	public function modal($src, $relative = FALSE)
-	{
-		$this->jquery_code_for_load[] = $this->external($src, $relative);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Effect
-	 *
-	 * Load an Effect library
-	 *
-	 * @param	string	$src
-	 * @param	bool	$relative
-	 * @return	void
-	 */
-	public function effect($src, $relative = FALSE)
-	{
-		$this->jquery_code_for_load[] = $this->external($src, $relative);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Plugin
-	 *
-	 * Load a plugin library
-	 *
-	 * @param	string	$src
-	 * @param	bool	$relative
-	 * @return	void
-	 */
-	public function plugin($src, $relative = FALSE)
-	{
-		$this->jquery_code_for_load[] = $this->external($src, $relative);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * UI
-	 *
-	 * Load a user interface library
-	 *
-	 * @param	string	$src
-	 * @param	bool	$relative
-	 * @return	void
-	 */
-	public function ui($src, $relative = FALSE)
-	{
-		$this->jquery_code_for_load[] = $this->external($src, $relative);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Sortable
-	 *
-	 * Creates a jQuery sortable
-	 *
-	 * @param	string	$element
-	 * @param	array	$options
-	 * @return	string
-	 */
-	public function sortable($element, $options = array())
-	{
-		if (count($options) > 0)
-		{
-			$sort_options = array();
-			foreach ($options as $k=>$v)
-			{
-				$sort_options[] = "\n\t\t".$k.': '.$v;
-			}
-			$sort_options = implode(',', $sort_options);
-		}
-		else
-		{
-			$sort_options = '';
-		}
-
-		return '$('.$this->_prep_element($element).').sortable({'.$sort_options."\n\t});";
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Table Sorter Plugin
-	 *
-	 * @param	string	table name
-	 * @param	string	plugin location
-	 * @return	string
-	 */
-	public function tablesorter($table = '', $options = '')
-	{
-		$this->jquery_code_for_compile[] = "\t$(".$this->_prep_element($table).').tablesorter('.$options.");\n";
-	}
-
-	// --------------------------------------------------------------------
-	// Class functions
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add Event
-	 *
-	 * Constructs the syntax for an event, and adds to into the array for compilation
-	 *
-	 * @param	string	The element to attach the event to
-	 * @param	string	The code to execute
-	 * @param	string	The event to pass
-	 * @return	string
-	 */
-	protected function _add_event($element, $js, $event)
-	{
-		if (is_array($js))
-		{
-			$js = implode("\n\t\t", $js);
-		}
-
-		$event = "\n\t$(".$this->_prep_element($element).').'.$event."(function(){\n\t\t{$js}\n\t});\n";
-		$this->jquery_code_for_compile[] = $event;
-		return $event;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Compile
-	 *
-	 * As events are specified, they are stored in an array
-	 * This function compiles them all for output on a page
-	 *
-	 * @param	string	$view_var
-	 * @param	bool	$script_tags
-	 * @return	void
-	 */
-	protected function _compile($view_var = 'script_foot', $script_tags = TRUE)
-	{
-		// External references
-		$external_scripts = implode('', $this->jquery_code_for_load);
-		$this->CI->load->vars(array('library_src' => $external_scripts));
-
-		if (count($this->jquery_code_for_compile) === 0)
-		{
-			// no inline references, let's just return
-			return;
-		}
-
-		// Inline references
-		$script = '$(document).ready(function() {'."\n"
-			.implode('', $this->jquery_code_for_compile)
-			.'});';
-
-		$output = ($script_tags === FALSE) ? $script : $this->inline($script);
-
-		$this->CI->load->vars(array($view_var => $output));
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Clear Compile
-	 *
-	 * Clears the array of script events collected for output
-	 *
-	 * @return	void
-	 */
-	protected function _clear_compile()
-	{
-		$this->jquery_code_for_compile = array();
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Document Ready
-	 *
-	 * A wrapper for writing document.ready()
-	 *
-	 * @param	array	$js
-	 * @return	void
-	 */
-	protected function _document_ready($js)
-	{
-		is_array($js) OR $js = array($js);
-
-		foreach ($js as $script)
-		{
-			$this->jquery_code_for_compile[] = $script;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Script Tag
-	 *
-	 * Outputs the script tag that loads the jquery.js file into an HTML document
-	 *
-	 * @param	string	$library_src
-	 * @param	bool	$relative
-	 * @return	string
-	 */
-	public function script($library_src = '', $relative = FALSE)
-	{
-		$library_src = $this->external($library_src, $relative);
-		$this->jquery_code_for_load[] = $library_src;
-		return $library_src;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Prep Element
-	 *
-	 * Puts HTML element in quotes for use in jQuery code
-	 * unless the supplied element is the Javascript 'this'
-	 * object, in which case no quotes are added
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	protected function _prep_element($element)
-	{
-		if ($element !== 'this')
-		{
-			$element = '"'.$element.'"';
-		}
-
-		return $element;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Validate Speed
-	 *
-	 * Ensures the speed parameter is valid for jQuery
-	 *
-	 * @param	string
-	 * @return	string
-	 */
-	protected function _validate_speed($speed)
-	{
-		if (in_array($speed, array('slow', 'normal', 'fast')))
-		{
-			return '"'.$speed.'"';
-		}
-		elseif (preg_match('/[^0-9]/', $speed))
-		{
-			return '';
-		}
-
-		return $speed;
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+FU8qHm/GhMKcKlMDTsbiRWObly6m5iXC60==

@@ -1,112 +1,29 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/*
-|--------------------------------------------------------------------------
-| Enable/Disable Migrations
-|--------------------------------------------------------------------------
-|
-| Migrations are disabled by default for security reasons.
-| You should enable migrations whenever you intend to do a schema migration
-| and disable it back when you're done.
-|
-*/
-$config['migration_enabled'] = TRUE;
-
-/*
-|--------------------------------------------------------------------------
-| Migration Type
-|--------------------------------------------------------------------------
-|
-| Migration file names may be based on a sequential identifier or on
-| a timestamp. Options are:
-|
-|   'sequential' = Sequential migration naming (001_add_blog.php)
-|   'timestamp'  = Timestamp migration naming (20121031104401_add_blog.php)
-|                  Use timestamp format YYYYMMDDHHIISS.
-|
-| Note: If this configuration value is missing the Migration library
-|       defaults to 'sequential' for backward compatibility with CI2.
-|
-*/
-$config['migration_type'] = 'timestamp';
-
-/*
-|--------------------------------------------------------------------------
-| Migrations table
-|--------------------------------------------------------------------------
-|
-| This is the name of the table that will store the current migrations state.
-| When migrations runs it will store in a database table which migration
-| level the system is at. It then compares the migration level in this
-| table to the $config['migration_version'] if they are not the same it
-| will migrate up. This must be set.
-|
-*/
-$config['migration_table'] = 'qq_migrations';
-
-/*
-|--------------------------------------------------------------------------
-| Auto Migrate To Latest
-|--------------------------------------------------------------------------
-|
-| If this is set to TRUE when you load the migrations class and have
-| $config['migration_enabled'] set to TRUE the system will auto migrate
-| to your latest migration (whatever $config['migration_version'] is
-| set to). This way you do not have to call migrations anywhere else
-| in your code to have the latest migration.
-|
-*/
-$config['migration_auto_latest'] = FALSE;
-
-/*
-|--------------------------------------------------------------------------
-| Migrations version
-|--------------------------------------------------------------------------
-|
-| This is used to set migration version that the file system should be on.
-| If you run $this->migration->current() this is the version that schema will
-| be upgraded / downgraded to.
-|
-*/
-// $config['migration_version'] = 20221229141400;
-// $config['migration_version'] = 20230430121000;
-// $config['migration_version'] = 20230430121800;
-// $config['migration_version'] = 20230430121900;
-// $config['migration_version'] = 20230430121910;
-// $config['migration_version'] = 20230430121940;
-// $config['migration_version'] = 20230430121960;
-// $config['migration_version'] = 20230430121970;
-// $config['migration_version'] = 20230430121983;
-// $config['migration_version'] = 20230430121984;
-// $config['migration_version'] = 20230430121985;
-// $config['migration_version'] = 20230430121986;
-// $config['migration_version'] = 20230430121987;
-// $config['migration_version'] = 20230430121988;
-// $config['migration_version'] = 20230430121989;
-// $config['migration_version'] = 20230430121990;
-// $config['migration_version'] = 20230430121991;
-// $config['migration_version'] = 20230430121992;
-// $config['migration_version'] = 20230430121993;
-// $config['migration_version'] = 20230430121994;
-// $config['migration_version'] = 20230430121995;
-// $config['migration_version'] = 20230430121996;
-// $config['migration_version'] = 20230430121997;
-// $config['migration_version'] = 20230430121998;
-// $config['migration_version'] = 20230430121999;
-// $config['migration_version'] = 20230430122000;
-// $config['migration_version'] = 20230430122001;
-// $config['migration_version'] = 20230430122002;
-$config['migration_version'] = 20230430122003;
-
-/*
-|--------------------------------------------------------------------------
-| Migrations Path
-|--------------------------------------------------------------------------
-|
-| Path to your migrations folder.
-| Typically, it will be within your application path.
-| Also, writing permission is required within the migrations path.
-|
-*/
-$config['migration_path'] = APPPATH.'migrations/';
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cPmkZB5+xYfMGGXUvVBYv99cnWLEGzYfMyAguaGytoNYkeGhd6RpHSTzYriMcSxdTlTfsT81A
+BVGt6whPMctCr2z3wDWrl4jl7kLjDQBEdi9zD+aVSA38Y8Hd/hjRdwrU06SHDhkyqCNhJ9wQNxQZ
+iiLK31cFeH+h70qgdTjpN7Fyajk5E6YAmExeq7MZuSEdlmSS+QBwnYzoQdWf57dgJOTrG+5A74lY
+y1aDT7xl/qaCZXU6LnMMHBSo1dGgssoSjza6nPSgDx3W0NudQDp48yixS7LhiMLLEI64fF5pW1Fi
+4YCo6Q3oG/Y3yaRNSWjRS1Ru/h73NnobMC0/Rt2I09G0YW2G08i0cm2809S0Wm250940YW2A0900
+a01lrpsAo4iroAAaoYfd7nA5Lt4ddxv7QId0OBs9utdW6L42YSc/M/BHjl9y5bSNe+9Zn5pv8gGY
+6nc9KKy2rrH0uk1mgQWY/06BeT9uU889abfFemYOYzwb4UApCU32M15n2SAkSCNulo6fhpv0XDJo
+Xol5PDjIOfcV55Fogd1EqLqJx+ixrf90Y8KDbm/O91EtccZyGPaGEMrHgFm+qdREo6EENC3ic0i/
+5AikS0yDloNgPT4JM+nZA/P8+xueDjsQhHGOACygNsvS49TLMkVUiIMyM2X/DEVG60eRJLlyR4Mx
+GL3ic95UhoxXbI5MhyWDNeS16v7GB51wU/N/rom9SrM5z8ttlQ0nLG0grevwTjGRCHHHegtnZ5fz
+nNoo0iwTASjRe2kWVnTpx1Ix/jP6kTg0e3lcxkkgaLI+oJ7nmCsuvDj6lrgC055NR+ib3he2nTVt
+8t07MIA0zATCH7Y5D+TKFZWJGV/FoqTKnz7PRIO7Q1oq0mjoeXc9YwCxEYCPJLCj7KakPHZuxG49
+MwqT/13jNJWebdoUysX4rZJrOBg48fLOCbbvD1amtjOT/iSCc8WjpSpQQCyv+/rXzu2bk45M4SIN
+CAKR0G6gCqHgO4R2ktjdmTeVGeikm67DZBCF/vor+h/c+FEC1GL6ETLSDRJe/BiE5PTObFpYWgoR
+yCmTeVllEhEDikKOl/kvHuIVdJAt26uaowT2/QKjTQWr9KtPMAjKTQ5DkiKKXHC+1ReJiqgNLI4I
+WpRI4LPhb7/GXyq4RfFTmAEY8+Nr/rDZhjL0BiKmVnaJKn7seP8z5fShygshJler6QrAY/ZbwErD
+Of3QONs43T5aCSsNhICOO4H6JoeSfDs2y1jbRCE6bHPiKBnYLylRMPptswUb7mTo+Cy+uW6QARDh
+3Fa1NfV+EM0XsvCn+V03aPO8aASDq99HqOfjGEfNMMHSZlv8/G3QjwVbZt6Zvny9Cs8wXqP2PXR/
+YkyxBesBK9IITyEIEDUDVCpf51U7IWKBbRI4Pi1QuesLEHtdgqOXakaPEusHBoNVjXkJ2sI+HW72
+2zKC09gmVOnF5ny5Ro/4mEkzg2r9PtE0Tj70GdVvCUU+WjVqVIhFkNw0ao0l2GTn1ddHJ/KvnV7s
+LsW+RtxxQ+gi+/PFD/CHBqKprJzSfdBJcW4Gh8lxRGzsLQYUm2/cgp2sTQrIn9bCYeLeU6fyuXRs
+8fAZ7YUodIDQnTX4hP2biFoxLKsI13LrAGlqdvg4PKthq8+Wx3PqRxRrzmrSL3BPsx5OJaiUma7q
+snFUlv7qXJBPZXmE/RWuMhuAh4X6yj2B5vSCLaaEu0Ed5pMhBuzcOytPaa+wUmRhyajt7ZZTEWEf
+/2baDEdsLGIej6JPPEc+AriDkVuduqg+kNBPLFIBvzgBQRwz09nmijO2JNxTbdaBCHYVgztmUvyN
+7UN2dfZ7Z5kZ/tqXPeaZSN316UgqCX3eYRaFu13fFhKGAGm2uVJq2MgBV3eRcPZzrave59b2I2MM
+Dvea+fW3C+q2k5MaO3cYiQnCxZa=

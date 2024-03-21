@@ -1,452 +1,187 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-/** Common helper functions for Quickqueues */
-
-
-/**
- * Log to file
- *
- * @param string $level Log level
- * @param string $message Log message
- * @return bool true on successfull log write, false otherwise
- */
-function log_to_file($level = false, $message = false) {
-    if (!$level || !$message) {
-        return false;
-    }
-    $ci =& get_instance();
-    $log_file = $ci->Config_model->get_item('app_log_path');
-    if (!$log_file) {
-        return false;
-    }
-    if (file_put_contents($log_file, date('Y-m-d H:i:s')." - ".$level." - ".$message."\n", FILE_APPEND) === false) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-
-/**
- * Lock parser
- *
- * @param string $pid Process ID
- * @return bool
- */
-
-function parser_lock($pid = false) {
-    if (!$pid) {
-        $pid = getmypid();
-    }
-    $ci =& get_instance();
-    
-    if (file_put_contents(QQ_PARSER_LOCK_PATH, $pid) === false)
-    {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-/**
- * Read parser lock
- *
- * @return mixed Process ID of lock owner, or false on error
- */
-function parser_read_lock() {
-    $ci =& get_instance();
-    if (file_exists(QQ_PARSER_LOCK_PATH)) {
-        return file_get_contents(QQ_PARSER_LOCK_PATH);
-    }
-    return false;
-
-}
-
-
-/**
- * Release parser lock
- *
- * @return bool
- */
-
- function parser_unlock() {
-    $ci =& get_instance();
-    $lockFilePath = QQ_PARSER_LOCK_PATH;
-
-    if (file_exists($lockFilePath) && unlink($lockFilePath)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function parser_unlock_complex() {
-    $ci =& get_instance();
-    $lockFilePath = QQ_PARSER_LOCK_PATH;
-
-    if (file_exists($lockFilePath)) {
-        // Read the PID from the lock file
-        $pid = file_get_contents($lockFilePath);
-
-        if ($pid === false || !is_numeric($pid) || !posix_kill((int)$pid, 0)) {
-            // Either failed to read PID, or PID is not valid, or process is not running
-            // Proceed to unlock
-            if (unlink($lockFilePath)) {
-                return true; // Successfully unlocked
-            }
-        }
-    else {
-	echo "Failed to unlock or process: $pid is still running\n";
-    return false; // Failed to unlock or process is still running
-}
-}
-}
-
-/**
- * Get available roles in application
- *
- * @return array List of roles
- */
-function get_roles()
-{
-    return array('admin', 'manager', 'agent');
-}
-
-/**
- * Get available languages
- *
- * @return array List of languages
- */
-function get_languages()
-{
-    return array('georgian', 'english');
-}
-
-/**
- * Get possible extension states
- *
- * @see https://www.voip-info.org/asterisk-manager-api-action-extensionstate/
- * @return array extension states
- */
-function get_extension_states()
-{
-    $states['-1'] = "Extension not found";
-    $states['0']  = "Idle";
-    $states['1']  = "In Use";
-    $states['2']  = "Busy";
-    $states['4']  = "Unavailable";
-    $states['8']  = "Ringing";
-    $states['9']  = "In Use";
-    $states['16'] = "On Hold";
-    $states['99'] = "Unknown";
-    return $states;
-}
-
-
-/**
- * Get possible extension states
- *
- * @see https://www.voip-info.org/asterisk-manager-api-action-extensionstate/
- * @return array extension states
- */
-function get_extension_state_colors()
-{
-    $state_colors['0']  = "success";
-    $state_colors['1']  = "primary";
-    $state_colors['2']  = "danger";
-    $state_colors['4']  = "secondary";
-    $state_colors['8']  = "warning";
-    $state_colors['9']  = "primary";
-    $state_colors['16'] = "warning";
-    $state_colors['99'] = "secondary";
-    return $state_colors;
-}
-
-
-/**
- * Load CI views in order we want them to
- *
- * @param mixed $view String for single viw, or array of views
- * @param mixed $data Data passed to views
- * @param bool $new_assets Whether or not to load new, post 6.x.x release assets
- */
-function load_views($view = false, $data = false, $new_assets = false)
-{
-    $ci =& get_instance();
-    if ($new_assets) {
-        $ci->load->view('common/header_v6', $data);
-    } else {
-        $ci->load->view('common/header', $data);
-    }
-    if ($view) {
-        if (is_string($view)) {
-            $ci->load->view($view);
-        }
-        if (is_array($view)) {
-            foreach ($view as $v) {
-                $ci->load->view($v);
-            }
-        }
-    }
-    if ($new_assets) {
-        $ci->load->view('common/footer_v6', $data);
-    } else {
-        $ci->load->view('common/footer', $data);
-    }
-}
-
-
-/**
- * Convert seconds to hh:mm:ss format
- *
- * @param string $seconds Seconds
- * @return string
- */
- function sec_to_time($sec = 0) {
-    if ($sec == 0) {
-        return "00:00:00";
-    }
-    $hours = floor($sec / 3600);
-    $minutes = floor(($sec / 60) % 60);
-    $seconds = $sec % 60;
-    if ($hours < 10)    { $hours   = "0".$hours;   }
-    if ($minutes < 10)  { $minutes = "0".$minutes; }
-    if ($seconds < 10)  { $seconds = "0".$seconds; }
-
-    return $hours.":".$minutes.":".$seconds;
- }
-
-
-/**
- * Convert seconds to hh:mm:ss format
- *
- * @param string $seconds Seconds
- * @return string
- */
- function sec_to_min($sec = 0) {
-    if ($sec == 0) {
-        return "00:00";
-    }
-    $minutes = floor(($sec / 60) % 60);
-    $seconds = $sec % 60;
-    if ($minutes < 10) { $minutes = "0".$minutes; }
-    if ($seconds < 10) { $seconds = "0".$seconds; }
-
-    return $minutes.":".$seconds;
- }
-
-
- /**
-  * Set session flashdata for notifications
-  *
-  * @param string $style Style of alert, should be bootstraps own 'danger', 'success' and so on...
-  * @param string $body alert message body
-  * @return bool True on success, false otherwise
-  */
- function set_flash_notif($style = 'primary', $body = false)
- {
-    if (!$body) {
-        return false;
-    }
-    $ci =& get_instance();
-    $ci->session->set_flashdata('msg_style', $style);
-    $ci->session->set_flashdata('msg_body', $body);
-    return true;
- }
-
-
-/**
- * Check whether given string is JSON
- *
- * @see https://stackoverflow.com/a/6041773
- *
- * @param string String to check
- * @return bool
- */
-function is_json($string)
-{
-    json_decode($string);
-    return (json_last_error() == JSON_ERROR_NONE);
-}
-
-
-/**
- * Get application version
- *
- * @return string Application version
- */
-/*function get_qq_version()
-{
-    $ci =& get_instance();
-    if (file_exists(APPPATH."/VERSION")) {
-        return file_get_contents(APPPATH."/VERSION");
-    }
-    return " N/A";
-}*/
-
-
-/**
- * Get application version
- *
- * @return string Application version
- */
-function qq_get_version()
-{
-    $ci =& get_instance();
-    if (file_exists(APPPATH."/VERSION")) {
-        return file_get_contents(APPPATH."/VERSION");
-    }
-    return " N/A";
-}
-
-
-/**
- * Generate random string
- *
- * @param int $length Length of random string, defaults to 16
- * @return string Random string
- */
-function qq_generate_random_string($length = 16)
-{
-    return bin2hex(openssl_random_pseudo_bytes($length));
-}
-
-
-/**
- * Get array of styles for called_back calls
- *
- * @return array List of corresponding styles for called_back statuses
- */
-function qq_get_called_back_styles()
-{
-    return array(
-        'yes' => 'text-success',
-        'no' => 'text-danger',
-        'nop' => 'text-warning',
-        'nah' => 'text-info'
-    );
-}
-
-
-/**
- * Get recording file path for specific call
- *
- * @param obj Call object
- * @return Empty string on error, or full path of recording file
- */
-function qq_get_call_recording_path($call = false)
-{
-    $path = '';
-    if (!$call) {
-        return $path;
-    }
-    $ci =& get_instance();
-
-    $hot_path = $ci->Config_model->get_item('ast_monitor_path');
-    $cold_path = '/var/monitor_archive';
-
-    /**
-     * Fix #116
-     * Since we update timestamp of the call with each event, last timestamp
-     * is when the call ended. This results in some situations were calls starts on
-     * one day, and ends on next one, and calculating recording path results
-     * in incorrect day/month/year, since asterisk stores recordings based on
-     * when they were created, not ended.
-     * To avoid that, we need to get timestamp from uniqueid, since it is not updated.
-     */
-
-    $t = $call->uniqueid;
-    $t = explode(".", $t);
-    $t = $t[0];
-
-    $year   = date('Y',$t);
-    $month  = date('m',$t);
-    $day    = date('d',$t);
-
-    $path = $hot_path."/".$year."/".$month."/".$day."/".$call->recording_file;
-    // Try searching in backup
-    if (!is_file($path)) {
-        $path = $cold_path."/".$year."/".$month."/".$day."/".$call->recording_file;
-        if (!is_file($path)) {
-            $path = $hot_path."/".$year."/".$month."/".$day."/".$call->recording_file;
-        }
-    }
-    return $path;
-}
-
-
-/**
- * Get available call statuses
- *
- * @return array List containing valid call statuses
- */
-function qq_get_call_statuses()
-{
-    return array('open', 'ongoing', 'closed');
-}
-
-
-/**
- * Get available call statuses
- *
- * @return array List containing valid call statuses
- */
-function qq_get_palitra_call_statuses()
-{
-    return array('call_status_finished_success', 'call_status_on_hold', 'call_status_finished_fail', 'call_status_finished_ok');
-}
-
-
-/**
- * Get available call statuses
- *
- * @return array List containing valid call statuses
- */
-function qq_get_ticket_statuses()
-{
-    return array('open', 'ongoing', 'closed');
-}
-
-
-/**
- * Get available call priorities
- *
- * @return array List containing valid call priorities
- */
-function qq_get_call_priorities()
-{
-    return array('low', 'normal', 'high', 'urgent');
-}
-
-
-/**
- * Generate v4 UUID
- *
- * @param void
- * @return string v4 UUID
- */
-function qq_gen_uuid()
-{
-    return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
-        mt_rand( 0, 0xffff ),
-        mt_rand( 0, 0x0fff ) | 0x4000,
-        mt_rand( 0, 0x3fff ) | 0x8000,
-        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
-    );
-}
-
-
-/**
- * Die with <pre> and specific array to be printed
- *
- * @param array $data
- * @return void
- */
-function qq_die($data = array())
-{
-    echo "<pre>";
-    die(print_r($data));
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+tvdZdAclrk0U

@@ -1,47 +1,38 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 3.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-$lang['migration_none_found'] = 'No migrations were found.';
-$lang['migration_not_found'] = 'No migration could be found with the version number: %s.';
-$lang['migration_sequence_gap'] = 'There is a gap in the migration sequence near version number: %s.';
-$lang['migration_multiple_version'] = 'There are multiple migrations with the same version number: %s.';
-$lang['migration_class_doesnt_exist'] = 'The migration class "%s" could not be found.';
-$lang['migration_missing_up_method'] = 'The migration class "%s" is missing an "up" method.';
-$lang['migration_missing_down_method'] = 'The migration class "%s" is missing a "down" method.';
-$lang['migration_invalid_filename'] = 'Migration "%s" has an invalid filename.';
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+cu2+TqFFFG==

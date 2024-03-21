@@ -1,653 +1,223 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_create_initial_schema extends CI_Migration {
-
-
-    public function up()
-    {
-        /**
-         * Create configuration table, and feed default configuration
-         */
-
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 200,
-                ),
-                'value' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 300,
-                ),
-                'default' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 300
-                ),
-                'category' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_config');
-
-
-         $data[] = array(
-            'name' => 'app_last_parsed_event',
-            'value' => '0',
-            'default' => '0',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_language',
-            'value' => 'english',
-            'default' => 'english',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_application_name',
-            'value' => 'Quickqueues',
-            'default' => 'Quickqueues',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_track_ringnoanswer',
-            'value' => 'no',
-            'default' => 'no',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_track_ringnoanswer_minimum',
-            'value' => '10',
-            'default' => '10',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_track_ringnoanswer_unique',
-            'value' => 'yes',
-            'default' => 'yes',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_log_path',
-            'value' => '/var/log/asterisk/quickqueues_log',
-            'default' => '/var/log/asterisk/quickqueues_log',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'ast_queue_log_path',
-            'value' => '/var/log/asterisk/queue_log',
-            'default' => '/var/log/asterisk/queue_log',
-            'category' => 'asterisk',
-        );
-
-        $data[] = array(
-            'name' => 'ast_monitor_path',
-            'value' => '/var/spool/asterisk/monitor',
-            'default' => '/var/spool/asterisk/monitor',
-            'category' => 'asterisk',
-        );
-
-        $data[] = array(
-            'name' => 'app_track_outgoing',
-            'value' => 'no',
-            'default' => 'no',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_track_outgoing_mindst',
-            'value' => '6',
-            'default' => '6',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_track_outgoing_minbillsec',
-            'value' => '10',
-            'default' => '10',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_track_outgoing_from',
-            'value' => '0000-00-00 00:00:00',
-            'default' => '0000-00-00 00:00:00',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'app_agent_download_own_calls',
-            'value' => 'yes',
-            'default' => 'yes',
-            'category' => 'application',
-        );
-
-        $data[] = array(
-            'name' => 'q_enable_survey',
-            'value' => 'no',
-            'default' => 'no',
-            'category' => 'queue',
-        );
-
-        $data[] = array(
-            'name' => 'q_survey_max_results',
-            'value' => '20',
-            'default' => '20',
-            'category' => 'queue',
-        );
-
-        $data[] = array(
-            'name' => 'q_survey_hour_start',
-            'value' => '09',
-            'default' => '09',
-            'category' => 'queue',
-        );
-
-        $data[] = array(
-            'name' => 'q_survey_hour_end',
-            'value' => '18',
-            'default' => '18',
-            'category' => 'queue',
-        );
-
-        $this->db->insert_batch('qq_config', $data);
-        unset($data);
-
-
-        /**
-         * Create users table
-         */
-
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 200,
-                ),
-                'password' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 300,
-                ),
-                'role' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 300
-                ),
-                'email' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-                'extension' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-                'last_login' => array(
-                    'type' => 'datetime',
-                    'default' => '0000-00-00 00:00:00',
-                ),
-                'enabled' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_users');
-
-
-        /**
-         * Create user queue relationship
-         */
-
-        $this->dbforge->add_field(
-            array(
-                'user_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                ),
-                'queue_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                ),
-            )
-        );
-        $this->dbforge->add_key('user_id');
-        $this->dbforge->add_key('queue_id');
-        $this->dbforge->create_table('qq_user_queues');
-
-
-        /**
-         * Create user agent relationship
-         */
-
-        $this->dbforge->add_field(
-            array(
-                'user_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                ),
-                'agent_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                ),
-            )
-        );
-        $this->dbforge->add_key('user_id');
-        $this->dbforge->add_key('agent_id');
-        $this->dbforge->create_table('qq_user_agents');
-
-
-        /**
-         * Create event types and feed defalt events
-         */
-
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_event_types');
-
-        $data[] = array('name' => 'ABANDON');
-        $data[] = array('name' => 'ADDMEMBER');
-        $data[] = array('name' => 'AGENTDUMP');
-        $data[] = array('name' => 'AGENTLOGIN');
-        $data[] = array('name' => 'AGENTCALLBACKLOGIN');
-        $data[] = array('name' => 'AGENTLOGOFF');
-        $data[] = array('name' => 'AGENTCALLBACKLOGOFF');
-        $data[] = array('name' => 'ATTENDEDTRANSFER');
-        $data[] = array('name' => 'BLINDTRANSFER');
-        $data[] = array('name' => 'COMPLETEAGENT');
-        $data[] = array('name' => 'COMPLETECALLER');
-        $data[] = array('name' => 'CONFIGRELOAD');
-        $data[] = array('name' => 'CONNECT');
-        $data[] = array('name' => 'ENTERQUEUE');
-        $data[] = array('name' => 'EXITEMPTY');
-        $data[] = array('name' => 'EXITWITHKEY');
-        $data[] = array('name' => 'EXITWITHTIMEOUT');
-        $data[] = array('name' => 'QUEUESTART');
-        $data[] = array('name' => 'REMOVEMEMBER');
-        $data[] = array('name' => 'RINGNOANSWER');
-        $data[] = array('name' => 'SYSCOMPAT');
-        $data[] = array('name' => 'TRANSFER');
-        $data[] = array('name' => 'DID');
-
-        $this->db->insert_batch('qq_event_types', $data);
-        unset($data);
-
-
-        /**
-         * Create events table
-         */
-
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'queue_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                ),
-                'agent_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                ),
-                'event_type' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 80,
-                    'unsigned' => true,
-                ),
-                'uniqueid' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 40,
-                ),
-                'timestamp' => array(
-                    'type' => 'INT',
-                    'constraint' => 40,
-                    'unsigned' => true,
-                ),
-                'date' => array(
-                    'type' => 'DATETIME',
-                    'default' => '0000-00-00 00:00:00',
-                ),
-                'ringtime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'calltime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'holdtime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'waittime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'ringtime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'position' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'origposition' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'did' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 20,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'src' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 20,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'exit_key' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 10,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'linked_uniqueid' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 40,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'dst' => array('type' => 'VARCHAR',
-                    'constraint' => 40,
-                    'null' => true,
-                    'default' => null,)
-                )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->add_key('agent_id');
-        $this->dbforge->add_key('event_type');
-        $this->dbforge->add_key('queue_id');
-        $this->dbforge->add_key('date');
-        $this->dbforge->create_table('qq_events');
-
-
-        /**
-         * Create calls table
-         */
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'timestamp' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 50,
-                ),
-                'date' => array(
-                    'type' => 'DATETIME',
-                    'default' => '0000-00-00 00:00:00'
-                ),
-                'uniqueid' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 50,
-                ),
-                'queue_id' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 5,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'event_type' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 50,
-                ),
-                'agent_id' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 5,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'src' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 50,
-                ),
-                'dst' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 50,
-                ),
-                'calltime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                ),
-                'holdtime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                ),
-                'waittime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                ),
-                'ringtime' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                ),
-                'position' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'origposition' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                    'unsigned' => true,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'linked_uniqueid' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 40,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'recording_file' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 300,
-                    'null' => true,
-                    'default' => NULL,
-                ),
-                'survey_queue' => array(
-                    'type' => 'INT',
-                    'constraint' => 1,
-                    'null' => true,
-                    'default' => 0
-                ),
-                'survey_complete' => array(
-                    'type' => 'INT',
-                    'constraint' => 1,
-                    'null' => true,
-                    'default' => 0
-                ),
-                'survey_result' => array(
-                    'type' => 'INT',
-                    'constraint' => 1,
-                    'null' => true,
-                    'default' => 0
-                )
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->add_key('agent_id');
-        $this->dbforge->add_key('event_type');
-        $this->dbforge->add_key('queue_id');
-        $this->dbforge->add_key('date');
-        $this->dbforge->create_table('qq_calls');
-
-
-        /**
-         * Create queues table
-         */
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-                'display_name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-                'deleted' => array(
-                    'type' => 'TINYINT',
-                    'default' => '0',
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_queues');
-
-
-        /**
-         * Create agents table
-         */
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-                'display_name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 100,
-                ),
-                'extension' => array(
-                    'type' => 'INT',
-                    'constraint' => 10,
-                ),
-                'last_call' => array(
-                    'type' => 'DATETIME',
-                    'default' => '0000-00-00 00:00:00'
-                ),
-                'on_break' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 3,
-                    'default' => 'no',
-                ),
-                'last_break' => array(
-                    'type' => 'DATETIME',
-                    'default' => '0000-00-00 00:00:00',
-                ),
-                'deleted' => array(
-                    'type' => 'TINYINT',
-                    'default' => '0',
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_agents');
-
-
-    }
-
-
-    public function down()
-    {
-        $this->dbforge->drop_table('qq_agents');
-        $this->dbforge->drop_table('qq_calls');
-        $this->dbforge->drop_table('qq_config');
-        $this->dbforge->drop_table('qq_event_types');
-        $this->dbforge->drop_table('qq_events');
-        $this->dbforge->drop_table('qq_queues');
-        $this->dbforge->drop_table('qq_user_agents');
-        $this->dbforge->drop_table('qq_user_queues');
-        $this->dbforge->drop_table('qq_users');
-
-    }
-
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+sbyu

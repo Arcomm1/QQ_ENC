@@ -1,404 +1,262 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Recording extends MY_Controller {
-
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->r = new stdClass();
-        // Just default to error
-        $this->r->status = 'FAIL';
-        $this->r->message = 'Internal error';
-        $this->r->data = new stdClass();
-    }
-
-
-    private function _respond()
-    {
-        header('Content-Type: application/json');
-        echo json_encode($this->r, JSON_FORCE_OBJECT);
-    }
-
-
-    public function update($id = false)
-    {
-        if (!$id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        if (!$this->input->post()) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-        $this->Call_model->update($id, $this->input->post());
-
-        if ($this->data->config->app_notifications == 'yes') {
-            if ($this->input->post('comment')) {
-                $call = $this->Call_model->get($id);
-                $users = $this->User_model->get_many_by('associated_agent_id', $call->agent_id);
-                foreach ($users as $u) {
-                    if ($this->data->logged_in_user->id == $u->id) { continue; }
-                    if ($u->role == 'agent') {
-                        $url = site_url('agent_crm/recordings?uniqueid='.$call->uniqueid);
-                    } else {
-                        $url = site_url('recordings?uniqueid='.$call->uniqueid);
-                    }
-                    $this->Notification_model->create(
-                        array(
-                            'author_id' => $this->data->logged_in_user->id,
-                            'user_id' => $u->id,
-                            'content' => 'your_call_has_new_comment',
-                            'url' => $url,
-                            'created_at' => date('Y-m-d H:i:s')
-                        )
-                    );
-                }
-            }
-        }
-
-        $this->r->status = 'OK';
-        $this->r->message = 'Call information updated succesfully';
-        $this->User_log_model->add_activity($this->data->logged_in_user->id, 'UPDATE_CALL_DATA');
-
-        $this->_respond();
-    }
-
-
-    public function get_events($uniqueid = false)
-    {
-        if (!$uniqueid) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $events = $this->Event_model->get_many_by('uniqueid', $uniqueid);
-        $this->r->status = 'OK';
-        $this->r->message = 'Call related events will follow';
-        $this->r->data = $events;
-        $this->User_log_model->add_activity($this->data->logged_in_user->id, 'GET_CALL_EVENTS');
-
-        $this->_respond();
-    }
-
-
-    public function called_back($id = false, $called_back = false)
-    {
-        if (!$id || !$called_back) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        if ($this->data->config->app_auto_mark_called_back == 0) {
-
-            $this->Call_model->update($id, array('called_back' => $called_back));
-            $this->r->status = 'OK';
-            $this->r->message = 'Called back status for call updated';
-            $this->User_log_model->add_activity($this->data->logged_in_user->id, 'MARK_CALLED_BACK');
-
-            $this->_respond();
-
-        } else {
-            $call = $this->Call_model->get($id);
-            $mark_from = date('Y-m-d H:i:s', (time() - $this->data->config->app_auto_mark_called_back * 60));
-
-            $calls_to_mark = $this->Call_model->get_many_by_complex(
-                array(
-                    'src' => $call->src,
-                    'date >' => $mark_from,
-                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY'),
-                )
-            );
-
-            foreach ($calls_to_mark as $ctm) {
-                $this->Call_model->update($ctm->id, array('called_back' => $called_back));
-            }
-
-            /**
-             * Since auto mark called back value might be less (for example this call was made 3 hours ago and auto mark is set to two)
-             * we need to specifically update this call to.
-             * Fixes #348
-             */
-            $this->Call_model->update($id, array('called_back' => $called_back));
-
-            $this->r->status = 'OK';
-            $this->r->message = 'Called back status for call updated. Calls affected '.count($calls_to_mark);
-
-            $this->User_log_model->add_activity($this->data->logged_in_user->id, 'MARK_CALLED_BACK');
-
-            $this->_respond();
-
-        }
-
-    }
-
-
-    public function get($id = false)
-    {
-        if (!$id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->r->status = 'OK';
-        $this->r->message = 'Call data will follow';
-        $this->r->data = $this->Call_model->get($id);
-
-        $this->_respond();
-    }
-
-    public function comment($id = false, $comment = false)
-    {
-        if (!$id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-        
-
-        $this->Call_model->update($id, array('comment' => urldecode($comment)));
-
-        $this->r->status = 'OK';
-        $this->r->message = 'Call updated succesfully';
-
-        $this->User_log_model->add_activity($this->data->logged_in_user->id, 'ADD_COMMENT');
-
-        $this->_respond();
-    }
-
-
-    public function comment_on_future($uniqueid = false, $comment = false)
-    {
-        if (!$uniqueid || !$comment) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->load->library('asterisk_manager');
-        $d = urldecode($uniqueid)."|".urldecode($comment);
-        if ($this->asterisk_manager->queue_log(false, false, 'ADDCOMMENT', false, $d)) {
-            $this->r->status = 'OK';
-            $this->r->message = $this->asterisk_manager->status;
-        } else {
-            $this->r->status = 'FAIL';
-            $this->r->message = $this->asterisk_manager->status;
-        }
-        $this->User_log_model->add_activity($this->data->logged_in_user->id, 'ADD_COMMENT');
-
-        $this->_respond();
-    }
-
-    public function category_on_future($uniqueid = false, $category_id = false)
-    {
-        if (!$uniqueid || !$category_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->load->library('asterisk_manager');
-        $d = urldecode($uniqueid)."|".urldecode($category_id);
-        if ($this->asterisk_manager->queue_log(false, false, 'ADDCATEGORY', false, $d)) {
-            $this->r->status = 'OK';
-            $this->r->message = $this->asterisk_manager->status;
-        } else {
-            $this->r->status = 'FAIL';
-            $this->r->message = $this->asterisk_manager->status;
-        }
-        $this->User_log_model->add_activity($this->data->logged_in_user->id, 'ADD_CATEGORY');
-
-        $this->_respond();
-    }
-
-
-    public function category($id = false, $category_id = false)
-    {
-        if (!$id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Call_model->update($id, array('category_id' => $category_id));
-        $this->User_log_model->add_activity($this->data->logged_in_user->id, 'ADD_CATEGORY');
-
-        $this->r->status = 'OK';
-        $this->r->message = 'Call updated succesfully';
-
-
-        $this->_respond();
-    }
-
-
-    public function get_file($id = false)
-    {
-        if(defined('HOST') == true)
-        {
-            // we can't listen to sound while in dev mode, but we can download existing audio from virtual machine by redirecting (monkeypatch for development) 
-            header('Location: http://'.HOST.'/callcenter/index.php/api/recording/get_file/'.$id);
-            exit();
-        }
-        
-        $this->load->library('user_agent');
-        if (!$id) {
-            set_flash_notif('danger', lang('something_wrong'));
-            redirect($this->agent->referrer());
-        }
-        $this->User_log_model->add_activity($this->data->logged_in_user->id, 'FILE_DOWNLOAD');
-
-        $call = $this->Call_model->get($id);
-        if (!$call) {
-            set_flash_notif('danger', lang('something_wrong'));
-            redirect($this->agent->referrer());
-        }
-
-        $path = qq_get_call_recording_path($call);
-
-        if (file_exists($path)) {
-            header('Content-Description: File Transfer');
-            header('Content-Type: application/octet-stream');
-            header('Content-Disposition: attachment; filename='.basename($path));
-            header('Content-Transfer-Encoding: binary');
-            header('Expires: 0');
-            header('Cache-Control: must-revalidate');
-            header('Accept-Ranges: bytes');
-            header('Pragma: public');
-            header('Content-Length: ' . filesize($path));
-            ob_clean();
-            flush();
-            readfile($path);
-            exit();
-        } else {
-            set_flash_notif('danger', lang('something_wrong'));
-            redirect($this->agent->referrer());
-        }
-
-    }
-
-
-    public function get_by_number($number = false, $limit = 20)
-    {
-        if (!$number) {
-            set_flash_notif('danger', lang('something_wrong'));
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->r->status = 'OK';
-        $this->r->message = 'Calls list will follow';
-        $this->r->data = $this->Call_model->get_many_by_number($number, false, false, $limit);
-
-        $this->_respond();
-    }
-
-
-    public function create_future_event()
-    {
-        if (!$this->input->post() || !$this->input->post('uniqueid')) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $params = $this->input->post();
-
-        $params['uniqueid'] = preg_replace("/[^.0-9]/", '', $params['uniqueid']);
-        if ($params['comment'] == 'undefined') { unset($params['comment']); }
-
-        if ($this->Future_event_model->exists_by('uniqueid', $params['uniqueid'])) {
-            $this->Future_event_model->update_by('uniqueid', $params['uniqueid'], $params);
-        } else {
-            $this->Future_event_model->create($params);
-        }
-
-        if ($this->Call_model->exists_by_complex(
-                array(
-                    'uniqueid' => $params['uniqueid'],
-                    'event_type' => array(
-                        'COMPLETECALLER',
-                        'COMPLETEAGENT',
-                        'OUT_ANSWERED'
-                    )
-                ))
-        ) {
-            $this->Call_model->update_by('uniqueid', $params['uniqueid'], $params);
-        }
-
-        set_flash_notif('danger', lang('call_update_success'));
-        $this->r->status = 'OK';
-        $this->r->message = "Future event created succesfully";
-        $this->_respond();
-    }
-
-
-    public function add_to_ticket($uniqueid = false, $ticket_id = false)
-    {
-        if (!$uniqueid || !$ticket_id) {
-            $this->_respond();
-            exit();
-        }
-
-        /**
-         * Check if call already exists and update it
-         * If not, check if future event exists, and update it
-         * If not, create new future event
-         */
-        $call = $this->Call_model->get_by('uniqueid', $uniqueid);
-
-        if ($call) {
-            $this->Call_model->update($call->id, array('ticket_id' => $ticket_id));
-        } else {
-            $future_event = $this->Future_event_model->get_by('uniqueid', $call_uniqueid);
-            if ($future_event) {
-                $this->Future_event_model->update($future_event->id, array('ticket_id' => $ticket_id));
-            } else {
-                $this->Future_event_model->create(
-                    array(
-                        'ticket_id' => $ticket_id,
-                        'uniqueid' => $uniqueid
-                    )
-                );
-            }
-        }
-        $this->r->status = 'OK';
-        $this->r->message = lang('call_addeed_to_ticket_succcess');
-        $this->_respond();
-    }
-
-
-    public function remove_from_ticket($id = false)
-    {
-        if (!$id) {
-            $this->_respond();
-            exit();
-        }
-
-        $this->Call_model->update($id, array('ticket_id' => '0'));
-        $this->r->status = 'OK';
-        $this->r->message = lang('call_removed_from_ticket_succcess');
-        $this->_respond();
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+DrCi

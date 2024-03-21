@@ -1,232 +1,113 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight\core;
-
-/**
- * The Dispatcher class is responsible for dispatching events. Events
- * are simply aliases for class methods or functions. The Dispatcher
- * allows you to hook other functions to an event that can modify the
- * input parameters and/or the output.
- */
-class Dispatcher {
-    /**
-     * Mapped events.
-     *
-     * @var array
-     */
-    protected $events = array();
-
-    /**
-     * Method filters.
-     *
-     * @var array
-     */
-    protected $filters = array();
-
-    /**
-     * Dispatches an event.
-     *
-     * @param string $name Event name
-     * @param array $params Callback parameters
-     * @return string Output of callback
-     * @throws \Exception
-     */
-    public function run($name, array $params = array()) {
-        $output = '';
-
-        // Run pre-filters
-        if (!empty($this->filters[$name]['before'])) {
-            $this->filter($this->filters[$name]['before'], $params, $output);
-        }
-
-        // Run requested method
-        $output = $this->execute($this->get($name), $params);
-
-        // Run post-filters
-        if (!empty($this->filters[$name]['after'])) {
-            $this->filter($this->filters[$name]['after'], $params, $output);
-        }
-
-        return $output;
-    }
-
-    /**
-     * Assigns a callback to an event.
-     *
-     * @param string $name Event name
-     * @param callback $callback Callback function
-     */
-    public function set($name, $callback) {
-        $this->events[$name] = $callback;
-    }
-
-    /**
-     * Gets an assigned callback.
-     *
-     * @param string $name Event name
-     * @return callback $callback Callback function
-     */
-    public function get($name) {
-        return isset($this->events[$name]) ? $this->events[$name] : null;
-    }
-
-    /**
-     * Checks if an event has been set.
-     *
-     * @param string $name Event name
-     * @return bool Event status
-     */
-    public function has($name) {
-        return isset($this->events[$name]);
-    }
-
-    /**
-     * Clears an event. If no name is given,
-     * all events are removed.
-     *
-     * @param string $name Event name
-     */
-    public function clear($name = null) {
-        if ($name !== null) {
-            unset($this->events[$name]);
-            unset($this->filters[$name]);
-        }
-        else {
-            $this->events = array();
-            $this->filters = array();
-        }
-    }
-
-    /**
-     * Hooks a callback to an event.
-     *
-     * @param string $name Event name
-     * @param string $type Filter type
-     * @param callback $callback Callback function
-     */
-    public function hook($name, $type, $callback) {
-        $this->filters[$name][$type][] = $callback;
-    }
-
-    /**
-     * Executes a chain of method filters.
-     *
-     * @param array $filters Chain of filters
-     * @param array $params Method parameters
-     * @param mixed $output Method output
-     * @throws \Exception
-     */
-    public function filter($filters, &$params, &$output) {
-        $args = array(&$params, &$output);
-        foreach ($filters as $callback) {
-            $continue = $this->execute($callback, $args);
-            if ($continue === false) break;
-        }
-    }
-
-    /**
-     * Executes a callback function.
-     *
-     * @param callback $callback Callback function
-     * @param array $params Function parameters
-     * @return mixed Function results
-     * @throws \Exception
-     */
-    public static function execute($callback, array &$params = array()) {
-        if (is_callable($callback)) {
-            return is_array($callback) ?
-                self::invokeMethod($callback, $params) :
-                self::callFunction($callback, $params);
-        }
-        else {
-            throw new \Exception('Invalid callback specified.');
-        }
-    }
-
-    /**
-     * Calls a function.
-     *
-     * @param string $func Name of function to call
-     * @param array $params Function parameters
-     * @return mixed Function results
-     */
-    public static function callFunction($func, array &$params = array()) {
-        // Call static method
-        if (is_string($func) && strpos($func, '::') !== false) {
-            return call_user_func_array($func, $params);
-        }
-
-        switch (count($params)) {
-            case 0:
-                return $func();
-            case 1:
-                return $func($params[0]);
-            case 2:
-                return $func($params[0], $params[1]);
-            case 3:
-                return $func($params[0], $params[1], $params[2]);
-            case 4:
-                return $func($params[0], $params[1], $params[2], $params[3]);
-            case 5:
-                return $func($params[0], $params[1], $params[2], $params[3], $params[4]);
-            default:
-                return call_user_func_array($func, $params);
-        }
-    }
-
-    /**
-     * Invokes a method.
-     *
-     * @param mixed $func Class method
-     * @param array $params Class method parameters
-     * @return mixed Function results
-     */
-    public static function invokeMethod($func, array &$params = array()) {
-        list($class, $method) = $func;
-
-        $instance = is_object($class);
-		
-        switch (count($params)) {
-            case 0:
-                return ($instance) ?
-                    $class->$method() :
-                    $class::$method();
-            case 1:
-                return ($instance) ?
-                    $class->$method($params[0]) :
-                    $class::$method($params[0]);
-            case 2:
-                return ($instance) ?
-                    $class->$method($params[0], $params[1]) :
-                    $class::$method($params[0], $params[1]);
-            case 3:
-                return ($instance) ?
-                    $class->$method($params[0], $params[1], $params[2]) :
-                    $class::$method($params[0], $params[1], $params[2]);
-            case 4:
-                return ($instance) ?
-                    $class->$method($params[0], $params[1], $params[2], $params[3]) :
-                    $class::$method($params[0], $params[1], $params[2], $params[3]);
-            case 5:
-                return ($instance) ?
-                    $class->$method($params[0], $params[1], $params[2], $params[3], $params[4]) :
-                    $class::$method($params[0], $params[1], $params[2], $params[3], $params[4]);
-            default:
-                return call_user_func_array($func, $params);
-        }
-    }
-
-    /**
-     * Resets the object to the initial state.
-     */
-    public function reset() {
-        $this->events = array();
-        $this->filters = array();
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

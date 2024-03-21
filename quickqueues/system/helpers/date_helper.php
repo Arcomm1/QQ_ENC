@@ -1,742 +1,354 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * CodeIgniter Date Helpers
- *
- * @package		CodeIgniter
- * @subpackage	Helpers
- * @category	Helpers
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/helpers/date_helper.html
- */
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('now'))
-{
-	/**
-	 * Get "now" time
-	 *
-	 * Returns time() based on the timezone parameter or on the
-	 * "time_reference" setting
-	 *
-	 * @param	string
-	 * @return	int
-	 */
-	function now($timezone = NULL)
-	{
-		if (empty($timezone))
-		{
-			$timezone = config_item('time_reference');
-		}
-
-		if ($timezone === 'local' OR $timezone === date_default_timezone_get())
-		{
-			return time();
-		}
-
-		$datetime = new DateTime('now', new DateTimeZone($timezone));
-		sscanf($datetime->format('j-n-Y G:i:s'), '%d-%d-%d %d:%d:%d', $day, $month, $year, $hour, $minute, $second);
-
-		return mktime($hour, $minute, $second, $month, $day, $year);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('mdate'))
-{
-	/**
-	 * Convert MySQL Style Datecodes
-	 *
-	 * This function is identical to PHPs date() function,
-	 * except that it allows date codes to be formatted using
-	 * the MySQL style, where each code letter is preceded
-	 * with a percent sign:  %Y %m %d etc...
-	 *
-	 * The benefit of doing dates this way is that you don't
-	 * have to worry about escaping your text letters that
-	 * match the date codes.
-	 *
-	 * @param	string
-	 * @param	int
-	 * @return	int
-	 */
-	function mdate($datestr = '', $time = '')
-	{
-		if ($datestr === '')
-		{
-			return '';
-		}
-		elseif (empty($time))
-		{
-			$time = now();
-		}
-
-		$datestr = str_replace(
-			'%\\',
-			'',
-			preg_replace('/([a-z]+?){1}/i', '\\\\\\1', $datestr)
-		);
-
-		return date($datestr, $time);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('standard_date'))
-{
-	/**
-	 * Standard Date
-	 *
-	 * Returns a date formatted according to the submitted standard.
-	 *
-	 * As of PHP 5.2, the DateTime extension provides constants that
-	 * serve for the exact same purpose and are used with date().
-	 *
-	 * @todo	Remove in version 3.1+.
-	 * @deprecated	3.0.0	Use PHP's native date() instead.
-	 * @link	http://www.php.net/manual/en/class.datetime.php#datetime.constants.types
-	 *
-	 * @example	date(DATE_RFC822, now()); // default
-	 * @example	date(DATE_W3C, $time); // a different format and time
-	 *
-	 * @param	string	$fmt = 'DATE_RFC822'	the chosen format
-	 * @param	int	$time = NULL		Unix timestamp
-	 * @return	string
-	 */
-	function standard_date($fmt = 'DATE_RFC822', $time = NULL)
-	{
-		if (empty($time))
-		{
-			$time = now();
-		}
-
-		// Procedural style pre-defined constants from the DateTime extension
-		if (strpos($fmt, 'DATE_') !== 0 OR defined($fmt) === FALSE)
-		{
-			return FALSE;
-		}
-
-		return date(constant($fmt), $time);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('timespan'))
-{
-	/**
-	 * Timespan
-	 *
-	 * Returns a span of seconds in this format:
-	 *	10 days 14 hours 36 minutes 47 seconds
-	 *
-	 * @param	int	a number of seconds
-	 * @param	int	Unix timestamp
-	 * @param	int	a number of display units
-	 * @return	string
-	 */
-	function timespan($seconds = 1, $time = '', $units = 7)
-	{
-		$CI =& get_instance();
-		$CI->lang->load('date');
-
-		is_numeric($seconds) OR $seconds = 1;
-		is_numeric($time) OR $time = time();
-		is_numeric($units) OR $units = 7;
-
-		$seconds = ($time <= $seconds) ? 1 : $time - $seconds;
-
-		$str = array();
-		$years = floor($seconds / 31557600);
-
-		if ($years > 0)
-		{
-			$str[] = $years.' '.$CI->lang->line($years > 1 ? 'date_years' : 'date_year');
-		}
-
-		$seconds -= $years * 31557600;
-		$months = floor($seconds / 2629743);
-
-		if (count($str) < $units && ($years > 0 OR $months > 0))
-		{
-			if ($months > 0)
-			{
-				$str[] = $months.' '.$CI->lang->line($months > 1 ? 'date_months' : 'date_month');
-			}
-
-			$seconds -= $months * 2629743;
-		}
-
-		$weeks = floor($seconds / 604800);
-
-		if (count($str) < $units && ($years > 0 OR $months > 0 OR $weeks > 0))
-		{
-			if ($weeks > 0)
-			{
-				$str[] = $weeks.' '.$CI->lang->line($weeks > 1 ? 'date_weeks' : 'date_week');
-			}
-
-			$seconds -= $weeks * 604800;
-		}
-
-		$days = floor($seconds / 86400);
-
-		if (count($str) < $units && ($months > 0 OR $weeks > 0 OR $days > 0))
-		{
-			if ($days > 0)
-			{
-				$str[] = $days.' '.$CI->lang->line($days > 1 ? 'date_days' : 'date_day');
-			}
-
-			$seconds -= $days * 86400;
-		}
-
-		$hours = floor($seconds / 3600);
-
-		if (count($str) < $units && ($days > 0 OR $hours > 0))
-		{
-			if ($hours > 0)
-			{
-				$str[] = $hours.' '.$CI->lang->line($hours > 1 ? 'date_hours' : 'date_hour');
-			}
-
-			$seconds -= $hours * 3600;
-		}
-
-		$minutes = floor($seconds / 60);
-
-		if (count($str) < $units && ($days > 0 OR $hours > 0 OR $minutes > 0))
-		{
-			if ($minutes > 0)
-			{
-				$str[] = $minutes.' '.$CI->lang->line($minutes > 1 ? 'date_minutes' : 'date_minute');
-			}
-
-			$seconds -= $minutes * 60;
-		}
-
-		if (count($str) === 0)
-		{
-			$str[] = $seconds.' '.$CI->lang->line($seconds > 1 ? 'date_seconds' : 'date_second');
-		}
-
-		return implode(', ', $str);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('days_in_month'))
-{
-	/**
-	 * Number of days in a month
-	 *
-	 * Takes a month/year as input and returns the number of days
-	 * for the given month/year. Takes leap years into consideration.
-	 *
-	 * @param	int	a numeric month
-	 * @param	int	a numeric year
-	 * @return	int
-	 */
-	function days_in_month($month = 0, $year = '')
-	{
-		if ($month < 1 OR $month > 12)
-		{
-			return 0;
-		}
-		elseif ( ! is_numeric($year) OR strlen($year) !== 4)
-		{
-			$year = date('Y');
-		}
-
-		if (defined('CAL_GREGORIAN'))
-		{
-			return cal_days_in_month(CAL_GREGORIAN, $month, $year);
-		}
-
-		if ($year >= 1970)
-		{
-			return (int) date('t', mktime(12, 0, 0, $month, 1, $year));
-		}
-
-		if ($month == 2)
-		{
-			if ($year % 400 === 0 OR ($year % 4 === 0 && $year % 100 !== 0))
-			{
-				return 29;
-			}
-		}
-
-		$days_in_month	= array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
-		return $days_in_month[$month - 1];
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('local_to_gmt'))
-{
-	/**
-	 * Converts a local Unix timestamp to GMT
-	 *
-	 * @param	int	Unix timestamp
-	 * @return	int
-	 */
-	function local_to_gmt($time = '')
-	{
-		if ($time === '')
-		{
-			$time = time();
-		}
-
-		return mktime(
-			gmdate('G', $time),
-			gmdate('i', $time),
-			gmdate('s', $time),
-			gmdate('n', $time),
-			gmdate('j', $time),
-			gmdate('Y', $time)
-		);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('gmt_to_local'))
-{
-	/**
-	 * Converts GMT time to a localized value
-	 *
-	 * Takes a Unix timestamp (in GMT) as input, and returns
-	 * at the local value based on the timezone and DST setting
-	 * submitted
-	 *
-	 * @param	int	Unix timestamp
-	 * @param	string	timezone
-	 * @param	bool	whether DST is active
-	 * @return	int
-	 */
-	function gmt_to_local($time = '', $timezone = 'UTC', $dst = FALSE)
-	{
-		if ($time === '')
-		{
-			return now();
-		}
-
-		$time += timezones($timezone) * 3600;
-
-		return ($dst === TRUE) ? $time + 3600 : $time;
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('mysql_to_unix'))
-{
-	/**
-	 * Converts a MySQL Timestamp to Unix
-	 *
-	 * @param	int	MySQL timestamp YYYY-MM-DD HH:MM:SS
-	 * @return	int	Unix timstamp
-	 */
-	function mysql_to_unix($time = '')
-	{
-		// We'll remove certain characters for backward compatibility
-		// since the formatting changed with MySQL 4.1
-		// YYYY-MM-DD HH:MM:SS
-
-		$time = str_replace(array('-', ':', ' '), '', $time);
-
-		// YYYYMMDDHHMMSS
-		return mktime(
-			substr($time, 8, 2),
-			substr($time, 10, 2),
-			substr($time, 12, 2),
-			substr($time, 4, 2),
-			substr($time, 6, 2),
-			substr($time, 0, 4)
-		);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('unix_to_human'))
-{
-	/**
-	 * Unix to "Human"
-	 *
-	 * Formats Unix timestamp to the following prototype: 2006-08-21 11:35 PM
-	 *
-	 * @param	int	Unix timestamp
-	 * @param	bool	whether to show seconds
-	 * @param	string	format: us or euro
-	 * @return	string
-	 */
-	function unix_to_human($time = '', $seconds = FALSE, $fmt = 'us')
-	{
-		$r = date('Y', $time).'-'.date('m', $time).'-'.date('d', $time).' ';
-
-		if ($fmt === 'us')
-		{
-			$r .= date('h', $time).':'.date('i', $time);
-		}
-		else
-		{
-			$r .= date('H', $time).':'.date('i', $time);
-		}
-
-		if ($seconds)
-		{
-			$r .= ':'.date('s', $time);
-		}
-
-		if ($fmt === 'us')
-		{
-			return $r.' '.date('A', $time);
-		}
-
-		return $r;
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('human_to_unix'))
-{
-	/**
-	 * Convert "human" date to GMT
-	 *
-	 * Reverses the above process
-	 *
-	 * @param	string	format: us or euro
-	 * @return	int
-	 */
-	function human_to_unix($datestr = '')
-	{
-		if ($datestr === '')
-		{
-			return FALSE;
-		}
-
-		$datestr = preg_replace('/\040+/', ' ', trim($datestr));
-
-		if ( ! preg_match('/^(\d{2}|\d{4})\-[0-9]{1,2}\-[0-9]{1,2}\s[0-9]{1,2}:[0-9]{1,2}(?::[0-9]{1,2})?(?:\s[AP]M)?$/i', $datestr))
-		{
-			return FALSE;
-		}
-
-		sscanf($datestr, '%d-%d-%d %s %s', $year, $month, $day, $time, $ampm);
-		sscanf($time, '%d:%d:%d', $hour, $min, $sec);
-		isset($sec) OR $sec = 0;
-
-		if (isset($ampm))
-		{
-			$ampm = strtolower($ampm);
-
-			if ($ampm[0] === 'p' && $hour < 12)
-			{
-				$hour += 12;
-			}
-			elseif ($ampm[0] === 'a' && $hour === 12)
-			{
-				$hour = 0;
-			}
-		}
-
-		return mktime($hour, $min, $sec, $month, $day, $year);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('nice_date'))
-{
-	/**
-	 * Turns many "reasonably-date-like" strings into something
-	 * that is actually useful. This only works for dates after unix epoch.
-	 *
-	 * @deprecated	3.1.3	Use DateTime::createFromFormat($input_format, $input)->format($output_format);
-	 * @param	string	The terribly formatted date-like string
-	 * @param	string	Date format to return (same as php date function)
-	 * @return	string
-	 */
-	function nice_date($bad_date = '', $format = FALSE)
-	{
-		if (empty($bad_date))
-		{
-			return 'Unknown';
-		}
-		elseif (empty($format))
-		{
-			$format = 'U';
-		}
-
-		// Date like: YYYYMM
-		if (preg_match('/^\d{6}$/i', $bad_date))
-		{
-			if (in_array(substr($bad_date, 0, 2), array('19', '20')))
-			{
-				$year  = substr($bad_date, 0, 4);
-				$month = substr($bad_date, 4, 2);
-			}
-			else
-			{
-				$month  = substr($bad_date, 0, 2);
-				$year   = substr($bad_date, 2, 4);
-			}
-
-			return date($format, strtotime($year.'-'.$month.'-01'));
-		}
-
-		// Date Like: YYYYMMDD
-		if (preg_match('/^\d{8}$/i', $bad_date, $matches))
-		{
-			return DateTime::createFromFormat('Ymd', $bad_date)->format($format);
-		}
-
-		// Date Like: MM-DD-YYYY __or__ M-D-YYYY (or anything in between)
-		if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/i', $bad_date, $matches))
-		{
-			return date($format, strtotime($matches[3].'-'.$matches[1].'-'.$matches[2]));
-		}
-
-		// Any other kind of string, when converted into UNIX time,
-		// produces "0 seconds after epoc..." is probably bad...
-		// return "Invalid Date".
-		if (date('U', strtotime($bad_date)) === '0')
-		{
-			return 'Invalid Date';
-		}
-
-		// It's probably a valid-ish date format already
-		return date($format, strtotime($bad_date));
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('timezone_menu'))
-{
-	/**
-	 * Timezone Menu
-	 *
-	 * Generates a drop-down menu of timezones.
-	 *
-	 * @param	string	timezone
-	 * @param	string	classname
-	 * @param	string	menu name
-	 * @param	mixed	attributes
-	 * @return	string
-	 */
-	function timezone_menu($default = 'UTC', $class = '', $name = 'timezones', $attributes = '')
-	{
-		$CI =& get_instance();
-		$CI->lang->load('date');
-
-		$default = ($default === 'GMT') ? 'UTC' : $default;
-
-		$menu = '<select name="'.$name.'"';
-
-		if ($class !== '')
-		{
-			$menu .= ' class="'.$class.'"';
-		}
-
-		$menu .= _stringify_attributes($attributes).">\n";
-
-		foreach (timezones() as $key => $val)
-		{
-			$selected = ($default === $key) ? ' selected="selected"' : '';
-			$menu .= '<option value="'.$key.'"'.$selected.'>'.$CI->lang->line($key)."</option>\n";
-		}
-
-		return $menu.'</select>';
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('timezones'))
-{
-	/**
-	 * Timezones
-	 *
-	 * Returns an array of timezones. This is a helper function
-	 * for various other ones in this library
-	 *
-	 * @param	string	timezone
-	 * @return	string
-	 */
-	function timezones($tz = '')
-	{
-		// Note: Don't change the order of these even though
-		// some items appear to be in the wrong order
-
-		$zones = array(
-			'UM12'		=> -12,
-			'UM11'		=> -11,
-			'UM10'		=> -10,
-			'UM95'		=> -9.5,
-			'UM9'		=> -9,
-			'UM8'		=> -8,
-			'UM7'		=> -7,
-			'UM6'		=> -6,
-			'UM5'		=> -5,
-			'UM45'		=> -4.5,
-			'UM4'		=> -4,
-			'UM35'		=> -3.5,
-			'UM3'		=> -3,
-			'UM2'		=> -2,
-			'UM1'		=> -1,
-			'UTC'		=> 0,
-			'UP1'		=> +1,
-			'UP2'		=> +2,
-			'UP3'		=> +3,
-			'UP35'		=> +3.5,
-			'UP4'		=> +4,
-			'UP45'		=> +4.5,
-			'UP5'		=> +5,
-			'UP55'		=> +5.5,
-			'UP575'		=> +5.75,
-			'UP6'		=> +6,
-			'UP65'		=> +6.5,
-			'UP7'		=> +7,
-			'UP8'		=> +8,
-			'UP875'		=> +8.75,
-			'UP9'		=> +9,
-			'UP95'		=> +9.5,
-			'UP10'		=> +10,
-			'UP105'		=> +10.5,
-			'UP11'		=> +11,
-			'UP115'		=> +11.5,
-			'UP12'		=> +12,
-			'UP1275'	=> +12.75,
-			'UP13'		=> +13,
-			'UP14'		=> +14
-		);
-
-		if ($tz === '')
-		{
-			return $zones;
-		}
-
-		return isset($zones[$tz]) ? $zones[$tz] : 0;
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('date_range'))
-{
-	/**
-	 * Date range
-	 *
-	 * Returns a list of dates within a specified period.
-	 *
-	 * @param	int	unix_start	UNIX timestamp of period start date
-	 * @param	int	unix_end|days	UNIX timestamp of period end date
-	 *					or interval in days.
-	 * @param	mixed	is_unix		Specifies whether the second parameter
-	 *					is a UNIX timestamp or a day interval
-	 *					 - TRUE or 'unix' for a timestamp
-	 *					 - FALSE or 'days' for an interval
-	 * @param	string  date_format	Output date format, same as in date()
-	 * @return	array
-	 */
-	function date_range($unix_start = '', $mixed = '', $is_unix = TRUE, $format = 'Y-m-d')
-	{
-		if ($unix_start == '' OR $mixed == '' OR $format == '')
-		{
-			return FALSE;
-		}
-
-		$is_unix = ! ( ! $is_unix OR $is_unix === 'days');
-
-		// Validate input and try strtotime() on invalid timestamps/intervals, just in case
-		if ( ( ! ctype_digit((string) $unix_start) && ($unix_start = @strtotime($unix_start)) === FALSE)
-			OR ( ! ctype_digit((string) $mixed) && ($is_unix === FALSE OR ($mixed = @strtotime($mixed)) === FALSE))
-			OR ($is_unix === TRUE && $mixed < $unix_start))
-		{
-			return FALSE;
-		}
-
-		if ($is_unix && ($unix_start == $mixed OR date($format, $unix_start) === date($format, $mixed)))
-		{
-			return array(date($format, $unix_start));
-		}
-
-		$range = array();
-
-		$from = new DateTime();
-		$from->setTimestamp($unix_start);
-
-		if ($is_unix)
-		{
-			$arg = new DateTime();
-			$arg->setTimestamp($mixed);
-		}
-		else
-		{
-			$arg = (int) $mixed;
-		}
-
-		$period = new DatePeriod($from, new DateInterval('P1D'), $arg);
-		foreach ($period as $date)
-		{
-			$range[] = $date->format($format);
-		}
-
-		/* If a period end date was passed to the DatePeriod constructor, it might not
-		 * be in our results. Not sure if this is a bug or it's just possible because
-		 * the end date might actually be less than 24 hours away from the previously
-		 * generated DateTime object, but either way - we have to append it manually.
-		 */
-		if ( ! is_int($arg) && $range[count($range) - 1] !== $arg->format($format))
-		{
-			$range[] = $arg->format($format);
-		}
-
-		return $range;
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

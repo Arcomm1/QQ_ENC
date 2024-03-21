@@ -1,35 +1,48 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_add_sensible_defaults extends CI_Migration {
-
-
-    public function up()
-    {
-        $this->db->query("UPDATE qq_config SET `value` = 'yes', `default` = 'yes' WHERE name = 'app_track_outgoing'");
-        $this->db->query("UPDATE qq_config SET `value` = '480', `default` = '480' WHERE name = 'app_auto_mark_called_back'");
-        $this->db->query("UPDATE qq_config SET `value` = 'yes', `default` = 'yes' WHERE name = 'app_track_called_back_calls'");
-        $this->db->query("UPDATE qq_config SET `value` = '120', `default` = '120' WHERE name = 'app_mark_answered_elsewhere'");
-        $this->db->query("UPDATE qq_config SET `value` = '120', `default` = '120' WHERE name = 'app_track_duplicate_calls'");
-        $this->db->query("UPDATE qq_config SET `value` = 'no', `default` = 'no' WHERE name = 'app_track_agent_pause_time'");
-        $this->db->query("UPDATE qq_config SET `value` = 'no', `default` = 'no' WHERE name = 'app_track_agent_session_time'");
-        $this->db->query("UPDATE qq_config SET `value` = 'no', `default` = 'no' WHERE name = 'app_archive_calls'");
-        $this->db->query("UPDATE qq_config SET `value` = 'georgian', `default` = 'georgian' WHERE name = 'app_language'");
-    }
-
-    public function down()
-    {
-        $this->db->query("UPDATE qq_config SET `value` = 'no', `default` = 'no' WHERE name = 'app_track_outgoing'");
-        $this->db->query("UPDATE qq_config SET `value` = '0', `default` = '0' WHERE name = 'app_auto_mark_called_back'");
-        $this->db->query("UPDATE qq_config SET `value` = 'no', `default` = 'no' WHERE name = 'app_track_called_back_calls'");
-        $this->db->query("UPDATE qq_config SET `value` = '0', `default` = '0' WHERE name = 'app_mark_answered_elsewhere'");
-        $this->db->query("UPDATE qq_config SET `value` = '0', `default` = '0' WHERE name = 'app_track_duplicate_calls'");
-        $this->db->query("UPDATE qq_config SET `value` = 'yes', `default` = 'yes' WHERE name = 'app_track_agent_pause_time'");
-        $this->db->query("UPDATE qq_config SET `value` = 'yes', `default` = 'yes' WHERE name = 'app_track_agent_session_time'");
-        $this->db->query("UPDATE qq_config SET `value` = 'yes', `default` = 'yes' WHERE name = 'app_archive_calls'");
-        $this->db->query("UPDATE qq_config SET `value` = 'english', `default` = 'english' WHERE name = 'app_language'");
-
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cPvL/CQhOmucDfS+aYOcndhELjBoZPiyY7xYuZC0SiReih46hWcOwNdwNIG/37rQ3d2yM1Dq2
+kTL8HTYVY4YDMbCKgrcR2dyek2V9bYqBowccx/HIh44Xo1b1LajFoPNcBt60GYwt8R0GtvZg7/ui
+M9ARHIcuycSBI8zMjbZ6eofFj79yY46uM9nEqCuN8PjQVhCtA5ihQB6EucmVm9d6rK3XwsYf80E/
+D0nP9oJtrc8F0fQGUrZpQjhMuLPATiR2/6OqnPSgDx3W0NudQDp48yixSBLblanoZWJ7R/+yK+DU
+xIjz6mss/cSr6RdXpQ097U28yL1BBbD63cGRZhP1cPsW6EEWkMUCf8QM0VBNfx9seGYUvVY51aqU
+HAMKWZxiEsVswmQjkAuS/rKH7ZdCpKMVqJgAXI/ENb4ba7IF2DnYfLOi7IOjIiVBXToNeQ+AP610
+pSuRUtp1Wd4DEDjCLC04Je/OA2gtMW1Vt+qJoeHjQLfylHDWSvvKOeAdX9lPPvsf0RPfkB08HSpW
+zHmIHzapwnlqManvJQl87W1DcfX3wfyDm3FQArdYlHVcfEpRTAV9HPQw56B7r/xiG5J2LGnSpk2f
+WNhGbSYrYi8h9eUyE7ZPZBYRpxdW52/8JNXBkSLtk++LGNw0nAv3otngHDN0lgJ0tDarLS+yylS0
++khjVX7E7zSisYpF68F3TOTo5e/hv3aCWwyq0FVXHc6ccyhKOSLBqY5fQB17n6pP9gfICmTzzfK9
+TxLdjWm/RvCPH+c4D74AK/Z/F/4ePLztLZIWPA/LPByHmVdBhzAUErXfarTRmgVzUwwUkGX+ieRj
+jSkqyk7esjFu4nkFdpTmJ2x0JjQhN9lEZzc+QB+4JuwxDVv8CUiQ/NABEMFZlcxaFKSjuFLxLiWL
+8rVHC44LDV/MDvY6AwnD+8988wWakkNHyUYHH7ldjQp7VWMbfdQa5Cwf5CLFJt+CricRIA3p0YCz
+6vdzv1bd0dIoKF+6hVfkxmOoqEYroYPw6NUOxw4+nRODIfGk+MFzWhyqHkBgNAvNavqK+jjD+Itk
+LU1ulPNBD36RSM1278kVZOpcxxvy5BbirJsQwUNfOPa++GnnHYLEaZkXR3bRAnZfCXvNQFefcynG
+iUFTSt0K2A+NuBsxl95i2miOhcpy2kJkx1sI/haf4mWMaIIBFW3VykRE3bBtxdDhu5J3EBy084h5
+ROcQTiFDxGHILe7Bv8qlOSGiSNdb2Ncmkvq9O6VNbT6xeJfC6OdZJwsSW7T02mQSkFDtj1zkaLo/
+93vcdIVFE7wrAqimX09ebkerDTicERyfGWiFbUorcKmKqxhjJdn222nIXPnJfkSwWYi03uNHD1hZ
+kZ+ptO0g8wDbru3R8UQQNodNvpTvLWBg17WY0HuT3o6LJkP7V3dXzii41UNcmwCxRDDVtIsY5tUI
+W1VTiUJ0c96YiANDRMYMb0SRAM3FvyRA8yOSsoovL9u/vz05XrtkP+uMQPe9THRS/CeCe6SRqXoo
+A/s21p3dZ2hKlcuObWEEBZiuoMxKCXPx2SXOK4rQ1PsPSGOG5FRz7/Jx8prpif+LVLfTDA61M0l9
+TJDowebIRkfyi4SsuMJKipHB8rPgmh+uv1MQpftPV11CUhdtY1w5HeuzPZSPCr6nh6XjLRuXgOGn
+Mie18De8fu4srLw2svWiDN7/Yg+jq6PgRobz+FdNvtCD1vCDz+0geTo7wA6aUoMrNt+JOj4o5M05
+buEJBsRs8aLxqHAmbp4jylthnLAbzc3nwbSM9ZsQ8mx6OxUr0ZzoV8LoXHO4i85OByghBHijfm4p
+oNHmy7CjL6ZEiYzBNt8+tyLoSV+Y+mnVX7cTmeyTS10m/lSr0gCS7Ph37kRVmjqE7Ev4qVYCpLGM
+uJZ/ZalBWPlsokYUZ489xxjl8HN2yqOKA6oCUcxi3ES8Bh5IMT4HAWsWDQKj4qRBS+octyjTQxc5
+Cd55uUABTJbUYrA0BblaMDsQzfpYmtPc3uhuLI/Rzu8j+JHYHFX6fMeUufzc6FyGHgCB2BF9AT4i
+Ca4A/gsiWYlreQa+IC+hMdWVif6MgMvdFmlwKNRaPXBfwk0TvTqzx3aoWMFkf+kOh9/DNvzl9INU
+PX0bQrX5h2EAMVlMfALaJ3R5dbr173eVtGf6mQdLgnywrcYNDe6epR1/qZ3chXk+Dj70TYoQ257i
+7Zac0TyZnpVoWyOVZcs6J9WzIqyScyn83LLwNJX90kre5a2hcmcq4TTtNa6AI6o+VNNohMqHgw08
+fFSg1jPs29cDVgDS08TVfk06ia8jMA5dhAyksaZRxYX3XPUpCZ3gQa48zBHwzPBgrXe6hgZbCE4Q
+D9wcFjw8oiwcV4ewb2HlZqin5wd5huh27fKd3kMbeMaFPoHiIiubRDMMaV0ZM9uC+Vp8fjpE2H3h
+/2/890D15mVGZEJzAOiQoxdC05zx4cy6uASQTRkM7Mj8X0yVrkSwYL7rTy7D1C9ka4fGw56caUgK
+pbBrnxpxUnj4TM8rPBa2wXoA1OY3TqEEgPrWbIuTzsSv6QLtWNU0YF/GzLbwbH38NKS5ucQqdvBJ
+wHhThqoz0RtMRVGU3wtgSL2uaaHEvCookHdAAkBNj0uUZEIc4LjdT8PYzfP2ajxeAoqfYKTy+rTO
+TJNpYatIC8kb1sfNolwBDTDfzcIewWWLy/ipsL5N6VNv3f/vIfOQwpwfebofByc2eukiWJd/U883
+QBU9kwHI8fy3RAJXge1RkjImbPB3svpLUJNzsXlWpjky2OgL1bj1zCkJufV8AbOsQRAylR7eSFwg
+bs8PYUONGFpiAVBIrEHOEwmiTu2qSxQXdVSaYZEtIGDErslovB8nxxv15c1edYRaNHl5OvR2Wg9k
+De2iMD/hGGr0oa9TLnuz+8mPtefkfEmANa/dY1LllBYDjKZ/M04Iy7eM24cBznqh63QFa2StCVGM
+vUewDmw/jCRizoSMvBNiidSFn0zUGsBeN0orU/FneGmBffLs92GDC58YM2cjaLu7U8XK2ydJlQsm
+iavnZnHw57FijezqqNSzgLEAfU7TdWTyOkXAtSX6WTbzMAGSJ8RuCpl5UUU/JI7l3z+B3J+8u1Jx
+ufYtmDzpZQBmnsgbfqNMjQODOEa3lu53Qp/8vdKvFvPxdGuRAJVob314hmPQ1UUPWoiCIwv9XnUj
+yQG9BgC4zSm2Rgn3wV//ad7YoikWO7skWHntLtYE49PaTIoeCntiog/ZBVOsnbVUdksWtmTilzrd
+qboSoNc7GRRovOmvhfyTb9jRbKsLMB+afdUx+EnzW+J9m5YTLX3xqAuVB/pUsUsjOP4Q5W5+HXhV
+AaIX8MO56ZbAHK2jtpSRtkgXoGtBTo1yWAnFJfKBWk902ThtLPKdoG5tSgoIY0Lk

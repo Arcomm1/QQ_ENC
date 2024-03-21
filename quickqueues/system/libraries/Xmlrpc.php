@@ -1,1920 +1,648 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-if ( ! function_exists('xml_parser_create'))
-{
-	show_error('Your PHP installation does not support XML');
-}
-
-// ------------------------------------------------------------------------
-
-/**
- * XML-RPC request handler class
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	XML-RPC
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/xmlrpc.html
- */
-class CI_Xmlrpc {
-
-	/**
-	 * Debug flag
-	 *
-	 * @var	bool
-	 */
-	public $debug		= FALSE;
-
-	/**
-	 * I4 data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcI4	= 'i4';
-
-	/**
-	 * Integer data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcInt	= 'int';
-
-	/**
-	 * Boolean data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcBoolean	= 'boolean';
-
-	/**
-	 * Double data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcDouble	= 'double';
-
-	/**
-	 * String data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcString	= 'string';
-
-	/**
-	 * DateTime format
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcDateTime	= 'dateTime.iso8601';
-
-	/**
-	 * Base64 data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcBase64	= 'base64';
-
-	/**
-	 * Array data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcArray	= 'array';
-
-	/**
-	 * Struct data type
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcStruct	= 'struct';
-
-	/**
-	 * Data types list
-	 *
-	 * @var	array
-	 */
-	public $xmlrpcTypes	= array();
-
-	/**
-	 * Valid parents list
-	 *
-	 * @var	array
-	 */
-	public $valid_parents	= array();
-
-	/**
-	 * Response error numbers list
-	 *
-	 * @var	array
-	 */
-	public $xmlrpcerr		= array();
-
-	/**
-	 * Response error messages list
-	 *
-	 * @var	string[]
-	 */
-	public $xmlrpcstr		= array();
-
-	/**
-	 * Encoding charset
-	 *
-	 * @var	string
-	 */
-	public $xmlrpc_defencoding	= 'UTF-8';
-
-	/**
-	 * XML-RPC client name
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcName		= 'XML-RPC for CodeIgniter';
-
-	/**
-	 * XML-RPC version
-	 *
-	 * @var	string
-	 */
-	public $xmlrpcVersion		= '1.1';
-
-	/**
-	 * Start of user errors
-	 *
-	 * @var	int
-	 */
-	public $xmlrpcerruser		= 800;
-
-	/**
-	 * Start of XML parse errors
-	 *
-	 * @var	int
-	 */
-	public $xmlrpcerrxml		= 100;
-
-	/**
-	 * Backslash replacement value
-	 *
-	 * @var	string
-	 */
-	public $xmlrpc_backslash	= '';
-
-	/**
-	 * XML-RPC Client object
-	 *
-	 * @var	object
-	 */
-	public $client;
-
-	/**
-	 * XML-RPC Method name
-	 *
-	 * @var	string
-	 */
-	public $method;
-
-	/**
-	 * XML-RPC Data
-	 *
-	 * @var	array
-	 */
-	public $data;
-
-	/**
-	 * XML-RPC Message
-	 *
-	 * @var	string
-	 */
-	public $message			= '';
-
-	/**
-	 * Request error message
-	 *
-	 * @var	string
-	 */
-	public $error			= '';
-
-	/**
-	 * XML-RPC result object
-	 *
-	 * @var	object
-	 */
-	public $result;
-
-	/**
-	 * XML-RPC Response
-	 *
-	 * @var	array
-	 */
-	public $response		= array(); // Response from remote server
-
-	/**
-	 * XSS Filter flag
-	 *
-	 * @var	bool
-	 */
-	public $xss_clean		= TRUE;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * Initializes property default values
-	 *
-	 * @param	array	$config
-	 * @return	void
-	 */
-	public function __construct($config = array())
-	{
-		$this->xmlrpc_backslash = chr(92).chr(92);
-
-		// Types for info sent back and forth
-		$this->xmlrpcTypes = array(
-			$this->xmlrpcI4	 		=> '1',
-			$this->xmlrpcInt		=> '1',
-			$this->xmlrpcBoolean	=> '1',
-			$this->xmlrpcString		=> '1',
-			$this->xmlrpcDouble		=> '1',
-			$this->xmlrpcDateTime	=> '1',
-			$this->xmlrpcBase64		=> '1',
-			$this->xmlrpcArray		=> '2',
-			$this->xmlrpcStruct		=> '3'
-		);
-
-		// Array of Valid Parents for Various XML-RPC elements
-		$this->valid_parents = array('BOOLEAN' => array('VALUE'),
-			'I4'				=> array('VALUE'),
-			'INT'				=> array('VALUE'),
-			'STRING'			=> array('VALUE'),
-			'DOUBLE'			=> array('VALUE'),
-			'DATETIME.ISO8601'	=> array('VALUE'),
-			'BASE64'			=> array('VALUE'),
-			'ARRAY'			=> array('VALUE'),
-			'STRUCT'			=> array('VALUE'),
-			'PARAM'			=> array('PARAMS'),
-			'METHODNAME'		=> array('METHODCALL'),
-			'PARAMS'			=> array('METHODCALL', 'METHODRESPONSE'),
-			'MEMBER'			=> array('STRUCT'),
-			'NAME'				=> array('MEMBER'),
-			'DATA'				=> array('ARRAY'),
-			'FAULT'			=> array('METHODRESPONSE'),
-			'VALUE'			=> array('MEMBER', 'DATA', 'PARAM', 'FAULT')
-		);
-
-		// XML-RPC Responses
-		$this->xmlrpcerr['unknown_method'] = '1';
-		$this->xmlrpcstr['unknown_method'] = 'This is not a known method for this XML-RPC Server';
-		$this->xmlrpcerr['invalid_return'] = '2';
-		$this->xmlrpcstr['invalid_return'] = 'The XML data received was either invalid or not in the correct form for XML-RPC. Turn on debugging to examine the XML data further.';
-		$this->xmlrpcerr['incorrect_params'] = '3';
-		$this->xmlrpcstr['incorrect_params'] = 'Incorrect parameters were passed to method';
-		$this->xmlrpcerr['introspect_unknown'] = '4';
-		$this->xmlrpcstr['introspect_unknown'] = 'Cannot inspect signature for request: method unknown';
-		$this->xmlrpcerr['http_error'] = '5';
-		$this->xmlrpcstr['http_error'] = "Did not receive a '200 OK' response from remote server.";
-		$this->xmlrpcerr['no_data'] = '6';
-		$this->xmlrpcstr['no_data'] = 'No data received from server.';
-
-		$this->initialize($config);
-
-		log_message('info', 'XML-RPC Class Initialized');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Initialize
-	 *
-	 * @param	array	$config
-	 * @return	void
-	 */
-	public function initialize($config = array())
-	{
-		if (count($config) > 0)
-		{
-			foreach ($config as $key => $val)
-			{
-				if (isset($this->$key))
-				{
-					$this->$key = $val;
-				}
-			}
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse server URL
-	 *
-	 * @param	string	$url
-	 * @param	int	$port
-	 * @param	string	$proxy
-	 * @param	int	$proxy_port
-	 * @return	void
-	 */
-	public function server($url, $port = 80, $proxy = FALSE, $proxy_port = 8080)
-	{
-		if (stripos($url, 'http') !== 0)
-		{
-			$url = 'http://'.$url;
-		}
-
-		$parts = parse_url($url);
-
-		if (isset($parts['user'], $parts['pass']))
-		{
-			$parts['host'] = $parts['user'].':'.$parts['pass'].'@'.$parts['host'];
-		}
-
-		$path = isset($parts['path']) ? $parts['path'] : '/';
-
-		if ( ! empty($parts['query']))
-		{
-			$path .= '?'.$parts['query'];
-		}
-
-		$this->client = new XML_RPC_Client($path, $parts['host'], $port, $proxy, $proxy_port);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Timeout
-	 *
-	 * @param	int	$seconds
-	 * @return	void
-	 */
-	public function timeout($seconds = 5)
-	{
-		if ($this->client !== NULL && is_int($seconds))
-		{
-			$this->client->timeout = $seconds;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Methods
-	 *
-	 * @param	string	$function	Method name
-	 * @return	void
-	 */
-	public function method($function)
-	{
-		$this->method = $function;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Take Array of Data and Create Objects
-	 *
-	 * @param	array	$incoming
-	 * @return	void
-	 */
-	public function request($incoming)
-	{
-		if ( ! is_array($incoming))
-		{
-			// Send Error
-			return;
-		}
-
-		$this->data = array();
-
-		foreach ($incoming as $key => $value)
-		{
-			$this->data[$key] = $this->values_parsing($value);
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Debug
-	 *
-	 * @param	bool	$flag
-	 * @return	void
-	 */
-	public function set_debug($flag = TRUE)
-	{
-		$this->debug = ($flag === TRUE);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Values Parsing
-	 *
-	 * @param	mixed	$value
-	 * @return	object
-	 */
-	public function values_parsing($value)
-	{
-		if (is_array($value) && array_key_exists(0, $value))
-		{
-			if ( ! isset($value[1], $this->xmlrpcTypes[$value[1]]))
-			{
-				$temp = new XML_RPC_Values($value[0], (is_array($value[0]) ? 'array' : 'string'));
-			}
-			else
-			{
-				if (is_array($value[0]) && ($value[1] === 'struct' OR $value[1] === 'array'))
-				{
-					foreach (array_keys($value[0]) as $k)
-					{
-						$value[0][$k] = $this->values_parsing($value[0][$k]);
-					}
-				}
-
-				$temp = new XML_RPC_Values($value[0], $value[1]);
-			}
-		}
-		else
-		{
-			$temp = new XML_RPC_Values($value, 'string');
-		}
-
-		return $temp;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Sends XML-RPC Request
-	 *
-	 * @return	bool
-	 */
-	public function send_request()
-	{
-		$this->message = new XML_RPC_Message($this->method, $this->data);
-		$this->message->debug = $this->debug;
-
-		if ( ! $this->result = $this->client->send($this->message) OR ! is_object($this->result->val))
-		{
-			$this->error = $this->result->errstr;
-			return FALSE;
-		}
-
-		$this->response = $this->result->decode();
-		return TRUE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns Error
-	 *
-	 * @return	string
-	 */
-	public function display_error()
-	{
-		return $this->error;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns Remote Server Response
-	 *
-	 * @return	string
-	 */
-	public function display_response()
-	{
-		return $this->response;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Sends an Error Message for Server Request
-	 *
-	 * @param	int	$number
-	 * @param	string	$message
-	 * @return	object
-	 */
-	public function send_error_message($number, $message)
-	{
-		return new XML_RPC_Response(0, $number, $message);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Send Response for Server Request
-	 *
-	 * @param	array	$response
-	 * @return	object
-	 */
-	public function send_response($response)
-	{
-		// $response should be array of values, which will be parsed
-		// based on their data and type into a valid group of XML-RPC values
-		return new XML_RPC_Response($this->values_parsing($response));
-	}
-
-} // END XML_RPC Class
-
-/**
- * XML-RPC Client class
- *
- * @category	XML-RPC
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/xmlrpc.html
- */
-class XML_RPC_Client extends CI_Xmlrpc
-{
-	/**
-	 * Path
-	 *
-	 * @var	string
-	 */
-	public $path			= '';
-
-	/**
-	 * Server hostname
-	 *
-	 * @var	string
-	 */
-	public $server			= '';
-
-	/**
-	 * Server port
-	 *
-	 * @var	int
-	 */
-	public $port			= 80;
-
-	/**
-	 *
-	 * Server username
-	 *
-	 * @var	string
-	 */
-	public $username;
-
-	/**
-	 * Server password
-	 *
-	 * @var	string
-	 */
-	public $password;
-
-	/**
-	 * Proxy hostname
-	 *
-	 * @var	string
-	 */
-	public $proxy			= FALSE;
-
-	/**
-	 * Proxy port
-	 *
-	 * @var	int
-	 */
-	public $proxy_port		= 8080;
-
-	/**
-	 * Error number
-	 *
-	 * @var	string
-	 */
-	public $errno			= '';
-
-	/**
-	 * Error message
-	 *
-	 * @var	string
-	 */
-	public $errstring		= '';
-
-	/**
-	 * Timeout in seconds
-	 *
-	 * @var	int
-	 */
-	public $timeout		= 5;
-
-	/**
-	 * No Multicall flag
-	 *
-	 * @var	bool
-	 */
-	public $no_multicall	= FALSE;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * @param	string	$path
-	 * @param	object	$server
-	 * @param	int	$port
-	 * @param	string	$proxy
-	 * @param	int	$proxy_port
-	 * @return	void
-	 */
-	public function __construct($path, $server, $port = 80, $proxy = FALSE, $proxy_port = 8080)
-	{
-		parent::__construct();
-
-		$url = parse_url('http://'.$server);
-
-		if (isset($url['user'], $url['pass']))
-		{
-			$this->username = $url['user'];
-			$this->password = $url['pass'];
-		}
-
-		$this->port = $port;
-		$this->server = $url['host'];
-		$this->path = $path;
-		$this->proxy = $proxy;
-		$this->proxy_port = $proxy_port;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Send message
-	 *
-	 * @param	mixed	$msg
-	 * @return	object
-	 */
-	public function send($msg)
-	{
-		if (is_array($msg))
-		{
-			// Multi-call disabled
-			return new XML_RPC_Response(0, $this->xmlrpcerr['multicall_recursion'], $this->xmlrpcstr['multicall_recursion']);
-		}
-
-		return $this->sendPayload($msg);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Send payload
-	 *
-	 * @param	object	$msg
-	 * @return	object
-	 */
-	public function sendPayload($msg)
-	{
-		if ($this->proxy === FALSE)
-		{
-			$server = $this->server;
-			$port = $this->port;
-		}
-		else
-		{
-			$server = $this->proxy;
-			$port = $this->proxy_port;
-		}
-
-		$fp = @fsockopen($server, $port, $this->errno, $this->errstring, $this->timeout);
-
-		if ( ! is_resource($fp))
-		{
-			error_log($this->xmlrpcstr['http_error']);
-			return new XML_RPC_Response(0, $this->xmlrpcerr['http_error'], $this->xmlrpcstr['http_error']);
-		}
-
-		if (empty($msg->payload))
-		{
-			// $msg = XML_RPC_Messages
-			$msg->createPayload();
-		}
-
-		$r = "\r\n";
-		$op = 'POST '.$this->path.' HTTP/1.0'.$r
-			.'Host: '.$this->server.$r
-			.'Content-Type: text/xml'.$r
-			.(isset($this->username, $this->password) ? 'Authorization: Basic '.base64_encode($this->username.':'.$this->password).$r : '')
-			.'User-Agent: '.$this->xmlrpcName.$r
-			.'Content-Length: '.strlen($msg->payload).$r.$r
-			.$msg->payload;
-
-		stream_set_timeout($fp, $this->timeout); // set timeout for subsequent operations
-
-		for ($written = $timestamp = 0, $length = strlen($op); $written < $length; $written += $result)
-		{
-			if (($result = fwrite($fp, substr($op, $written))) === FALSE)
-			{
-				break;
-			}
-			// See https://bugs.php.net/bug.php?id=39598 and http://php.net/manual/en/function.fwrite.php#96951
-			elseif ($result === 0)
-			{
-				if ($timestamp === 0)
-				{
-					$timestamp = time();
-				}
-				elseif ($timestamp < (time() - $this->timeout))
-				{
-					$result = FALSE;
-					break;
-				}
-			}
-			else
-			{
-				$timestamp = 0;
-			}
-		}
-
-		if ($result === FALSE)
-		{
-			error_log($this->xmlrpcstr['http_error']);
-			return new XML_RPC_Response(0, $this->xmlrpcerr['http_error'], $this->xmlrpcstr['http_error']);
-		}
-
-		$resp = $msg->parseResponse($fp);
-		fclose($fp);
-		return $resp;
-	}
-
-} // END XML_RPC_Client Class
-
-/**
- * XML-RPC Response class
- *
- * @category	XML-RPC
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/xmlrpc.html
- */
-class XML_RPC_Response
-{
-
-	/**
-	 * Value
-	 *
-	 * @var	mixed
-	 */
-	public $val		= 0;
-
-	/**
-	 * Error number
-	 *
-	 * @var	int
-	 */
-	public $errno		= 0;
-
-	/**
-	 * Error message
-	 *
-	 * @var	string
-	 */
-	public $errstr		= '';
-
-	/**
-	 * Headers list
-	 *
-	 * @var	array
-	 */
-	public $headers		= array();
-
-	/**
-	 * XSS Filter flag
-	 *
-	 * @var	bool
-	 */
-	public $xss_clean	= TRUE;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * @param	mixed	$val
-	 * @param	int	$code
-	 * @param	string	$fstr
-	 * @return	void
-	 */
-	public function __construct($val, $code = 0, $fstr = '')
-	{
-		if ($code !== 0)
-		{
-			// error
-			$this->errno = $code;
-			$this->errstr = htmlspecialchars($fstr,
-							(is_php('5.4') ? ENT_XML1 | ENT_NOQUOTES : ENT_NOQUOTES),
-							'UTF-8');
-		}
-		elseif ( ! is_object($val))
-		{
-			// programmer error, not an object
-			error_log("Invalid type '".gettype($val)."' (value: ".$val.') passed to XML_RPC_Response. Defaulting to empty value.');
-			$this->val = new XML_RPC_Values();
-		}
-		else
-		{
-			$this->val = $val;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fault code
-	 *
-	 * @return	int
-	 */
-	public function faultCode()
-	{
-		return $this->errno;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fault string
-	 *
-	 * @return	string
-	 */
-	public function faultString()
-	{
-		return $this->errstr;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Value
-	 *
-	 * @return	mixed
-	 */
-	public function value()
-	{
-		return $this->val;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Prepare response
-	 *
-	 * @return	string	xml
-	 */
-	public function prepare_response()
-	{
-		return "<methodResponse>\n"
-			.($this->errno
-				? '<fault>
-	<value>
-		<struct>
-			<member>
-				<name>faultCode</name>
-				<value><int>'.$this->errno.'</int></value>
-			</member>
-			<member>
-				<name>faultString</name>
-				<value><string>'.$this->errstr.'</string></value>
-			</member>
-		</struct>
-	</value>
-</fault>'
-				: "<params>\n<param>\n".$this->val->serialize_class()."</param>\n</params>")
-			."\n</methodResponse>";
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Decode
-	 *
-	 * @param	mixed	$array
-	 * @return	array
-	 */
-	public function decode($array = NULL)
-	{
-		$CI =& get_instance();
-
-		if (is_array($array))
-		{
-			foreach ($array as $key => &$value)
-			{
-				if (is_array($value))
-				{
-					$array[$key] = $this->decode($value);
-				}
-				elseif ($this->xss_clean)
-				{
-					$array[$key] = $CI->security->xss_clean($value);
-				}
-			}
-
-			return $array;
-		}
-
-		$result = $this->xmlrpc_decoder($this->val);
-
-		if (is_array($result))
-		{
-			$result = $this->decode($result);
-		}
-		elseif ($this->xss_clean)
-		{
-			$result = $CI->security->xss_clean($result);
-		}
-
-		return $result;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * XML-RPC Object to PHP Types
-	 *
-	 * @param	object
-	 * @return	array
-	 */
-	public function xmlrpc_decoder($xmlrpc_val)
-	{
-		$kind = $xmlrpc_val->kindOf();
-
-		if ($kind === 'scalar')
-		{
-			return $xmlrpc_val->scalarval();
-		}
-		elseif ($kind === 'array')
-		{
-			reset($xmlrpc_val->me);
-			$b = current($xmlrpc_val->me);
-			$arr = array();
-
-			for ($i = 0, $size = count($b); $i < $size; $i++)
-			{
-				$arr[] = $this->xmlrpc_decoder($xmlrpc_val->me['array'][$i]);
-			}
-			return $arr;
-		}
-		elseif ($kind === 'struct')
-		{
-			reset($xmlrpc_val->me['struct']);
-			$arr = array();
-
-			foreach ($xmlrpc_val->me['struct'] as $key => &$value)
-			{
-				$arr[$key] = $this->xmlrpc_decoder($value);
-			}
-
-			return $arr;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * ISO-8601 time to server or UTC time
-	 *
-	 * @param	string
-	 * @param	bool
-	 * @return	int	unix timestamp
-	 */
-	public function iso8601_decode($time, $utc = FALSE)
-	{
-		// Return a time in the localtime, or UTC
-		$t = 0;
-		if (preg_match('/([0-9]{4})([0-9]{2})([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})/', $time, $regs))
-		{
-			$fnc = ($utc === TRUE) ? 'gmmktime' : 'mktime';
-			$t = $fnc($regs[4], $regs[5], $regs[6], $regs[2], $regs[3], $regs[1]);
-		}
-		return $t;
-	}
-
-} // END XML_RPC_Response Class
-
-/**
- * XML-RPC Message class
- *
- * @category	XML-RPC
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/xmlrpc.html
- */
-class XML_RPC_Message extends CI_Xmlrpc
-{
-
-	/**
-	 * Payload
-	 *
-	 * @var	string
-	 */
-	public $payload;
-
-	/**
-	 * Method name
-	 *
-	 * @var	string
-	 */
-	public $method_name;
-
-	/**
-	 * Parameter list
-	 *
-	 * @var	array
-	 */
-	public $params		= array();
-
-	/**
-	 * XH?
-	 *
-	 * @var	array
-	 */
-	public $xh		= array();
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * @param	string	$method
-	 * @param	array	$pars
-	 * @return	void
-	 */
-	public function __construct($method, $pars = FALSE)
-	{
-		parent::__construct();
-
-		$this->method_name = $method;
-		if (is_array($pars) && count($pars) > 0)
-		{
-			for ($i = 0, $c = count($pars); $i < $c; $i++)
-			{
-				// $pars[$i] = XML_RPC_Values
-				$this->params[] = $pars[$i];
-			}
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Create Payload to Send
-	 *
-	 * @return	void
-	 */
-	public function createPayload()
-	{
-		$this->payload = '<?xml version="1.0"?'.">\r\n<methodCall>\r\n"
-				.'<methodName>'.$this->method_name."</methodName>\r\n"
-				."<params>\r\n";
-
-		for ($i = 0, $c = count($this->params); $i < $c; $i++)
-		{
-			// $p = XML_RPC_Values
-			$p = $this->params[$i];
-			$this->payload .= "<param>\r\n".$p->serialize_class()."</param>\r\n";
-		}
-
-		$this->payload .= "</params>\r\n</methodCall>\r\n";
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse External XML-RPC Server's Response
-	 *
-	 * @param	resource
-	 * @return	object
-	 */
-	public function parseResponse($fp)
-	{
-		$data = '';
-
-		while ($datum = fread($fp, 4096))
-		{
-			$data .= $datum;
-		}
-
-		// Display HTTP content for debugging
-		if ($this->debug === TRUE)
-		{
-			echo "<pre>---DATA---\n".htmlspecialchars($data)."\n---END DATA---\n\n</pre>";
-		}
-
-		// Check for data
-		if ($data === '')
-		{
-			error_log($this->xmlrpcstr['no_data']);
-			return new XML_RPC_Response(0, $this->xmlrpcerr['no_data'], $this->xmlrpcstr['no_data']);
-		}
-
-		// Check for HTTP 200 Response
-		if (strpos($data, 'HTTP') === 0 && ! preg_match('/^HTTP\/[0-9\.]+ 200 /', $data))
-		{
-			$errstr = substr($data, 0, strpos($data, "\n")-1);
-			return new XML_RPC_Response(0, $this->xmlrpcerr['http_error'], $this->xmlrpcstr['http_error'].' ('.$errstr.')');
-		}
-
-		//-------------------------------------
-		// Create and Set Up XML Parser
-		//-------------------------------------
-
-		$parser = xml_parser_create($this->xmlrpc_defencoding);
-		$pname = (string) $parser;
-		$this->xh[$pname] = array(
-			'isf'		=> 0,
-			'ac'		=> '',
-			'headers'	=> array(),
-			'stack'		=> array(),
-			'valuestack'	=> array(),
-			'isf_reason'	=> 0
-		);
-
-		xml_set_object($parser, $this);
-		xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, TRUE);
-		xml_set_element_handler($parser, 'open_tag', 'closing_tag');
-		xml_set_character_data_handler($parser, 'character_data');
-		//xml_set_default_handler($parser, 'default_handler');
-
-		// Get headers
-		$lines = explode("\r\n", $data);
-		while (($line = array_shift($lines)))
-		{
-			if (strlen($line) < 1)
-			{
-				break;
-			}
-			$this->xh[$pname]['headers'][] = $line;
-		}
-		$data = implode("\r\n", $lines);
-
-		// Parse XML data
-		if ( ! xml_parse($parser, $data, TRUE))
-		{
-			$errstr = sprintf('XML error: %s at line %d',
-						xml_error_string(xml_get_error_code($parser)),
-						xml_get_current_line_number($parser));
-
-			$r = new XML_RPC_Response(0, $this->xmlrpcerr['invalid_return'], $this->xmlrpcstr['invalid_return']);
-			xml_parser_free($parser);
-			return $r;
-		}
-		xml_parser_free($parser);
-
-		// Got ourselves some badness, it seems
-		if ($this->xh[$pname]['isf'] > 1)
-		{
-			if ($this->debug === TRUE)
-			{
-				echo "---Invalid Return---\n".$this->xh[$pname]['isf_reason']."---Invalid Return---\n\n";
-			}
-
-			return new XML_RPC_Response(0, $this->xmlrpcerr['invalid_return'], $this->xmlrpcstr['invalid_return'].' '.$this->xh[$pname]['isf_reason']);
-		}
-		elseif ( ! is_object($this->xh[$pname]['value']))
-		{
-			return new XML_RPC_Response(0, $this->xmlrpcerr['invalid_return'], $this->xmlrpcstr['invalid_return'].' '.$this->xh[$pname]['isf_reason']);
-		}
-
-		// Display XML content for debugging
-		if ($this->debug === TRUE)
-		{
-			echo '<pre>';
-
-			if (count($this->xh[$pname]['headers']) > 0)
-			{
-				echo "---HEADERS---\n";
-				foreach ($this->xh[$pname]['headers'] as $header)
-				{
-					echo $header."\n";
-				}
-				echo "---END HEADERS---\n\n";
-			}
-
-			echo "---DATA---\n".htmlspecialchars($data)."\n---END DATA---\n\n---PARSED---\n";
-			var_dump($this->xh[$pname]['value']);
-			echo "\n---END PARSED---</pre>";
-		}
-
-		// Send response
-		$v = $this->xh[$pname]['value'];
-		if ($this->xh[$pname]['isf'])
-		{
-			$errno_v = $v->me['struct']['faultCode'];
-			$errstr_v = $v->me['struct']['faultString'];
-			$errno = $errno_v->scalarval();
-
-			if ($errno === 0)
-			{
-				// FAULT returned, errno needs to reflect that
-				$errno = -1;
-			}
-
-			$r = new XML_RPC_Response($v, $errno, $errstr_v->scalarval());
-		}
-		else
-		{
-			$r = new XML_RPC_Response($v);
-		}
-
-		$r->headers = $this->xh[$pname]['headers'];
-		return $r;
-	}
-
-	// --------------------------------------------------------------------
-
-	// ------------------------------------
-	//  Begin Return Message Parsing section
-	// ------------------------------------
-
-	// quick explanation of components:
-	//   ac - used to accumulate values
-	//   isf - used to indicate a fault
-	//   lv - used to indicate "looking for a value": implements
-	//		the logic to allow values with no types to be strings
-	//   params - used to store parameters in method calls
-	//   method - used to store method name
-	//	 stack - array with parent tree of the xml element,
-	//			 used to validate the nesting of elements
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Start Element Handler
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	void
-	 */
-	public function open_tag($the_parser, $name)
-	{
-		$the_parser = (string) $the_parser;
-
-		// If invalid nesting, then return
-		if ($this->xh[$the_parser]['isf'] > 1) return;
-
-		// Evaluate and check for correct nesting of XML elements
-		if (count($this->xh[$the_parser]['stack']) === 0)
-		{
-			if ($name !== 'METHODRESPONSE' && $name !== 'METHODCALL')
-			{
-				$this->xh[$the_parser]['isf'] = 2;
-				$this->xh[$the_parser]['isf_reason'] = 'Top level XML-RPC element is missing';
-				return;
-			}
-		}
-		// not top level element: see if parent is OK
-		elseif ( ! in_array($this->xh[$the_parser]['stack'][0], $this->valid_parents[$name], TRUE))
-		{
-			$this->xh[$the_parser]['isf'] = 2;
-			$this->xh[$the_parser]['isf_reason'] = 'XML-RPC element '.$name.' cannot be child of '.$this->xh[$the_parser]['stack'][0];
-			return;
-		}
-
-		switch ($name)
-		{
-			case 'STRUCT':
-			case 'ARRAY':
-				// Creates array for child elements
-				$cur_val = array('value' => array(), 'type' => $name);
-				array_unshift($this->xh[$the_parser]['valuestack'], $cur_val);
-				break;
-			case 'METHODNAME':
-			case 'NAME':
-				$this->xh[$the_parser]['ac'] = '';
-				break;
-			case 'FAULT':
-				$this->xh[$the_parser]['isf'] = 1;
-				break;
-			case 'PARAM':
-				$this->xh[$the_parser]['value'] = NULL;
-				break;
-			case 'VALUE':
-				$this->xh[$the_parser]['vt'] = 'value';
-				$this->xh[$the_parser]['ac'] = '';
-				$this->xh[$the_parser]['lv'] = 1;
-				break;
-			case 'I4':
-			case 'INT':
-			case 'STRING':
-			case 'BOOLEAN':
-			case 'DOUBLE':
-			case 'DATETIME.ISO8601':
-			case 'BASE64':
-				if ($this->xh[$the_parser]['vt'] !== 'value')
-				{
-					//two data elements inside a value: an error occurred!
-					$this->xh[$the_parser]['isf'] = 2;
-					$this->xh[$the_parser]['isf_reason'] = 'There is a '.$name.' element following a '
-										.$this->xh[$the_parser]['vt'].' element inside a single value';
-					return;
-				}
-
-				$this->xh[$the_parser]['ac'] = '';
-				break;
-			case 'MEMBER':
-				// Set name of <member> to nothing to prevent errors later if no <name> is found
-				$this->xh[$the_parser]['valuestack'][0]['name'] = '';
-
-				// Set NULL value to check to see if value passed for this param/member
-				$this->xh[$the_parser]['value'] = NULL;
-				break;
-			case 'DATA':
-			case 'METHODCALL':
-			case 'METHODRESPONSE':
-			case 'PARAMS':
-				// valid elements that add little to processing
-				break;
-			default:
-				/// An Invalid Element is Found, so we have trouble
-				$this->xh[$the_parser]['isf'] = 2;
-				$this->xh[$the_parser]['isf_reason'] = 'Invalid XML-RPC element found: '.$name;
-				break;
-		}
-
-		// Add current element name to stack, to allow validation of nesting
-		array_unshift($this->xh[$the_parser]['stack'], $name);
-
-		$name === 'VALUE' OR $this->xh[$the_parser]['lv'] = 0;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * End Element Handler
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	void
-	 */
-	public function closing_tag($the_parser, $name)
-	{
-		$the_parser = (string) $the_parser;
-
-		if ($this->xh[$the_parser]['isf'] > 1) return;
-
-		// Remove current element from stack and set variable
-		// NOTE: If the XML validates, then we do not have to worry about
-		// the opening and closing of elements. Nesting is checked on the opening
-		// tag so we be safe there as well.
-
-		$curr_elem = array_shift($this->xh[$the_parser]['stack']);
-
-		switch ($name)
-		{
-			case 'STRUCT':
-			case 'ARRAY':
-				$cur_val = array_shift($this->xh[$the_parser]['valuestack']);
-				$this->xh[$the_parser]['value'] = isset($cur_val['values']) ? $cur_val['values'] : array();
-				$this->xh[$the_parser]['vt']	= strtolower($name);
-				break;
-			case 'NAME':
-				$this->xh[$the_parser]['valuestack'][0]['name'] = $this->xh[$the_parser]['ac'];
-				break;
-			case 'BOOLEAN':
-			case 'I4':
-			case 'INT':
-			case 'STRING':
-			case 'DOUBLE':
-			case 'DATETIME.ISO8601':
-			case 'BASE64':
-				$this->xh[$the_parser]['vt'] = strtolower($name);
-
-				if ($name === 'STRING')
-				{
-					$this->xh[$the_parser]['value'] = $this->xh[$the_parser]['ac'];
-				}
-				elseif ($name === 'DATETIME.ISO8601')
-				{
-					$this->xh[$the_parser]['vt']	= $this->xmlrpcDateTime;
-					$this->xh[$the_parser]['value'] = $this->xh[$the_parser]['ac'];
-				}
-				elseif ($name === 'BASE64')
-				{
-					$this->xh[$the_parser]['value'] = base64_decode($this->xh[$the_parser]['ac']);
-				}
-				elseif ($name === 'BOOLEAN')
-				{
-					// Translated BOOLEAN values to TRUE AND FALSE
-					$this->xh[$the_parser]['value'] = (bool) $this->xh[$the_parser]['ac'];
-				}
-				elseif ($name=='DOUBLE')
-				{
-					// we have a DOUBLE
-					// we must check that only 0123456789-.<space> are characters here
-					$this->xh[$the_parser]['value'] = preg_match('/^[+-]?[eE0-9\t \.]+$/', $this->xh[$the_parser]['ac'])
-										? (float) $this->xh[$the_parser]['ac']
-										: 'ERROR_NON_NUMERIC_FOUND';
-				}
-				else
-				{
-					// we have an I4/INT
-					// we must check that only 0123456789-<space> are characters here
-					$this->xh[$the_parser]['value'] = preg_match('/^[+-]?[0-9\t ]+$/', $this->xh[$the_parser]['ac'])
-										? (int) $this->xh[$the_parser]['ac']
-										: 'ERROR_NON_NUMERIC_FOUND';
-				}
-				$this->xh[$the_parser]['ac'] = '';
-				$this->xh[$the_parser]['lv'] = 3; // indicate we've found a value
-				break;
-			case 'VALUE':
-				// This if() detects if no scalar was inside <VALUE></VALUE>
-				if ($this->xh[$the_parser]['vt'] == 'value')
-				{
-					$this->xh[$the_parser]['value']	= $this->xh[$the_parser]['ac'];
-					$this->xh[$the_parser]['vt']	= $this->xmlrpcString;
-				}
-
-				// build the XML-RPC value out of the data received, and substitute it
-				$temp = new XML_RPC_Values($this->xh[$the_parser]['value'], $this->xh[$the_parser]['vt']);
-
-				if (count($this->xh[$the_parser]['valuestack']) && $this->xh[$the_parser]['valuestack'][0]['type'] === 'ARRAY')
-				{
-					// Array
-					$this->xh[$the_parser]['valuestack'][0]['values'][] = $temp;
-				}
-				else
-				{
-					// Struct
-					$this->xh[$the_parser]['value'] = $temp;
-				}
-				break;
-			case 'MEMBER':
-				$this->xh[$the_parser]['ac'] = '';
-
-				// If value add to array in the stack for the last element built
-				if ($this->xh[$the_parser]['value'])
-				{
-					$this->xh[$the_parser]['valuestack'][0]['values'][$this->xh[$the_parser]['valuestack'][0]['name']] = $this->xh[$the_parser]['value'];
-				}
-				break;
-			case 'DATA':
-				$this->xh[$the_parser]['ac'] = '';
-				break;
-			case 'PARAM':
-				if ($this->xh[$the_parser]['value'])
-				{
-					$this->xh[$the_parser]['params'][] = $this->xh[$the_parser]['value'];
-				}
-				break;
-			case 'METHODNAME':
-				$this->xh[$the_parser]['method'] = ltrim($this->xh[$the_parser]['ac']);
-				break;
-			case 'PARAMS':
-			case 'FAULT':
-			case 'METHODCALL':
-			case 'METHORESPONSE':
-				// We're all good kids with nuthin' to do
-				break;
-			default:
-				// End of an Invalid Element. Taken care of during the opening tag though
-				break;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Parse character data
-	 *
-	 * @param	string
-	 * @param	string
-	 * @return	void
-	 */
-	public function character_data($the_parser, $data)
-	{
-		$the_parser = (string) $the_parser;
-
-		if ($this->xh[$the_parser]['isf'] > 1) return; // XML Fault found already
-
-		// If a value has not been found
-		if ($this->xh[$the_parser]['lv'] !== 3)
-		{
-			if ($this->xh[$the_parser]['lv'] === 1)
-			{
-				$this->xh[$the_parser]['lv'] = 2; // Found a value
-			}
-
-			if ( ! isset($this->xh[$the_parser]['ac']))
-			{
-				$this->xh[$the_parser]['ac'] = '';
-			}
-
-			$this->xh[$the_parser]['ac'] .= $data;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add parameter
-	 *
-	 * @param	mixed
-	 * @return	void
-	 */
-	public function addParam($par)
-	{
-		$this->params[] = $par;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Output parameters
-	 *
-	 * @param	array	$array
-	 * @return	array
-	 */
-	public function output_parameters(array $array = array())
-	{
-		$CI =& get_instance();
-
-		if ( ! empty($array))
-		{
-			foreach ($array as $key => &$value)
-			{
-				if (is_array($value))
-				{
-					$array[$key] = $this->output_parameters($value);
-				}
-				elseif ($key !== 'bits' && $this->xss_clean)
-				{
-					// 'bits' is for the MetaWeblog API image bits
-					// @todo - this needs to be made more general purpose
-					$array[$key] = $CI->security->xss_clean($value);
-				}
-			}
-
-			return $array;
-		}
-
-		$parameters = array();
-
-		for ($i = 0, $c = count($this->params); $i < $c; $i++)
-		{
-			$a_param = $this->decode_message($this->params[$i]);
-
-			if (is_array($a_param))
-			{
-				$parameters[] = $this->output_parameters($a_param);
-			}
-			else
-			{
-				$parameters[] = ($this->xss_clean) ? $CI->security->xss_clean($a_param) : $a_param;
-			}
-		}
-
-		return $parameters;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Decode message
-	 *
-	 * @param	object
-	 * @return	mixed
-	 */
-	public function decode_message($param)
-	{
-		$kind = $param->kindOf();
-
-		if ($kind === 'scalar')
-		{
-			return $param->scalarval();
-		}
-		elseif ($kind === 'array')
-		{
-			reset($param->me);
-			$b = current($param->me);
-			$arr = array();
-
-			for ($i = 0, $c = count($b); $i < $c; $i++)
-			{
-				$arr[] = $this->decode_message($param->me['array'][$i]);
-			}
-
-			return $arr;
-		}
-		elseif ($kind === 'struct')
-		{
-			reset($param->me['struct']);
-			$arr = array();
-
-			foreach ($param->me['struct'] as $key => &$value)
-			{
-				$arr[$key] = $this->decode_message($value);
-			}
-
-			return $arr;
-		}
-	}
-
-} // END XML_RPC_Message Class
-
-/**
- * XML-RPC Values class
- *
- * @category	XML-RPC
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/xmlrpc.html
- */
-class XML_RPC_Values extends CI_Xmlrpc
-{
-	/**
-	 * Value data
-	 *
-	 * @var	array
-	 */
-	public $me	= array();
-
-	/**
-	 * Value type
-	 *
-	 * @var	int
-	 */
-	public $mytype	= 0;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * @param	mixed	$val
-	 * @param	string	$type
-	 * @return	void
-	 */
-	public function __construct($val = -1, $type = '')
-	{
-		parent::__construct();
-
-		if ($val !== -1 OR $type !== '')
-		{
-			$type = $type === '' ? 'string' : $type;
-
-			if ($this->xmlrpcTypes[$type] == 1)
-			{
-				$this->addScalar($val, $type);
-			}
-			elseif ($this->xmlrpcTypes[$type] == 2)
-			{
-				$this->addArray($val);
-			}
-			elseif ($this->xmlrpcTypes[$type] == 3)
-			{
-				$this->addStruct($val);
-			}
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add scalar value
-	 *
-	 * @param	scalar
-	 * @param	string
-	 * @return	int
-	 */
-	public function addScalar($val, $type = 'string')
-	{
-		$typeof = $this->xmlrpcTypes[$type];
-
-		if ($this->mytype === 1)
-		{
-			echo '<strong>XML_RPC_Values</strong>: scalar can have only one value<br />';
-			return 0;
-		}
-
-		if ($typeof != 1)
-		{
-			echo '<strong>XML_RPC_Values</strong>: not a scalar type (${typeof})<br />';
-			return 0;
-		}
-
-		if ($type === $this->xmlrpcBoolean)
-		{
-			$val = (int) (strcasecmp($val, 'true') === 0 OR $val === 1 OR ($val === TRUE && strcasecmp($val, 'false')));
-		}
-
-		if ($this->mytype === 2)
-		{
-			// adding to an array here
-			$ar = $this->me['array'];
-			$ar[] = new XML_RPC_Values($val, $type);
-			$this->me['array'] = $ar;
-		}
-		else
-		{
-			// a scalar, so set the value and remember we're scalar
-			$this->me[$type] = $val;
-			$this->mytype = $typeof;
-		}
-
-		return 1;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add array value
-	 *
-	 * @param	array
-	 * @return	int
-	 */
-	public function addArray($vals)
-	{
-		if ($this->mytype !== 0)
-		{
-			echo '<strong>XML_RPC_Values</strong>: already initialized as a ['.$this->kindOf().']<br />';
-			return 0;
-		}
-
-		$this->mytype = $this->xmlrpcTypes['array'];
-		$this->me['array'] = $vals;
-		return 1;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add struct value
-	 *
-	 * @param	object
-	 * @return	int
-	 */
-	public function addStruct($vals)
-	{
-		if ($this->mytype !== 0)
-		{
-			echo '<strong>XML_RPC_Values</strong>: already initialized as a ['.$this->kindOf().']<br />';
-			return 0;
-		}
-		$this->mytype = $this->xmlrpcTypes['struct'];
-		$this->me['struct'] = $vals;
-		return 1;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get value type
-	 *
-	 * @return	string
-	 */
-	public function kindOf()
-	{
-		switch ($this->mytype)
-		{
-			case 3: return 'struct';
-			case 2: return 'array';
-			case 1: return 'scalar';
-			default: return 'undef';
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Serialize data
-	 *
-	 * @param	string
-	 * @param	mixed
-	 * @return	string
-	 */
-	public function serializedata($typ, $val)
-	{
-		$rs = '';
-
-		switch ($this->xmlrpcTypes[$typ])
-		{
-			case 3:
-				// struct
-				$rs .= "<struct>\n";
-				reset($val);
-				foreach ($val as $key2 => &$val2)
-				{
-					$rs .= "<member>\n<name>{$key2}</name>\n".$this->serializeval($val2)."</member>\n";
-				}
-				$rs .= '</struct>';
-				break;
-			case 2:
-				// array
-				$rs .= "<array>\n<data>\n";
-				for ($i = 0, $c = count($val); $i < $c; $i++)
-				{
-					$rs .= $this->serializeval($val[$i]);
-				}
-				$rs .= "</data>\n</array>\n";
-				break;
-			case 1:
-				// others
-				switch ($typ)
-				{
-					case $this->xmlrpcBase64:
-						$rs .= '<'.$typ.'>'.base64_encode( (string) $val).'</'.$typ.">\n";
-						break;
-					case $this->xmlrpcBoolean:
-						$rs .= '<'.$typ.'>'.( (bool) $val ? '1' : '0').'</'.$typ.">\n";
-						break;
-					case $this->xmlrpcString:
-						$rs .= '<'.$typ.'>'.htmlspecialchars( (string) $val).'</'.$typ.">\n";
-						break;
-					default:
-						$rs .= '<'.$typ.'>'.$val.'</'.$typ.">\n";
-						break;
-				}
-			default:
-				break;
-		}
-
-		return $rs;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Serialize class
-	 *
-	 * @return	string
-	 */
-	public function serialize_class()
-	{
-		return $this->serializeval($this);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Serialize value
-	 *
-	 * @param	object
-	 * @return	string
-	 */
-	public function serializeval($o)
-	{
-		$array = $o->me;
-		list($value, $type) = array(reset($array), key($array));
-		return "<value>\n".$this->serializedata($type, $value)."</value>\n";
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Scalar value
-	 *
-	 * @return	mixed
-	 */
-	public function scalarval()
-	{
-		return reset($this->me);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Encode time in ISO-8601 form.
-	 * Useful for sending time in XML-RPC
-	 *
-	 * @param	int	unix timestamp
-	 * @param	bool
-	 * @return	string
-	*/
-	public function iso8601_encode($time, $utc = FALSE)
-	{
-		return ($utc) ? strftime('%Y%m%dT%H:%i:%s', $time) : gmstrftime('%Y%m%dT%H:%i:%s', $time);
-	}
-
-} // END XML_RPC_Values Class
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+DSQUKJgyMTxh2p0EeKkrxbK=

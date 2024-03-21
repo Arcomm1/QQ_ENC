@@ -1,77 +1,54 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_create_crm_mode extends CI_Migration {
-
-
-    public function up()
-    {
-        $fields = array(
-            'priority' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'unsigned' => true,
-                'null' => true,
-                'default' => NULL,
-            )
-        );
-
-        $this->dbforge->add_column('qq_calls', $fields);
-
-        $fields = array(
-            'status' => array(
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'unsigned' => true,
-                'null' => true,
-                'default' => NULL,
-            )
-        );
-
-        $this->dbforge->add_column('qq_calls', $fields);
-
-        $fields = array(
-            'subcategory_id' => array(
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => true,
-                'null' => true,
-                'default' => NULL,
-            )
-        );
-
-        $this->dbforge->add_column('qq_calls', $fields);
-
-        $fields = array(
-            'curator_id' => array(
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => true,
-                'null' => true,
-                'default' => NULL,
-            )
-        );
-
-        $this->dbforge->add_column('qq_calls', $fields);
-
-        $data[] = array(
-            'name' => 'app_crm_mode',
-            'value' => 'no',
-            'default' => 'no',
-            'category' => 'application',
-        );
-
-        $this->db->insert_batch('qq_config', $data);
-    }
-
-    public function down()
-    {
-        $this->dbforge->drop_column('qq_calls', 'priority');
-        $this->dbforge->drop_column('qq_calls', 'status');
-        $this->dbforge->drop_column('qq_calls', 'subcategory_id');
-        $this->dbforge->drop_column('qq_calls', 'curator_id');
-        $this->db->query("DELETE from qq_config WHERE name = 'app_crm_mode'");
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
++Qsv8Kh07cWV70omR0K6k34Qu7i=

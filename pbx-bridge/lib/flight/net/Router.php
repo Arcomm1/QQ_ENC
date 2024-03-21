@@ -1,117 +1,59 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight\net;
-
-/**
- * The Router class is responsible for routing an HTTP request to
- * an assigned callback function. The Router tries to match the
- * requested URL against a series of URL patterns. 
- */
-class Router {
-    /**
-     * Mapped routes.
-     *
-     * @var array
-     */
-    protected $routes = array();
-
-    /**
-     * Pointer to current route.
-     *
-     * @var int
-     */
-    protected $index = 0;
-
-    /**
-     * Case sensitive matching.
-     *
-     * @var boolean
-     */
-    public $case_sensitive = false;
-
-    /**
-     * Gets mapped routes.
-     *
-     * @return array Array of routes
-     */
-    public function getRoutes() {
-        return $this->routes;
-    }
-
-    /**
-     * Clears all routes in the router.
-     */
-    public function clear() {
-        $this->routes = array();
-    }
-
-    /**
-     * Maps a URL pattern to a callback function.
-     *
-     * @param string $pattern URL pattern to match
-     * @param callback $callback Callback function
-     * @param boolean $pass_route Pass the matching route object to the callback
-     */
-    public function map($pattern, $callback, $pass_route = false) {
-        $url = $pattern;
-        $methods = array('*');
-
-        if (strpos($pattern, ' ') !== false) {
-            list($method, $url) = explode(' ', trim($pattern), 2);
-
-            $methods = explode('|', $method);
-        }
-
-        $this->routes[] = new Route($url, $callback, $methods, $pass_route);
-    }
-
-    /**
-     * Routes the current request.
-     *
-     * @param Request $request Request object
-     * @return Route|bool Matching route or false if no match
-     */
-    public function route(Request $request) {
-        $url_decoded = urldecode( $request->url );
-        while ($route = $this->current()) {
-            if ($route !== false && $route->matchMethod($request->method) && $route->matchUrl($url_decoded, $this->case_sensitive)) {
-                return $route;
-            }
-            $this->next();
-        }
-
-        return false;
-    }
-
-    /**
-     * Gets the current route.
-     *
-     * @return Route
-     */
-    public function current() {
-        return isset($this->routes[$this->index]) ? $this->routes[$this->index] : false;
-    }
-
-    /**
-     * Gets the next route.
-     *
-     * @return Route
-     */
-    public function next() {
-        $this->index++;
-    }
-
-    /**
-     * Reset to the first route.
-     */
-    public  function reset() {
-        $this->index = 0;
-    }
-}
-
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

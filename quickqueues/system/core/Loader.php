@@ -1,1415 +1,500 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Loader Class
- *
- * Loads framework components.
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Loader
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/loader.html
- */
-class CI_Loader {
-
-	// All these are set automatically. Don't mess with them.
-	/**
-	 * Nesting level of the output buffering mechanism
-	 *
-	 * @var	int
-	 */
-	protected $_ci_ob_level;
-
-	/**
-	 * List of paths to load views from
-	 *
-	 * @var	array
-	 */
-	protected $_ci_view_paths =	array(VIEWPATH	=> TRUE);
-
-	/**
-	 * List of paths to load libraries from
-	 *
-	 * @var	array
-	 */
-	protected $_ci_library_paths =	array(APPPATH, BASEPATH);
-
-	/**
-	 * List of paths to load models from
-	 *
-	 * @var	array
-	 */
-	protected $_ci_model_paths =	array(APPPATH);
-
-	/**
-	 * List of paths to load helpers from
-	 *
-	 * @var	array
-	 */
-	protected $_ci_helper_paths =	array(APPPATH, BASEPATH);
-
-	/**
-	 * List of cached variables
-	 *
-	 * @var	array
-	 */
-	protected $_ci_cached_vars =	array();
-
-	/**
-	 * List of loaded classes
-	 *
-	 * @var	array
-	 */
-	protected $_ci_classes =	array();
-
-	/**
-	 * List of loaded models
-	 *
-	 * @var	array
-	 */
-	protected $_ci_models =	array();
-
-	/**
-	 * List of loaded helpers
-	 *
-	 * @var	array
-	 */
-	protected $_ci_helpers =	array();
-
-	/**
-	 * List of class name mappings
-	 *
-	 * @var	array
-	 */
-	protected $_ci_varmap =	array(
-		'unit_test' => 'unit',
-		'user_agent' => 'agent'
-	);
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Class constructor
-	 *
-	 * Sets component load paths, gets the initial output buffering level.
-	 *
-	 * @return	void
-	 */
-	public function __construct()
-	{
-		$this->_ci_ob_level = ob_get_level();
-		$this->_ci_classes =& is_loaded();
-
-		log_message('info', 'Loader Class Initialized');
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Initializer
-	 *
-	 * @todo	Figure out a way to move this to the constructor
-	 *		without breaking *package_path*() methods.
-	 * @uses	CI_Loader::_ci_autoloader()
-	 * @used-by	CI_Controller::__construct()
-	 * @return	void
-	 */
-	public function initialize()
-	{
-		$this->_ci_autoloader();
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Is Loaded
-	 *
-	 * A utility method to test if a class is in the self::$_ci_classes array.
-	 *
-	 * @used-by	Mainly used by Form Helper function _get_validation_object().
-	 *
-	 * @param 	string		$class	Class name to check for
-	 * @return 	string|bool	Class object name if loaded or FALSE
-	 */
-	public function is_loaded($class)
-	{
-		return array_search(ucfirst($class), $this->_ci_classes, TRUE);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Library Loader
-	 *
-	 * Loads and instantiates libraries.
-	 * Designed to be called from application controllers.
-	 *
-	 * @param	mixed	$library	Library name
-	 * @param	array	$params		Optional parameters to pass to the library class constructor
-	 * @param	string	$object_name	An optional object name to assign to
-	 * @return	object
-	 */
-	public function library($library, $params = NULL, $object_name = NULL)
-	{
-		if (empty($library))
-		{
-			return $this;
-		}
-		elseif (is_array($library))
-		{
-			foreach ($library as $key => $value)
-			{
-				if (is_int($key))
-				{
-					$this->library($value, $params);
-				}
-				else
-				{
-					$this->library($key, $params, $value);
-				}
-			}
-
-			return $this;
-		}
-
-		if ($params !== NULL && ! is_array($params))
-		{
-			$params = NULL;
-		}
-
-		$this->_ci_load_library($library, $params, $object_name);
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Model Loader
-	 *
-	 * Loads and instantiates models.
-	 *
-	 * @param	mixed	$model		Model name
-	 * @param	string	$name		An optional object name to assign to
-	 * @param	bool	$db_conn	An optional database connection configuration to initialize
-	 * @return	object
-	 */
-	public function model($model, $name = '', $db_conn = FALSE)
-	{
-		if (empty($model))
-		{
-			return $this;
-		}
-		elseif (is_array($model))
-		{
-			foreach ($model as $key => $value)
-			{
-				is_int($key) ? $this->model($value, '', $db_conn) : $this->model($key, $value, $db_conn);
-			}
-
-			return $this;
-		}
-
-		$path = '';
-
-		// Is the model in a sub-folder? If so, parse out the filename and path.
-		if (($last_slash = strrpos($model, '/')) !== FALSE)
-		{
-			// The path is in front of the last slash
-			$path = substr($model, 0, ++$last_slash);
-
-			// And the model name behind it
-			$model = substr($model, $last_slash);
-		}
-
-		if (empty($name))
-		{
-			$name = $model;
-		}
-
-		if (in_array($name, $this->_ci_models, TRUE))
-		{
-			return $this;
-		}
-
-		$CI =& get_instance();
-		if (isset($CI->$name))
-		{
-			throw new RuntimeException('The model name you are loading is the name of a resource that is already being used: '.$name);
-		}
-
-		if ($db_conn !== FALSE && ! class_exists('CI_DB', FALSE))
-		{
-			if ($db_conn === TRUE)
-			{
-				$db_conn = '';
-			}
-
-			$this->database($db_conn, FALSE, TRUE);
-		}
-
-		// Note: All of the code under this condition used to be just:
-		//
-		//       load_class('Model', 'core');
-		//
-		//       However, load_class() instantiates classes
-		//       to cache them for later use and that prevents
-		//       MY_Model from being an abstract class and is
-		//       sub-optimal otherwise anyway.
-		if ( ! class_exists('CI_Model', FALSE))
-		{
-			$app_path = APPPATH.'core'.DIRECTORY_SEPARATOR;
-			if (file_exists($app_path.'Model.php'))
-			{
-				require_once($app_path.'Model.php');
-				if ( ! class_exists('CI_Model', FALSE))
-				{
-					throw new RuntimeException($app_path."Model.php exists, but doesn't declare class CI_Model");
-				}
-
-				log_message('info', 'CI_Model class loaded');
-			}
-			elseif ( ! class_exists('CI_Model', FALSE))
-			{
-				require_once(BASEPATH.'core'.DIRECTORY_SEPARATOR.'Model.php');
-			}
-
-			$class = config_item('subclass_prefix').'Model';
-			if (file_exists($app_path.$class.'.php'))
-			{
-				require_once($app_path.$class.'.php');
-				if ( ! class_exists($class, FALSE))
-				{
-					throw new RuntimeException($app_path.$class.".php exists, but doesn't declare class ".$class);
-				}
-
-				log_message('info', config_item('subclass_prefix').'Model class loaded');
-			}
-		}
-
-		$model = ucfirst($model);
-		if ( ! class_exists($model, FALSE))
-		{
-			foreach ($this->_ci_model_paths as $mod_path)
-			{
-				if ( ! file_exists($mod_path.'models/'.$path.$model.'.php'))
-				{
-					continue;
-				}
-
-				require_once($mod_path.'models/'.$path.$model.'.php');
-				if ( ! class_exists($model, FALSE))
-				{
-					throw new RuntimeException($mod_path."models/".$path.$model.".php exists, but doesn't declare class ".$model);
-				}
-
-				break;
-			}
-
-			if ( ! class_exists($model, FALSE))
-			{
-				throw new RuntimeException('Unable to locate the model you have specified: '.$model);
-			}
-		}
-		elseif ( ! is_subclass_of($model, 'CI_Model'))
-		{
-			throw new RuntimeException("Class ".$model." already exists and doesn't extend CI_Model");
-		}
-
-		$this->_ci_models[] = $name;
-		$model = new $model();
-		$CI->$name = $model;
-		log_message('info', 'Model "'.get_class($model).'" initialized');
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Database Loader
-	 *
-	 * @param	mixed	$params		Database configuration options
-	 * @param	bool	$return 	Whether to return the database object
-	 * @param	bool	$query_builder	Whether to enable Query Builder
-	 *					(overrides the configuration setting)
-	 *
-	 * @return	object|bool	Database object if $return is set to TRUE,
-	 *					FALSE on failure, CI_Loader instance in any other case
-	 */
-	public function database($params = '', $return = FALSE, $query_builder = NULL)
-	{
-		// Grab the super object
-		$CI =& get_instance();
-
-		// Do we even need to load the database class?
-		if ($return === FALSE && $query_builder === NULL && isset($CI->db) && is_object($CI->db) && ! empty($CI->db->conn_id))
-		{
-			return FALSE;
-		}
-
-		require_once(BASEPATH.'database/DB.php');
-
-		if ($return === TRUE)
-		{
-			return DB($params, $query_builder);
-		}
-
-		// Initialize the db variable. Needed to prevent
-		// reference errors with some configurations
-		$CI->db = '';
-
-		// Load the DB class
-		$CI->db =& DB($params, $query_builder);
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Load the Database Utilities Class
-	 *
-	 * @param	object	$db	Database object
-	 * @param	bool	$return	Whether to return the DB Utilities class object or not
-	 * @return	object
-	 */
-	public function dbutil($db = NULL, $return = FALSE)
-	{
-		$CI =& get_instance();
-
-		if ( ! is_object($db) OR ! ($db instanceof CI_DB))
-		{
-			class_exists('CI_DB', FALSE) OR $this->database();
-			$db =& $CI->db;
-		}
-
-		require_once(BASEPATH.'database/DB_utility.php');
-		require_once(BASEPATH.'database/drivers/'.$db->dbdriver.'/'.$db->dbdriver.'_utility.php');
-		$class = 'CI_DB_'.$db->dbdriver.'_utility';
-
-		if ($return === TRUE)
-		{
-			return new $class($db);
-		}
-
-		$CI->dbutil = new $class($db);
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Load the Database Forge Class
-	 *
-	 * @param	object	$db	Database object
-	 * @param	bool	$return	Whether to return the DB Forge class object or not
-	 * @return	object
-	 */
-	public function dbforge($db = NULL, $return = FALSE)
-	{
-		$CI =& get_instance();
-		if ( ! is_object($db) OR ! ($db instanceof CI_DB))
-		{
-			class_exists('CI_DB', FALSE) OR $this->database();
-			$db =& $CI->db;
-		}
-
-		require_once(BASEPATH.'database/DB_forge.php');
-		require_once(BASEPATH.'database/drivers/'.$db->dbdriver.'/'.$db->dbdriver.'_forge.php');
-
-		if ( ! empty($db->subdriver))
-		{
-			$driver_path = BASEPATH.'database/drivers/'.$db->dbdriver.'/subdrivers/'.$db->dbdriver.'_'.$db->subdriver.'_forge.php';
-			if (file_exists($driver_path))
-			{
-				require_once($driver_path);
-				$class = 'CI_DB_'.$db->dbdriver.'_'.$db->subdriver.'_forge';
-			}
-		}
-		else
-		{
-			$class = 'CI_DB_'.$db->dbdriver.'_forge';
-		}
-
-		if ($return === TRUE)
-		{
-			return new $class($db);
-		}
-
-		$CI->dbforge = new $class($db);
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * View Loader
-	 *
-	 * Loads "view" files.
-	 *
-	 * @param	string	$view	View name
-	 * @param	array	$vars	An associative array of data
-	 *				to be extracted for use in the view
-	 * @param	bool	$return	Whether to return the view output
-	 *				or leave it to the Output class
-	 * @return	object|string
-	 */
-	public function view($view, $vars = array(), $return = FALSE)
-	{
-		return $this->_ci_load(array('_ci_view' => $view, '_ci_vars' => $this->_ci_prepare_view_vars($vars), '_ci_return' => $return));
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Generic File Loader
-	 *
-	 * @param	string	$path	File path
-	 * @param	bool	$return	Whether to return the file output
-	 * @return	object|string
-	 */
-	public function file($path, $return = FALSE)
-	{
-		return $this->_ci_load(array('_ci_path' => $path, '_ci_return' => $return));
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Variables
-	 *
-	 * Once variables are set they become available within
-	 * the controller class and its "view" files.
-	 *
-	 * @param	array|object|string	$vars
-	 *					An associative array or object containing values
-	 *					to be set, or a value's name if string
-	 * @param 	string	$val	Value to set, only used if $vars is a string
-	 * @return	object
-	 */
-	public function vars($vars, $val = '')
-	{
-		$vars = is_string($vars)
-			? array($vars => $val)
-			: $this->_ci_prepare_view_vars($vars);
-
-		foreach ($vars as $key => $val)
-		{
-			$this->_ci_cached_vars[$key] = $val;
-		}
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Clear Cached Variables
-	 *
-	 * Clears the cached variables.
-	 *
-	 * @return	CI_Loader
-	 */
-	public function clear_vars()
-	{
-		$this->_ci_cached_vars = array();
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get Variable
-	 *
-	 * Check if a variable is set and retrieve it.
-	 *
-	 * @param	string	$key	Variable name
-	 * @return	mixed	The variable or NULL if not found
-	 */
-	public function get_var($key)
-	{
-		return isset($this->_ci_cached_vars[$key]) ? $this->_ci_cached_vars[$key] : NULL;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get Variables
-	 *
-	 * Retrieves all loaded variables.
-	 *
-	 * @return	array
-	 */
-	public function get_vars()
-	{
-		return $this->_ci_cached_vars;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Helper Loader
-	 *
-	 * @param	string|string[]	$helpers	Helper name(s)
-	 * @return	object
-	 */
-	public function helper($helpers = array())
-	{
-		is_array($helpers) OR $helpers = array($helpers);
-		foreach ($helpers as &$helper)
-		{
-			$filename = basename($helper);
-			$filepath = ($filename === $helper) ? '' : substr($helper, 0, strlen($helper) - strlen($filename));
-			$filename = strtolower(preg_replace('#(_helper)?(\.php)?$#i', '', $filename)).'_helper';
-			$helper   = $filepath.$filename;
-
-			if (isset($this->_ci_helpers[$helper]))
-			{
-				continue;
-			}
-
-			// Is this a helper extension request?
-			$ext_helper = config_item('subclass_prefix').$filename;
-			$ext_loaded = FALSE;
-			foreach ($this->_ci_helper_paths as $path)
-			{
-				if (file_exists($path.'helpers/'.$ext_helper.'.php'))
-				{
-					include_once($path.'helpers/'.$ext_helper.'.php');
-					$ext_loaded = TRUE;
-				}
-			}
-
-			// If we have loaded extensions - check if the base one is here
-			if ($ext_loaded === TRUE)
-			{
-				$base_helper = BASEPATH.'helpers/'.$helper.'.php';
-				if ( ! file_exists($base_helper))
-				{
-					show_error('Unable to load the requested file: helpers/'.$helper.'.php');
-				}
-
-				include_once($base_helper);
-				$this->_ci_helpers[$helper] = TRUE;
-				log_message('info', 'Helper loaded: '.$helper);
-				continue;
-			}
-
-			// No extensions found ... try loading regular helpers and/or overrides
-			foreach ($this->_ci_helper_paths as $path)
-			{
-				if (file_exists($path.'helpers/'.$helper.'.php'))
-				{
-					include_once($path.'helpers/'.$helper.'.php');
-
-					$this->_ci_helpers[$helper] = TRUE;
-					log_message('info', 'Helper loaded: '.$helper);
-					break;
-				}
-			}
-
-			// unable to load the helper
-			if ( ! isset($this->_ci_helpers[$helper]))
-			{
-				show_error('Unable to load the requested file: helpers/'.$helper.'.php');
-			}
-		}
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Load Helpers
-	 *
-	 * An alias for the helper() method in case the developer has
-	 * written the plural form of it.
-	 *
-	 * @uses	CI_Loader::helper()
-	 * @param	string|string[]	$helpers	Helper name(s)
-	 * @return	object
-	 */
-	public function helpers($helpers = array())
-	{
-		return $this->helper($helpers);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Language Loader
-	 *
-	 * Loads language files.
-	 *
-	 * @param	string|string[]	$files	List of language file names to load
-	 * @param	string		Language name
-	 * @return	object
-	 */
-	public function language($files, $lang = '')
-	{
-		get_instance()->lang->load($files, $lang);
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Config Loader
-	 *
-	 * Loads a config file (an alias for CI_Config::load()).
-	 *
-	 * @uses	CI_Config::load()
-	 * @param	string	$file			Configuration file name
-	 * @param	bool	$use_sections		Whether configuration values should be loaded into their own section
-	 * @param	bool	$fail_gracefully	Whether to just return FALSE or display an error message
-	 * @return	bool	TRUE if the file was loaded correctly or FALSE on failure
-	 */
-	public function config($file, $use_sections = FALSE, $fail_gracefully = FALSE)
-	{
-		return get_instance()->config->load($file, $use_sections, $fail_gracefully);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Driver Loader
-	 *
-	 * Loads a driver library.
-	 *
-	 * @param	string|string[]	$library	Driver name(s)
-	 * @param	array		$params		Optional parameters to pass to the driver
-	 * @param	string		$object_name	An optional object name to assign to
-	 *
-	 * @return	object|bool	Object or FALSE on failure if $library is a string
-	 *				and $object_name is set. CI_Loader instance otherwise.
-	 */
-	public function driver($library, $params = NULL, $object_name = NULL)
-	{
-		if (is_array($library))
-		{
-			foreach ($library as $key => $value)
-			{
-				if (is_int($key))
-				{
-					$this->driver($value, $params);
-				}
-				else
-				{
-					$this->driver($key, $params, $value);
-				}
-			}
-
-			return $this;
-		}
-		elseif (empty($library))
-		{
-			return FALSE;
-		}
-
-		if ( ! class_exists('CI_Driver_Library', FALSE))
-		{
-			// We aren't instantiating an object here, just making the base class available
-			require BASEPATH.'libraries/Driver.php';
-		}
-
-		// We can save the loader some time since Drivers will *always* be in a subfolder,
-		// and typically identically named to the library
-		if ( ! strpos($library, '/'))
-		{
-			$library = ucfirst($library).'/'.$library;
-		}
-
-		return $this->library($library, $params, $object_name);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Add Package Path
-	 *
-	 * Prepends a parent path to the library, model, helper and config
-	 * path arrays.
-	 *
-	 * @see	CI_Loader::$_ci_library_paths
-	 * @see	CI_Loader::$_ci_model_paths
-	 * @see CI_Loader::$_ci_helper_paths
-	 * @see CI_Config::$_config_paths
-	 *
-	 * @param	string	$path		Path to add
-	 * @param 	bool	$view_cascade	(default: TRUE)
-	 * @return	object
-	 */
-	public function add_package_path($path, $view_cascade = TRUE)
-	{
-		$path = rtrim($path, '/').'/';
-
-		array_unshift($this->_ci_library_paths, $path);
-		array_unshift($this->_ci_model_paths, $path);
-		array_unshift($this->_ci_helper_paths, $path);
-
-		$this->_ci_view_paths = array($path.'views/' => $view_cascade) + $this->_ci_view_paths;
-
-		// Add config file path
-		$config =& $this->_ci_get_component('config');
-		$config->_config_paths[] = $path;
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get Package Paths
-	 *
-	 * Return a list of all package paths.
-	 *
-	 * @param	bool	$include_base	Whether to include BASEPATH (default: FALSE)
-	 * @return	array
-	 */
-	public function get_package_paths($include_base = FALSE)
-	{
-		return ($include_base === TRUE) ? $this->_ci_library_paths : $this->_ci_model_paths;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Remove Package Path
-	 *
-	 * Remove a path from the library, model, helper and/or config
-	 * path arrays if it exists. If no path is provided, the most recently
-	 * added path will be removed removed.
-	 *
-	 * @param	string	$path	Path to remove
-	 * @return	object
-	 */
-	public function remove_package_path($path = '')
-	{
-		$config =& $this->_ci_get_component('config');
-
-		if ($path === '')
-		{
-			array_shift($this->_ci_library_paths);
-			array_shift($this->_ci_model_paths);
-			array_shift($this->_ci_helper_paths);
-			array_shift($this->_ci_view_paths);
-			array_pop($config->_config_paths);
-		}
-		else
-		{
-			$path = rtrim($path, '/').'/';
-			foreach (array('_ci_library_paths', '_ci_model_paths', '_ci_helper_paths') as $var)
-			{
-				if (($key = array_search($path, $this->{$var})) !== FALSE)
-				{
-					unset($this->{$var}[$key]);
-				}
-			}
-
-			if (isset($this->_ci_view_paths[$path.'views/']))
-			{
-				unset($this->_ci_view_paths[$path.'views/']);
-			}
-
-			if (($key = array_search($path, $config->_config_paths)) !== FALSE)
-			{
-				unset($config->_config_paths[$key]);
-			}
-		}
-
-		// make sure the application default paths are still in the array
-		$this->_ci_library_paths = array_unique(array_merge($this->_ci_library_paths, array(APPPATH, BASEPATH)));
-		$this->_ci_helper_paths = array_unique(array_merge($this->_ci_helper_paths, array(APPPATH, BASEPATH)));
-		$this->_ci_model_paths = array_unique(array_merge($this->_ci_model_paths, array(APPPATH)));
-		$this->_ci_view_paths = array_merge($this->_ci_view_paths, array(APPPATH.'views/' => TRUE));
-		$config->_config_paths = array_unique(array_merge($config->_config_paths, array(APPPATH)));
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Internal CI Data Loader
-	 *
-	 * Used to load views and files.
-	 *
-	 * Variables are prefixed with _ci_ to avoid symbol collision with
-	 * variables made available to view files.
-	 *
-	 * @used-by	CI_Loader::view()
-	 * @used-by	CI_Loader::file()
-	 * @param	array	$_ci_data	Data to load
-	 * @return	object
-	 */
-	protected function _ci_load($_ci_data)
-	{
-		// Set the default data variables
-		foreach (array('_ci_view', '_ci_vars', '_ci_path', '_ci_return') as $_ci_val)
-		{
-			$$_ci_val = isset($_ci_data[$_ci_val]) ? $_ci_data[$_ci_val] : FALSE;
-		}
-
-		$file_exists = FALSE;
-
-		// Set the path to the requested file
-		if (is_string($_ci_path) && $_ci_path !== '')
-		{
-			$_ci_x = explode('/', $_ci_path);
-			$_ci_file = end($_ci_x);
-		}
-		else
-		{
-			$_ci_ext = pathinfo($_ci_view, PATHINFO_EXTENSION);
-			$_ci_file = ($_ci_ext === '') ? $_ci_view.'.php' : $_ci_view;
-
-			foreach ($this->_ci_view_paths as $_ci_view_file => $cascade)
-			{
-				if (file_exists($_ci_view_file.$_ci_file))
-				{
-					$_ci_path = $_ci_view_file.$_ci_file;
-					$file_exists = TRUE;
-					break;
-				}
-
-				if ( ! $cascade)
-				{
-					break;
-				}
-			}
-		}
-
-		if ( ! $file_exists && ! file_exists($_ci_path))
-		{
-			show_error('Unable to load the requested file: '.$_ci_file);
-		}
-
-		// This allows anything loaded using $this->load (views, files, etc.)
-		// to become accessible from within the Controller and Model functions.
-		$_ci_CI =& get_instance();
-		foreach (get_object_vars($_ci_CI) as $_ci_key => $_ci_var)
-		{
-			if ( ! isset($this->$_ci_key))
-			{
-				$this->$_ci_key =& $_ci_CI->$_ci_key;
-			}
-		}
-
-		/*
-		 * Extract and cache variables
-		 *
-		 * You can either set variables using the dedicated $this->load->vars()
-		 * function or via the second parameter of this function. We'll merge
-		 * the two types and cache them so that views that are embedded within
-		 * other views can have access to these variables.
-		 */
-		empty($_ci_vars) OR $this->_ci_cached_vars = array_merge($this->_ci_cached_vars, $_ci_vars);
-		extract($this->_ci_cached_vars);
-
-		/*
-		 * Buffer the output
-		 *
-		 * We buffer the output for two reasons:
-		 * 1. Speed. You get a significant speed boost.
-		 * 2. So that the final rendered template can be post-processed by
-		 *	the output class. Why do we need post processing? For one thing,
-		 *	in order to show the elapsed page load time. Unless we can
-		 *	intercept the content right before it's sent to the browser and
-		 *	then stop the timer it won't be accurate.
-		 */
-		ob_start();
-
-		// If the PHP installation does not support short tags we'll
-		// do a little string replacement, changing the short tags
-		// to standard PHP echo statements.
-		if ( ! is_php('5.4') && ! ini_get('short_open_tag') && config_item('rewrite_short_tags') === TRUE)
-		{
-			echo eval('?>'.preg_replace('/;*\s*\?>/', '; ?>', str_replace('<?=', '<?php echo ', file_get_contents($_ci_path))));
-		}
-		else
-		{
-			include($_ci_path); // include() vs include_once() allows for multiple views with the same name
-		}
-
-		log_message('info', 'File loaded: '.$_ci_path);
-
-		// Return the file data if requested
-		if ($_ci_return === TRUE)
-		{
-			$buffer = ob_get_contents();
-			@ob_end_clean();
-			return $buffer;
-		}
-
-		/*
-		 * Flush the buffer... or buff the flusher?
-		 *
-		 * In order to permit views to be nested within
-		 * other views, we need to flush the content back out whenever
-		 * we are beyond the first level of output buffering so that
-		 * it can be seen and included properly by the first included
-		 * template and any subsequent ones. Oy!
-		 */
-		if (ob_get_level() > $this->_ci_ob_level + 1)
-		{
-			ob_end_flush();
-		}
-		else
-		{
-			$_ci_CI->output->append_output(ob_get_contents());
-			@ob_end_clean();
-		}
-
-		return $this;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Internal CI Library Loader
-	 *
-	 * @used-by	CI_Loader::library()
-	 * @uses	CI_Loader::_ci_init_library()
-	 *
-	 * @param	string	$class		Class name to load
-	 * @param	mixed	$params		Optional parameters to pass to the class constructor
-	 * @param	string	$object_name	Optional object name to assign to
-	 * @return	void
-	 */
-	protected function _ci_load_library($class, $params = NULL, $object_name = NULL)
-	{
-		// Get the class name, and while we're at it trim any slashes.
-		// The directory path can be included as part of the class name,
-		// but we don't want a leading slash
-		$class = str_replace('.php', '', trim($class, '/'));
-
-		// Was the path included with the class name?
-		// We look for a slash to determine this
-		if (($last_slash = strrpos($class, '/')) !== FALSE)
-		{
-			// Extract the path
-			$subdir = substr($class, 0, ++$last_slash);
-
-			// Get the filename from the path
-			$class = substr($class, $last_slash);
-		}
-		else
-		{
-			$subdir = '';
-		}
-
-		$class = ucfirst($class);
-
-		// Is this a stock library? There are a few special conditions if so ...
-		if (file_exists(BASEPATH.'libraries/'.$subdir.$class.'.php'))
-		{
-			return $this->_ci_load_stock_library($class, $subdir, $params, $object_name);
-		}
-
-		// Safety: Was the class already loaded by a previous call?
-		if (class_exists($class, FALSE))
-		{
-			$property = $object_name;
-			if (empty($property))
-			{
-				$property = strtolower($class);
-				isset($this->_ci_varmap[$property]) && $property = $this->_ci_varmap[$property];
-			}
-
-			$CI =& get_instance();
-			if (isset($CI->$property))
-			{
-				log_message('debug', $class.' class already loaded. Second attempt ignored.');
-				return;
-			}
-
-			return $this->_ci_init_library($class, '', $params, $object_name);
-		}
-
-		// Let's search for the requested library file and load it.
-		foreach ($this->_ci_library_paths as $path)
-		{
-			// BASEPATH has already been checked for
-			if ($path === BASEPATH)
-			{
-				continue;
-			}
-
-			$filepath = $path.'libraries/'.$subdir.$class.'.php';
-			// Does the file exist? No? Bummer...
-			if ( ! file_exists($filepath))
-			{
-				continue;
-			}
-
-			include_once($filepath);
-			return $this->_ci_init_library($class, '', $params, $object_name);
-		}
-
-		// One last attempt. Maybe the library is in a subdirectory, but it wasn't specified?
-		if ($subdir === '')
-		{
-			return $this->_ci_load_library($class.'/'.$class, $params, $object_name);
-		}
-
-		// If we got this far we were unable to find the requested class.
-		log_message('error', 'Unable to load the requested class: '.$class);
-		show_error('Unable to load the requested class: '.$class);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Internal CI Stock Library Loader
-	 *
-	 * @used-by	CI_Loader::_ci_load_library()
-	 * @uses	CI_Loader::_ci_init_library()
-	 *
-	 * @param	string	$library_name	Library name to load
-	 * @param	string	$file_path	Path to the library filename, relative to libraries/
-	 * @param	mixed	$params		Optional parameters to pass to the class constructor
-	 * @param	string	$object_name	Optional object name to assign to
-	 * @return	void
-	 */
-	protected function _ci_load_stock_library($library_name, $file_path, $params, $object_name)
-	{
-		$prefix = 'CI_';
-
-		if (class_exists($prefix.$library_name, FALSE))
-		{
-			if (class_exists(config_item('subclass_prefix').$library_name, FALSE))
-			{
-				$prefix = config_item('subclass_prefix');
-			}
-
-			$property = $object_name;
-			if (empty($property))
-			{
-				$property = strtolower($library_name);
-				isset($this->_ci_varmap[$property]) && $property = $this->_ci_varmap[$property];
-			}
-
-			$CI =& get_instance();
-			if ( ! isset($CI->$property))
-			{
-				return $this->_ci_init_library($library_name, $prefix, $params, $object_name);
-			}
-
-			log_message('debug', $library_name.' class already loaded. Second attempt ignored.');
-			return;
-		}
-
-		$paths = $this->_ci_library_paths;
-		array_pop($paths); // BASEPATH
-		array_pop($paths); // APPPATH (needs to be the first path checked)
-		array_unshift($paths, APPPATH);
-
-		foreach ($paths as $path)
-		{
-			if (file_exists($path = $path.'libraries/'.$file_path.$library_name.'.php'))
-			{
-				// Override
-				include_once($path);
-				if (class_exists($prefix.$library_name, FALSE))
-				{
-					return $this->_ci_init_library($library_name, $prefix, $params, $object_name);
-				}
-
-				log_message('debug', $path.' exists, but does not declare '.$prefix.$library_name);
-			}
-		}
-
-		include_once(BASEPATH.'libraries/'.$file_path.$library_name.'.php');
-
-		// Check for extensions
-		$subclass = config_item('subclass_prefix').$library_name;
-		foreach ($paths as $path)
-		{
-			if (file_exists($path = $path.'libraries/'.$file_path.$subclass.'.php'))
-			{
-				include_once($path);
-				if (class_exists($subclass, FALSE))
-				{
-					$prefix = config_item('subclass_prefix');
-					break;
-				}
-
-				log_message('debug', $path.' exists, but does not declare '.$subclass);
-			}
-		}
-
-		return $this->_ci_init_library($library_name, $prefix, $params, $object_name);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Internal CI Library Instantiator
-	 *
-	 * @used-by	CI_Loader::_ci_load_stock_library()
-	 * @used-by	CI_Loader::_ci_load_library()
-	 *
-	 * @param	string		$class		Class name
-	 * @param	string		$prefix		Class name prefix
-	 * @param	array|null|bool	$config		Optional configuration to pass to the class constructor:
-	 *						FALSE to skip;
-	 *						NULL to search in config paths;
-	 *						array containing configuration data
-	 * @param	string		$object_name	Optional object name to assign to
-	 * @return	void
-	 */
-	protected function _ci_init_library($class, $prefix, $config = FALSE, $object_name = NULL)
-	{
-		// Is there an associated config file for this class? Note: these should always be lowercase
-		if ($config === NULL)
-		{
-			// Fetch the config paths containing any package paths
-			$config_component = $this->_ci_get_component('config');
-
-			if (is_array($config_component->_config_paths))
-			{
-				$found = FALSE;
-				foreach ($config_component->_config_paths as $path)
-				{
-					// We test for both uppercase and lowercase, for servers that
-					// are case-sensitive with regard to file names. Load global first,
-					// override with environment next
-					if (file_exists($path.'config/'.strtolower($class).'.php'))
-					{
-						include($path.'config/'.strtolower($class).'.php');
-						$found = TRUE;
-					}
-					elseif (file_exists($path.'config/'.ucfirst(strtolower($class)).'.php'))
-					{
-						include($path.'config/'.ucfirst(strtolower($class)).'.php');
-						$found = TRUE;
-					}
-
-					if (file_exists($path.'config/'.ENVIRONMENT.'/'.strtolower($class).'.php'))
-					{
-						include($path.'config/'.ENVIRONMENT.'/'.strtolower($class).'.php');
-						$found = TRUE;
-					}
-					elseif (file_exists($path.'config/'.ENVIRONMENT.'/'.ucfirst(strtolower($class)).'.php'))
-					{
-						include($path.'config/'.ENVIRONMENT.'/'.ucfirst(strtolower($class)).'.php');
-						$found = TRUE;
-					}
-
-					// Break on the first found configuration, thus package
-					// files are not overridden by default paths
-					if ($found === TRUE)
-					{
-						break;
-					}
-				}
-			}
-		}
-
-		$class_name = $prefix.$class;
-
-		// Is the class name valid?
-		if ( ! class_exists($class_name, FALSE))
-		{
-			log_message('error', 'Non-existent class: '.$class_name);
-			show_error('Non-existent class: '.$class_name);
-		}
-
-		// Set the variable name we will assign the class to
-		// Was a custom class name supplied? If so we'll use it
-		if (empty($object_name))
-		{
-			$object_name = strtolower($class);
-			if (isset($this->_ci_varmap[$object_name]))
-			{
-				$object_name = $this->_ci_varmap[$object_name];
-			}
-		}
-
-		// Don't overwrite existing properties
-		$CI =& get_instance();
-		if (isset($CI->$object_name))
-		{
-			if ($CI->$object_name instanceof $class_name)
-			{
-				log_message('debug', $class_name." has already been instantiated as '".$object_name."'. Second attempt aborted.");
-				return;
-			}
-
-			show_error("Resource '".$object_name."' already exists and is not a ".$class_name." instance.");
-		}
-
-		// Save the class name and object name
-		$this->_ci_classes[$object_name] = $class;
-
-		// Instantiate the class
-		$CI->$object_name = isset($config)
-			? new $class_name($config)
-			: new $class_name();
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * CI Autoloader
-	 *
-	 * Loads component listed in the config/autoload.php file.
-	 *
-	 * @used-by	CI_Loader::initialize()
-	 * @return	void
-	 */
-	protected function _ci_autoloader()
-	{
-		if (file_exists(APPPATH.'config/autoload.php'))
-		{
-			include(APPPATH.'config/autoload.php');
-		}
-
-		if (file_exists(APPPATH.'config/'.ENVIRONMENT.'/autoload.php'))
-		{
-			include(APPPATH.'config/'.ENVIRONMENT.'/autoload.php');
-		}
-
-		if ( ! isset($autoload))
-		{
-			return;
-		}
-
-		// Autoload packages
-		if (isset($autoload['packages']))
-		{
-			foreach ($autoload['packages'] as $package_path)
-			{
-				$this->add_package_path($package_path);
-			}
-		}
-
-		// Load any custom config file
-		if (count($autoload['config']) > 0)
-		{
-			foreach ($autoload['config'] as $val)
-			{
-				$this->config($val);
-			}
-		}
-
-		// Autoload helpers and languages
-		foreach (array('helper', 'language') as $type)
-		{
-			if (isset($autoload[$type]) && count($autoload[$type]) > 0)
-			{
-				$this->$type($autoload[$type]);
-			}
-		}
-
-		// Autoload drivers
-		if (isset($autoload['drivers']))
-		{
-			$this->driver($autoload['drivers']);
-		}
-
-		// Load libraries
-		if (isset($autoload['libraries']) && count($autoload['libraries']) > 0)
-		{
-			// Load the database driver.
-			if (in_array('database', $autoload['libraries']))
-			{
-				$this->database();
-				$autoload['libraries'] = array_diff($autoload['libraries'], array('database'));
-			}
-
-			// Load all other libraries
-			$this->library($autoload['libraries']);
-		}
-
-		// Autoload models
-		if (isset($autoload['model']))
-		{
-			$this->model($autoload['model']);
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Prepare variables for _ci_vars, to be later extract()-ed inside views
-	 *
-	 * Converts objects to associative arrays and filters-out internal
-	 * variable names (i.e. keys prefixed with '_ci_').
-	 *
-	 * @param	mixed	$vars
-	 * @return	array
-	 */
-	protected function _ci_prepare_view_vars($vars)
-	{
-		if ( ! is_array($vars))
-		{
-			$vars = is_object($vars)
-				? get_object_vars($vars)
-				: array();
-		}
-
-		foreach (array_keys($vars) as $key)
-		{
-			if (strncmp($key, '_ci_', 4) === 0)
-			{
-				unset($vars[$key]);
-			}
-		}
-
-		return $vars;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * CI Component getter
-	 *
-	 * Get a reference to a specific library or model.
-	 *
-	 * @param 	string	$component	Component name
-	 * @return	bool
-	 */
-	protected function &_ci_get_component($component)
-	{
-		$CI =& get_instance();
-		return $CI->$component;
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

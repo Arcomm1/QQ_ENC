@@ -1,86 +1,34 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.3.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * ODBC Forge Class
- *
- * @package		CodeIgniter
- * @subpackage	Drivers
- * @category	Database
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/database/
- */
-class CI_DB_odbc_forge extends CI_DB_forge {
-
-	/**
-	 * CREATE TABLE IF statement
-	 *
-	 * @var	string
-	 */
-	protected $_create_table_if	= FALSE;
-
-	/**
-	 * DROP TABLE IF statement
-	 *
-	 * @var	string
-	 */
-	protected $_drop_table_if	= FALSE;
-
-	/**
-	 * UNSIGNED support
-	 *
-	 * @var	bool|array
-	 */
-	protected $_unsigned		= FALSE;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Field attribute AUTO_INCREMENT
-	 *
-	 * @param	array	&$attributes
-	 * @param	array	&$field
-	 * @return	void
-	 */
-	protected function _attr_auto_increment(&$attributes, &$field)
-	{
-		// Not supported (in most databases at least)
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+NzkMRKaiXd2G7ZPOLjeFd1Uqel0140==

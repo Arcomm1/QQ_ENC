@@ -1,51 +1,49 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-$lang['ftp_no_connection']		= 'Unable to locate a valid connection ID. Please make sure you are connected before performing any file routines.';
-$lang['ftp_unable_to_connect']		= 'Unable to connect to your FTP server using the supplied hostname.';
-$lang['ftp_unable_to_login']		= 'Unable to login to your FTP server. Please check your username and password.';
-$lang['ftp_unable_to_mkdir']		= 'Unable to create the directory you have specified.';
-$lang['ftp_unable_to_changedir']	= 'Unable to change directories.';
-$lang['ftp_unable_to_chmod']		= 'Unable to set file permissions. Please check your path.';
-$lang['ftp_unable_to_upload']		= 'Unable to upload the specified file. Please check your path.';
-$lang['ftp_unable_to_download']		= 'Unable to download the specified file. Please check your path.';
-$lang['ftp_no_source_file']		= 'Unable to locate the source file. Please check your path.';
-$lang['ftp_unable_to_rename']		= 'Unable to rename the file.';
-$lang['ftp_unable_to_delete']		= 'Unable to delete the file.';
-$lang['ftp_unable_to_move']		= 'Unable to move the file. Please make sure the destination directory exists.';
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+BQ0ZWmSH

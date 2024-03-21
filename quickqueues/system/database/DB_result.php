@@ -1,665 +1,173 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * Database Result Class
- *
- * This is the platform-independent result class.
- * This class will not be called directly. Rather, the adapter
- * class for the specific database will extend and instantiate it.
- *
- * @category	Database
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/database/
- */
-class CI_DB_result {
-
-	/**
-	 * Connection ID
-	 *
-	 * @var	resource|object
-	 */
-	public $conn_id;
-
-	/**
-	 * Result ID
-	 *
-	 * @var	resource|object
-	 */
-	public $result_id;
-
-	/**
-	 * Result Array
-	 *
-	 * @var	array[]
-	 */
-	public $result_array			= array();
-
-	/**
-	 * Result Object
-	 *
-	 * @var	object[]
-	 */
-	public $result_object			= array();
-
-	/**
-	 * Custom Result Object
-	 *
-	 * @var	object[]
-	 */
-	public $custom_result_object		= array();
-
-	/**
-	 * Current Row index
-	 *
-	 * @var	int
-	 */
-	public $current_row			= 0;
-
-	/**
-	 * Number of rows
-	 *
-	 * @var	int
-	 */
-	public $num_rows;
-
-	/**
-	 * Row data
-	 *
-	 * @var	array
-	 */
-	public $row_data;
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Constructor
-	 *
-	 * @param	object	$driver_object
-	 * @return	void
-	 */
-	public function __construct(&$driver_object)
-	{
-		$this->conn_id = $driver_object->conn_id;
-		$this->result_id = $driver_object->result_id;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Number of rows in the result set
-	 *
-	 * @return	int
-	 */
-	public function num_rows()
-	{
-		if (is_int($this->num_rows))
-		{
-			return $this->num_rows;
-		}
-		elseif (count($this->result_array) > 0)
-		{
-			return $this->num_rows = count($this->result_array);
-		}
-		elseif (count($this->result_object) > 0)
-		{
-			return $this->num_rows = count($this->result_object);
-		}
-
-		return $this->num_rows = count($this->result_array());
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Query result. Acts as a wrapper function for the following functions.
-	 *
-	 * @param	string	$type	'object', 'array' or a custom class name
-	 * @return	array
-	 */
-	public function result($type = 'object')
-	{
-		if ($type === 'array')
-		{
-			return $this->result_array();
-		}
-		elseif ($type === 'object')
-		{
-			return $this->result_object();
-		}
-
-		return $this->custom_result_object($type);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Custom query result.
-	 *
-	 * @param	string	$class_name
-	 * @return	array
-	 */
-	public function custom_result_object($class_name)
-	{
-		if (isset($this->custom_result_object[$class_name]))
-		{
-			return $this->custom_result_object[$class_name];
-		}
-		elseif ( ! $this->result_id OR $this->num_rows === 0)
-		{
-			return array();
-		}
-
-		// Don't fetch the result set again if we already have it
-		$_data = NULL;
-		if (($c = count($this->result_array)) > 0)
-		{
-			$_data = 'result_array';
-		}
-		elseif (($c = count($this->result_object)) > 0)
-		{
-			$_data = 'result_object';
-		}
-
-		if ($_data !== NULL)
-		{
-			for ($i = 0; $i < $c; $i++)
-			{
-				$this->custom_result_object[$class_name][$i] = new $class_name();
-
-				foreach ($this->{$_data}[$i] as $key => $value)
-				{
-					$this->custom_result_object[$class_name][$i]->$key = $value;
-				}
-			}
-
-			return $this->custom_result_object[$class_name];
-		}
-
-		is_null($this->row_data) OR $this->data_seek(0);
-		$this->custom_result_object[$class_name] = array();
-
-		while ($row = $this->_fetch_object($class_name))
-		{
-			$this->custom_result_object[$class_name][] = $row;
-		}
-
-		return $this->custom_result_object[$class_name];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Query result. "object" version.
-	 *
-	 * @return	array
-	 */
-	public function result_object()
-	{
-		if (count($this->result_object) > 0)
-		{
-			return $this->result_object;
-		}
-
-		// In the event that query caching is on, the result_id variable
-		// will not be a valid resource so we'll simply return an empty
-		// array.
-		if ( ! $this->result_id OR $this->num_rows === 0)
-		{
-			return array();
-		}
-
-		if (($c = count($this->result_array)) > 0)
-		{
-			for ($i = 0; $i < $c; $i++)
-			{
-				$this->result_object[$i] = (object) $this->result_array[$i];
-			}
-
-			return $this->result_object;
-		}
-
-		is_null($this->row_data) OR $this->data_seek(0);
-		while ($row = $this->_fetch_object())
-		{
-			$this->result_object[] = $row;
-		}
-
-		return $this->result_object;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Query result. "array" version.
-	 *
-	 * @return	array
-	 */
-	public function result_array()
-	{
-		if (count($this->result_array) > 0)
-		{
-			return $this->result_array;
-		}
-
-		// In the event that query caching is on, the result_id variable
-		// will not be a valid resource so we'll simply return an empty
-		// array.
-		if ( ! $this->result_id OR $this->num_rows === 0)
-		{
-			return array();
-		}
-
-		if (($c = count($this->result_object)) > 0)
-		{
-			for ($i = 0; $i < $c; $i++)
-			{
-				$this->result_array[$i] = (array) $this->result_object[$i];
-			}
-
-			return $this->result_array;
-		}
-
-		is_null($this->row_data) OR $this->data_seek(0);
-		while ($row = $this->_fetch_assoc())
-		{
-			$this->result_array[] = $row;
-		}
-
-		return $this->result_array;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Row
-	 *
-	 * A wrapper method.
-	 *
-	 * @param	mixed	$n
-	 * @param	string	$type	'object' or 'array'
-	 * @return	mixed
-	 */
-	public function row($n = 0, $type = 'object')
-	{
-		if ( ! is_numeric($n))
-		{
-			// We cache the row data for subsequent uses
-			is_array($this->row_data) OR $this->row_data = $this->row_array(0);
-
-			// array_key_exists() instead of isset() to allow for NULL values
-			if (empty($this->row_data) OR ! array_key_exists($n, $this->row_data))
-			{
-				return NULL;
-			}
-
-			return $this->row_data[$n];
-		}
-
-		if ($type === 'object') return $this->row_object($n);
-		elseif ($type === 'array') return $this->row_array($n);
-
-		return $this->custom_row_object($n, $type);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Assigns an item into a particular column slot
-	 *
-	 * @param	mixed	$key
-	 * @param	mixed	$value
-	 * @return	void
-	 */
-	public function set_row($key, $value = NULL)
-	{
-		// We cache the row data for subsequent uses
-		if ( ! is_array($this->row_data))
-		{
-			$this->row_data = $this->row_array(0);
-		}
-
-		if (is_array($key))
-		{
-			foreach ($key as $k => $v)
-			{
-				$this->row_data[$k] = $v;
-			}
-			return;
-		}
-
-		if ($key !== '' && $value !== NULL)
-		{
-			$this->row_data[$key] = $value;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns a single result row - custom object version
-	 *
-	 * @param	int	$n
-	 * @param	string	$type
-	 * @return	object
-	 */
-	public function custom_row_object($n, $type)
-	{
-		isset($this->custom_result_object[$type]) OR $this->custom_result_object($type);
-
-		if (count($this->custom_result_object[$type]) === 0)
-		{
-			return NULL;
-		}
-
-		if ($n !== $this->current_row && isset($this->custom_result_object[$type][$n]))
-		{
-			$this->current_row = $n;
-		}
-
-		return $this->custom_result_object[$type][$this->current_row];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns a single result row - object version
-	 *
-	 * @param	int	$n
-	 * @return	object
-	 */
-	public function row_object($n = 0)
-	{
-		$result = $this->result_object();
-		if (count($result) === 0)
-		{
-			return NULL;
-		}
-
-		if ($n !== $this->current_row && isset($result[$n]))
-		{
-			$this->current_row = $n;
-		}
-
-		return $result[$this->current_row];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns a single result row - array version
-	 *
-	 * @param	int	$n
-	 * @return	array
-	 */
-	public function row_array($n = 0)
-	{
-		$result = $this->result_array();
-		if (count($result) === 0)
-		{
-			return NULL;
-		}
-
-		if ($n !== $this->current_row && isset($result[$n]))
-		{
-			$this->current_row = $n;
-		}
-
-		return $result[$this->current_row];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns the "first" row
-	 *
-	 * @param	string	$type
-	 * @return	mixed
-	 */
-	public function first_row($type = 'object')
-	{
-		$result = $this->result($type);
-		return (count($result) === 0) ? NULL : $result[0];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns the "last" row
-	 *
-	 * @param	string	$type
-	 * @return	mixed
-	 */
-	public function last_row($type = 'object')
-	{
-		$result = $this->result($type);
-		return (count($result) === 0) ? NULL : $result[count($result) - 1];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns the "next" row
-	 *
-	 * @param	string	$type
-	 * @return	mixed
-	 */
-	public function next_row($type = 'object')
-	{
-		$result = $this->result($type);
-		if (count($result) === 0)
-		{
-			return NULL;
-		}
-
-		return isset($result[$this->current_row + 1])
-			? $result[++$this->current_row]
-			: NULL;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns the "previous" row
-	 *
-	 * @param	string	$type
-	 * @return	mixed
-	 */
-	public function previous_row($type = 'object')
-	{
-		$result = $this->result($type);
-		if (count($result) === 0)
-		{
-			return NULL;
-		}
-
-		if (isset($result[$this->current_row - 1]))
-		{
-			--$this->current_row;
-		}
-		return $result[$this->current_row];
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Returns an unbuffered row and move pointer to next row
-	 *
-	 * @param	string	$type	'array', 'object' or a custom class name
-	 * @return	mixed
-	 */
-	public function unbuffered_row($type = 'object')
-	{
-		if ($type === 'array')
-		{
-			return $this->_fetch_assoc();
-		}
-		elseif ($type === 'object')
-		{
-			return $this->_fetch_object();
-		}
-
-		return $this->_fetch_object($type);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * The following methods are normally overloaded by the identically named
-	 * methods in the platform-specific driver -- except when query caching
-	 * is used. When caching is enabled we do not load the other driver.
-	 * These functions are primarily here to prevent undefined function errors
-	 * when a cached result object is in use. They are not otherwise fully
-	 * operational due to the unavailability of the database resource IDs with
-	 * cached results.
-	 */
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Number of fields in the result set
-	 *
-	 * Overridden by driver result classes.
-	 *
-	 * @return	int
-	 */
-	public function num_fields()
-	{
-		return 0;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fetch Field Names
-	 *
-	 * Generates an array of column names.
-	 *
-	 * Overridden by driver result classes.
-	 *
-	 * @return	array
-	 */
-	public function list_fields()
-	{
-		return array();
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Field data
-	 *
-	 * Generates an array of objects containing field meta-data.
-	 *
-	 * Overridden by driver result classes.
-	 *
-	 * @return	array
-	 */
-	public function field_data()
-	{
-		return array();
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Free the result
-	 *
-	 * Overridden by driver result classes.
-	 *
-	 * @return	void
-	 */
-	public function free_result()
-	{
-		$this->result_id = FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Data Seek
-	 *
-	 * Moves the internal pointer to the desired offset. We call
-	 * this internally before fetching results to make sure the
-	 * result set starts at zero.
-	 *
-	 * Overridden by driver result classes.
-	 *
-	 * @param	int	$n
-	 * @return	bool
-	 */
-	public function data_seek($n = 0)
-	{
-		return FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Result - associative array
-	 *
-	 * Returns the result set as an array.
-	 *
-	 * Overridden by driver result classes.
-	 *
-	 * @return	array
-	 */
-	protected function _fetch_assoc()
-	{
-		return array();
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Result - object
-	 *
-	 * Returns the result set as an object.
-	 *
-	 * Overridden by driver result classes.
-	 *
-	 * @param	string	$class_name
-	 * @return	object
-	 */
-	protected function _fetch_object($class_name = 'stdClass')
-	{
-		return new $class_name();
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

@@ -1,310 +1,140 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight\net;
-
-use flight\util\Collection;
-
-/**
- * The Request class represents an HTTP request. Data from
- * all the super globals $_GET, $_POST, $_COOKIE, and $_FILES
- * are stored and accessible via the Request object.
- *
- * The default request properties are:
- *   url - The URL being requested
- *   base - The parent subdirectory of the URL
- *   method - The request method (GET, POST, PUT, DELETE)
- *   referrer - The referrer URL
- *   ip - IP address of the client
- *   ajax - Whether the request is an AJAX request
- *   scheme - The server protocol (http, https)
- *   user_agent - Browser information
- *   type - The content type
- *   length - The content length
- *   query - Query string parameters
- *   data - Post parameters
- *   cookies - Cookie parameters
- *   files - Uploaded files
- *   secure - Connection is secure
- *   accept - HTTP accept parameters
- *   proxy_ip - Proxy IP address of the client
- */
-class Request {
-    /**
-     * @var string URL being requested
-     */
-    public $url;
-
-    /**
-     * @var string Parent subdirectory of the URL
-     */
-    public $base;
-
-    /**
-     * @var string Request method (GET, POST, PUT, DELETE)
-     */
-    public $method;
-
-    /**
-     * @var string Referrer URL
-     */
-    public $referrer;
-
-    /**
-     * @var string IP address of the client
-     */
-    public $ip;
-
-    /**
-     * @var bool Whether the request is an AJAX request
-     */
-    public $ajax;
-
-    /**
-     * @var string Server protocol (http, https)
-     */
-    public $scheme;
-
-    /**
-     * @var string Browser information
-     */
-    public $user_agent;
-
-    /**
-     * @var string Content type
-     */
-    public $type;
-
-    /**
-     * @var int Content length
-     */
-    public $length;
-
-    /**
-     * @var \flight\util\Collection Query string parameters
-     */
-    public $query;
-
-    /**
-     * @var \flight\util\Collection Post parameters
-     */
-    public $data;
-
-    /**
-     * @var \flight\util\Collection Cookie parameters
-     */
-    public $cookies;
-
-    /**
-     * @var \flight\util\Collection Uploaded files
-     */
-    public $files;
-
-    /**
-     * @var bool Whether the connection is secure
-     */
-    public $secure;
-
-    /**
-     * @var string HTTP accept parameters
-     */
-    public $accept;
-
-    /**
-     * @var string Proxy IP address of the client
-     */
-    public $proxy_ip;
-
-    /**
-     * @var string HTTP host name
-     */
-    public $host;
-
-    /**
-     * Constructor.
-     *
-     * @param array $config Request configuration
-     */
-    public function __construct($config = array()) {
-        // Default properties
-        if (empty($config)) {
-            $config = array(
-                'url' => str_replace('@', '%40', self::getVar('REQUEST_URI', '/')),
-                'base' => str_replace(array('\\',' '), array('/','%20'), dirname(self::getVar('SCRIPT_NAME'))),
-                'method' => self::getMethod(),
-                'referrer' => self::getVar('HTTP_REFERER'),
-                'ip' => self::getVar('REMOTE_ADDR'),
-                'ajax' => self::getVar('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest',
-                'scheme' => self::getScheme(),
-                'user_agent' => self::getVar('HTTP_USER_AGENT'),
-                'type' => self::getVar('CONTENT_TYPE'),
-                'length' => self::getVar('CONTENT_LENGTH', 0),
-                'query' => new Collection($_GET),
-                'data' => new Collection($_POST),
-                'cookies' => new Collection($_COOKIE),
-                'files' => new Collection($_FILES),
-                'secure' => self::getScheme() == 'https',
-                'accept' => self::getVar('HTTP_ACCEPT'),
-                'proxy_ip' => self::getProxyIpAddress(),
-                'host' => self::getVar('HTTP_HOST'),
-            );
-        }
-
-        $this->init($config);
-    }
-
-    /**
-     * Initialize request properties.
-     *
-     * @param array $properties Array of request properties
-     */
-    public function init($properties = array()) {
-        // Set all the defined properties
-        foreach ($properties as $name => $value) {
-            $this->$name = $value;
-        }
-
-        // Get the requested URL without the base directory
-        if ($this->base != '/' && strlen($this->base) > 0 && strpos($this->url, $this->base) === 0) {
-            $this->url = substr($this->url, strlen($this->base));
-        }
-
-        // Default url
-        if (empty($this->url)) {
-            $this->url = '/';
-        }
-        // Merge URL query parameters with $_GET
-        else {
-            $_GET += self::parseQuery($this->url);
-
-            $this->query->setData($_GET);
-        }
-
-        // Check for JSON input
-        if (strpos($this->type, 'application/json') === 0) {
-            $body = $this->getBody();
-            if ($body != '') {
-                $data = json_decode($body, true);
-                if ($data != null) {
-                    $this->data->setData($data);
-                }
-            }
-        }
-    }
-
-    /**
-     * Gets the body of the request.
-     *
-     * @return string Raw HTTP request body
-     */
-    public static function getBody() {
-        static $body;
-
-        if (!is_null($body)) {
-            return $body;
-        }
-
-        $method = self::getMethod();
-
-        if ($method == 'POST' || $method == 'PUT' || $method == 'PATCH') {
-            $body = file_get_contents('php://input');
-        }
-
-        return $body;
-    }
-
-    /**
-     * Gets the request method.
-     *
-     * @return string
-     */
-    public static function getMethod() {
-        $method = self::getVar('REQUEST_METHOD', 'GET');
-
-        if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
-            $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-        }
-        elseif (isset($_REQUEST['_method'])) {
-            $method = $_REQUEST['_method'];
-        }
-
-        return strtoupper($method);
-    }
-
-    /**
-     * Gets the real remote IP address.
-     *
-     * @return string IP address
-     */
-    public static function getProxyIpAddress() {
-        static $forwarded = array(
-            'HTTP_CLIENT_IP',
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_FORWARDED',
-            'HTTP_X_CLUSTER_CLIENT_IP',
-            'HTTP_FORWARDED_FOR',
-            'HTTP_FORWARDED'
-        );
-
-        $flags = \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE;
-
-        foreach ($forwarded as $key) {
-            if (array_key_exists($key, $_SERVER)) {
-                sscanf($_SERVER[$key], '%[^,]', $ip);
-                if (filter_var($ip, \FILTER_VALIDATE_IP, $flags) !== false) {
-                    return $ip;
-                }
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * Gets a variable from $_SERVER using $default if not provided.
-     *
-     * @param string $var Variable name
-     * @param string $default Default value to substitute
-     * @return string Server variable value
-     */
-    public static function getVar($var, $default = '') {
-        return isset($_SERVER[$var]) ? $_SERVER[$var] : $default;
-    }
-
-    /**
-     * Parse query parameters from a URL.
-     *
-     * @param string $url URL string
-     * @return array Query parameters
-     */
-    public static function parseQuery($url) {
-        $params = array();
-
-        $args = parse_url($url);
-        if (isset($args['query'])) {
-            parse_str($args['query'], $params);
-        }
-
-        return $params;
-    }
-
-    public static function getScheme() {
-        if (
-            (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) === 'on')
-            ||
-            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-            ||
-            (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && $_SERVER['HTTP_FRONT_END_HTTPS'] === 'on')
-            ||
-            (isset($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] === 'https')
-        ) {
-            return 'https';
-        }
-        return 'http';
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

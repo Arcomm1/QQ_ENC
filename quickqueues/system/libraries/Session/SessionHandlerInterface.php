@@ -1,59 +1,34 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 3.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * SessionHandlerInterface
- *
- * PHP 5.4 compatibility interface
- *
- * @package	CodeIgniter
- * @subpackage	Libraries
- * @category	Sessions
- * @author	Andrey Andreev
- * @link	https://codeigniter.com/user_guide/libraries/sessions.html
- */
-interface SessionHandlerInterface {
-
-	public function open($save_path, $name);
-	public function close();
-	public function read($session_id);
-	public function write($session_id, $session_data);
-	public function destroy($session_id);
-	public function gc($maxlifetime);
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+DGKxj7asi6gZJz7ooW==

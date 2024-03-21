@@ -1,1431 +1,775 @@
-
-
-
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-/* Tools.php - various, mostly command-line utilities */
-
-
-class Tools_palitra extends CI_Controller {
-
-
-    public function __construct()
-    {
-        $this->_user_ctl_allowed_actions = array(
-            'create', 'edit', 'delete', 'disable', 'list'
-        );
-        $this->_config_ctl_allowed_actions = array(
-            'create', 'edit', 'reset'
-        );
-        parent::__construct();
-    }
-
-
-    /* Run migrations */
-    public function migrate()
-    {
-        $this->load->library('migration');
-        if ($this->migration->current() === false) {
-            echo $this->migration->error_string();
-        }
-    }
-
-
-    /** User management */
-    public function user_ctl($action = false, $username = false, $password = false, $role = false)
-    {
-        if (!$action) {
-            echo "Usage index.php tools user_ctl ACTION [USERNAME [PASSWORD [ROLE]]]\n";
-            exit("No action specified\n");
-        }
-        if (!in_array($action, $this->_user_ctl_allowed_actions)) {
-            echo "Usage index.php tools user_ctl ACTION [USERNAME [PASSWORD [ROLE]]]\n";
-            exit("Not a valid action\n");
-        }
-
-
-        if ($action == 'list') {
-            echo "USERNAME - ROLE - EMAIL - STATUS/ENABLED\n";
-            foreach ($this->User_model->get_all() as $u) {
-                echo $u->name." - ".$u->role." - ".$u->email." - ".$u->enabled."\n";
-            }
-            exit();
-        }
-
-        if ($action == 'create') {
-            if (!$username or !$password or !$role) {
-                exit("Please provide username, password and role\n");
-            }
-            if (!in_array($role, array('guest', 'agent', 'manager', 'admin'))) {
-                exit("Please specify valid role\n");
-            }
-            if ($this->User_model->create(array('name' => $username, 'password' => md5($password), 'role' => $role, 'enabled' => 'yes'))) {
-                echo "User created successfully.\n";
-            } else {
-                echo "Could not create user.\n";
-            }
-            exit();
-        }
-    }
-
-
-    /** Configuration management */
-    public function config_ctl($action = false, $name = false, $value = false, $default = false, $category = false)
-    {
-        if (!$action) {
-            echo "Usage index.php tools config_ctl ACTION [ITEM [VALUE [DEFAULT [CATEGORY]]]\n";
-            exit("No action specified\n");
-        }
-        if (!in_array($action, $this->_config_ctl_allowed_actions)) {
-            echo "Usage index.php tools config_ctl ACTION [ITEM [VALUE [DEFAULT [CATEGORY]]]\n";
-            exit("Not a valid action\n");
-        }
-
-        if ($action == 'list') {
-            echo "SETTING - VALUE - DEFAULT\n";
-            foreach ($this->Config_model->get_all() as $s) {
-                echo $s->name." - ".$s->value." - ".$s->default."\n";
-            }
-            exit();
-        }
-
-        if ($action == 'create') {
-            if (!$name or !$value or !$default) {
-                exit("Please provide configuration item name, value and default value\n");
-            }
-            if (!$category) {
-                $category = 'custom';
-            }
-            if ($this->Config_model->create(array('name' => $name, 'value' => $value, 'default' => $default, 'category' => $category))) {
-                echo "Configuration item created successfully.\n";
-            } else {
-                echo "Could not create configuration item.\n";
-            }
-        }
-
-    }
-
-
-    /** Parse queue log file */
-    public function parse_queue_log()
-    {
-        log_to_file('NOTICE', 'Running parser');
-
-
-        $lock = parser_read_lock();
-        if ($lock) {
-            log_to_file('NOTICE', 'Parser is locked by procces '.$lock.', Exitting');
-            exit;
-        }
-
-
-        log_to_file('NOTICE', 'Locking parser');
-        parser_lock();
-
-
-        $queue_log_path = $this->Config_model->get_item('ast_queue_log_path');
-        if (!$queue_log_path) {
-            log_to_file('ERROR', 'Quickqueues is not configured properly, ast_queue_log_path not specified, Exitting');
-            parser_unlock();
-            exit();
-        }
-
-        $last_parsed_event = $this->Config_model->get_item('app_last_parsed_event');
-        if ($last_parsed_event === false) {
-            log_to_file('ERROR', 'Quickqueues is not configured properly, app_last_parsed_event not specified, Exitting');
-            parser_unlock();
-            exit();
-        }
-
-        $queue_log = @fopen($queue_log_path, 'r');
-        if (!$queue_log) {
-            log_to_file("ERROR", "Can not open log file, Exitting");
-            parser_unlock();
-            exit();
-        }
-
-        // Event types
-        foreach ($this->Event_type_model->get_all() as $et) {
-            $event_types[$et->name] = $et->id;
-        }
-
-        // Queues
-        $queues = array();
-        foreach ($this->Queue_model->get_all() as $q) {
-            $queues[$q->name] = $q;
-        }
-
-        // Agents
-        $agents = array();
-        foreach ($this->Agent_model->get_all() as $a) {
-            $agents[$a->name] = $a;
-        }
-
-        $parsed_events = 0;
-        $last_event = false;
-        $track_ringnoanswer = $this->Config_model->get_item('app_track_ringnoanswer');
-        $track_transfers = $this->Config_model->get_item('app_track_transfers');
-        $mark_answered_elsewhere = $this->Config_model->get_item('app_mark_answered_elsewhere');
-        $track_duplicate_calls = $this->Config_model->get_item('app_track_duplicate_calls');
-
-
-        // Begin parsing
-        while (($line = fgets($queue_log)) !== FALSE) {
-            /**
-            * Event structure
-            * 1366720340  |1366720340.303267  |MYQUEUE     |SIP/8007    |RINGNOANSWER |1000|x|y|z
-            * Timestamp   |Unique ID          |Queue name  |Agent name  |Event name   |Variable event data
-            * $ev_data[0] |$ev_data[1]        |$ev_data[2] |$ev_data[3] |$ev_data[4]  |$ev_data[n]
-            */
-
-            if (!$line or strlen($line) == 0) {
-                log_to_file("NOTICE", "Skipping empty line");
-                continue;
-            }
-
-            $ev_data = explode("|", $line);
-
-            /**
-             * Some broken Asterisk instances log crooked timestamps
-             * For some events. This should fix it
-             */
-            if (strlen($ev_data[0]) == 13) {
-                continue;
-            }
-
-            // Skip already parsed events
-            if ($last_parsed_event >= $ev_data[0]) {
-                continue;
-            }
-
-            // Do not parse unknown events
-            if (!array_key_exists($ev_data[4], $event_types)) {
-                log_to_file('WARNING', "Skipping unknown event ".$ev_data[4]);
-                continue;
-            }
-
-            if ($ev_data[4] == 'CONFIGRELOAD') {
-                continue;
-            }
-
-            if ($track_ringnoanswer == 'no' and $ev_data[4] == 'RINGNOANSWER') {
-                continue;
-            }
-
-
-            if ($ev_data[2] == 'NONE') {
-                $queue_id = false;
-            } else {
-                if (!array_key_exists($ev_data[2], $queues)) {
-                    $new_queue_id = $this->Queue_model->create(array('name' => $ev_data[2], 'display_name' => $ev_data[2]));
-                    if (!$new_queue_id) {
-                        log_to_file('ERROR', 'Could not create new queue, event timestamp and uniqueid are '.$ev_data[0]."|".$ev_data['1']);
-                        continue;
-                    }
-                    $queues[$ev_data[2]] = $this->Queue_model->get($new_queue_id);
-                    $queue_id = $new_queue_id;
-                } else {
-                    $queue_id = $queues[$ev_data[2]]->id;
-                }
-            }
-
-
-            if ($ev_data[3] == 'NONE') {
-                $agent_id = false;
-            } else {
-                if (!array_key_exists($ev_data[3], $agents)) {
-                    if (in_array($ev_data[4], array('STARTPAUSE', 'STARTSESSION', 'STOPSESSION', 'STOPPAUSE'))) {
-                        log_to_file('NOTICE', 'Not creating new agent since they have no calls yet');
-                        continue;
-                    }
-                    $new_agent_id = $this->Agent_model->create(array('name' => $ev_data[3], 'display_name' => $ev_data[3]));
-                    if (!$new_agent_id) {
-                        log_to_file('ERROR', 'Could not create new agent, event timestamp and uniqueid are '.$ev_data[0]."|".$ev_data['1']);
-                        continue;
-                    }
-                    $agent_id = $new_agent_id;
-                    $this->Agent_model->set_extension($agent_id);
-                    $agents[$ev_data[3]] = $this->Agent_model->get($new_agent_id);
-                } else {
-                    $agent_id = $agents[$ev_data[3]]->id;
-                }
-            }
-
-            /** Process the event *********************************************/
-
-            /** Get "constant" event data *************************************/
-            $event = array(
-                'timestamp'     => $ev_data[0],
-                'uniqueid'      => $ev_data[1],
-                'queue_id'      => $queue_id,   // $ev_data[2]
-                'agent_id'      => $agent_id,   // $ev_data[3]
-                'event_type'    => $ev_data[4],
-                'date'          => date('Y-m-d H:i:s', $ev_data[0]),
-            );
-
-            /** Get "variable" event data *************************************/
-
-
-            /**
-             * ENTERQUEUE - call entered queue, new Call row should be created
-             */
-            if ($ev_data[4] == 'ENTERQUEUE') {
-                // $ev_data[5] is holding "url" param, which we do not use
-                $event['src'] = $ev_data[6];
-                $this->Call_model->create($event);
-            }
-
-            /**
-             * CONNECT - call that entered queue (ENTERQUEUE event) was connected to agents,
-             * update call entry matching ENTERQUEUE and current unique ID
-             */
-            if ($ev_data[4] == 'CONNECT') {
-                // This event has holdtime, in $ev_data[5], but we do not need to
-                // store this since same value will be processed through COMPLETECALLER
-                // or COMPLETEAGENT event
-                $event['linked_uniqueid'] = $ev_data[6];
-                $event['ringtime'] = $ev_data[7];
-                $event['dst'] = $agents[$ev_data[3]]->extension;
-                $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-                unset($event['dst']);
-                $this->Queue_model->add_agent($queue_id, $agent_id);
-                $this->Agent_model->add_primary_queue($agent_id, $queue_id);
-            }
-
-            /**
-             * COMPLETE - call that was CONNECTed to agent was completed.
-             * Update call entry matching CONNECT event and current unique ID
-             */
-            if ($ev_data[4] == 'COMPLETEAGENT' || $ev_data[4] == 'COMPLETECALLER') {
-                $event['holdtime'] = $ev_data[5];
-                $event['calltime'] = $ev_data[6];
-                $event['origposition'] = $ev_data[7];
-
-                $this_call = $this->Call_model->get_one_by_complex(array('uniqueid' => $ev_data[1], 'event_type' => 'CONNECT'));
-
-                if ($mark_answered_elsewhere > 0) {
-                    log_to_file('DEBUG', 'Marking Unanswered calls as answered_elsewhere since config is set to '.$mark_answered_elsewhere);
-
-                    log_to_file('DEBUG', 'Searching for unanswered calls from '.$this_call->src.', current call ID is '.$this_call->id);
-                    $from = date('Y-m-d H:i:s', (time() - $mark_answered_elsewhere * 60));
-
-                    if (strlen($this_call->src) > 1) {
-                        $calls_to_mark = $this->Call_model->get_many_by_complex(
-                            array(
-                                'src' => $this_call->src,
-                                'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT'),
-                                'date >' => $from,
-                            )
-                        );
-
-                        log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as answered elsewhere');
-                        foreach ($calls_to_mark as $ctm) {
-                            log_to_file('DEBUG', 'Marking '.$ctm->id.' as answered elsewhere');
-                            $this->Call_model->update($ctm->id, array('answered_elsewhere' => $this_call->id));
-                        }
-
-                        unset($calls_to_mark);
-                        unset($from);
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong, not searching for calls to mark as answered elsewhere, uniqueid '.$ev_data[1]);
-                    }
-                }
-
-                if ($track_duplicate_calls > 0) {
-                    log_to_file('DEBUG', 'Marking calls as duplicate since config is set to '.$track_duplicate_calls);
-                    log_to_file('DEBUG', 'Searching for all calls from '.$this_call->src.', current call ID is '.$this_call->id);
-
-                    $from = date('Y-m-d H:i:s', (time() - $track_duplicate_calls * 60));
-
-                    if (strlen($this_call->src) > 1) {
-                        $calls_to_mark = $this->Call_model->get_many_by_complex(
-                            array(
-                                'src' => $this_call->src,
-                                'date >' => $from,
-                                'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT'),
-                            )
-                        );
-
-                        log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as duplicate');
-
-                        foreach ($calls_to_mark as $ctm) {
-                            log_to_file('DEBUG', 'Marking '.$ctm->id.' as duplicate');
-                            $this->Call_model->update($ctm->id, array('duplicate' => 'yes'));
-                        }
-
-                        unset($calls_to_mark);
-                        unset($from);
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong, not search for calls to mark as duplicate, uniqueid '.$ev_data[1]);
-                    }
-                }
-
-                unset($this_call);
-
-                $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1], 'event_type' => 'CONNECT'), $event);
-                $this->Agent_model->update($agent_id, array('last_call' => date('Y-m-d H:i:s')));
-                if (!$this->Call_model->get_recording($event['uniqueid'])) {
-                    log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
-                }
-
-                /**
-                 * We need to update corresponding DID event with new timestamp and date, so that
-                 * call completion date matches DId event
-                 */
-                $this->Event_model->update_by_complex(
-                    array(
-                        'uniqueid' => $ev_data[1],
-                        'event_type' => 'DID_FUTURE',
-                    ),
-                    array(
-                        'timestamp' => $event['timestamp'],
-                        'date' => $event['date'],
-                        'event_type' => 'DID'
-                    )
-                );
-
-                if ($track_transfers == 'yes') {
-                    $transfer = $this->check_transfer($ev_data[1]);
-                    if (is_array($transfer)) {
-                        log_to_file('NOTICE', "$uniqueid was transferred, updating call information");
-                        $this->Call_model->update_by_complex(
-                            array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
-                            array('transferred' => $transfer[0], 'transferdst' => $transfer[1])
-                        );
-                    }
-                }
-
-                /**
-                 * If someone set some fields for this call from agent_crm,
-                 * it should be stored in as Future Event.
-                 */
-                $future_event = $this->Future_event_model->get_by('uniqueid', $ev_data[1]);
-                if (!$future_event) {
-                    log_to_file('DEBUG', 'No future event found for call with uniqueid '.$ev_data[1]);
-                } else {
-                    log_to_file('DEBUG', 'Future event found for call with uniqueid '.$ev_data[1].', updating call');
-
-                    $this->Call_model->update_by_complex(
-                        array('uniqueid' => $ev_data[1], 'event_type' => $ev_data[4]),
-                        array(
-                            'comment'       => $future_event->comment,
-                            'status'        => $future_event->status,
-                            'priority'      => $future_event->priority,
-                            'curator_id'    => $future_event->curator_id,
-                            'category_id'   => $future_event->category_id,
-                            'service_id'    => $future_event->service_id,
-                            'service_product_id' => $future_event->service_product_id,
-                            'service_product_type_id' => $future_event->service_product_type_id,
-                            'service_product_subtype_id' => $future_event->service_product_subtype_id,
-                            'custom_1'      => $future_event->custom_1,
-                            'custom_2'      => $future_event->custom_2,
-                            'custom_3'      => $future_event->custom_3,
-                            'custom_4'      => $future_event->custom_4,
-                            'ticket_id'     => $future_event->ticket_id,
-                            'ticket_department_id' => $future_event->ticket_department_id,
-                            'ticket_category_id' => $future_event->ticket_category_id,
-                            'ticket_subcategory_id' => $future_event->ticket_subcategory_id,
-                        )
-                    );
-                    log_to_file('DEBUG', 'Deleting Future event with uniqueid '.$ev_data[1]);
-
-                    // $this->Future_event_model->delete_by('uniqueid', $ev_data[1]);
-
-                }
-
-                $this->Call_model->mark_for_survey($ev_data[1]);
-            }
-
-            /**
-             * ABANDON, EXIT* - call was terminated in some way.
-             * Call entry matching ENTERQUEUE and currect unique ID should updated
-             */
-            if ($ev_data[4] == 'ABANDON' || $ev_data[4] == 'EXITEMPTY' || $ev_data[4] == 'EXITWITHTIMEOUT') {
-                $event['position'] = $ev_data[5];
-                $event['origposition'] = $ev_data[6];
-                $event['waittime'] = $ev_data[7];
-                $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-
-                $this->Event_model->update_by_complex(
-                    array(
-                        'uniqueid' => $ev_data[1],
-                        'event_type' => 'DID_FUTURE',
-                    ),
-                    array(
-                        'timestamp' => $event['timestamp'],
-                        'date' => $event['date'],
-                        'event_type' => 'DID'
-                    )
-                );
-
-
-                if (!$this->Call_model->get_recording($event['uniqueid'])) {
-                    log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
-                }
-            }
-
-            /**
-             * EXITWITHKEY - caller left queue by pressing specific key.
-             * Update call entry matching ENTERQUEUE and current unique ID
-             */
-            if ($ev_data[4] == 'EXITWITHKEY') {
-                $event['position'] = $ev_data[6];
-                $event['origposition'] = $ev_data[7];
-                $event['waittime'] = $ev_data[8];
-                $this->Call_model->update_by_complex(array('uniqueid' => $ev_data[1],'event_type' => 'ENTERQUEUE'), $event);
-
-                $this->Event_model->update_by_complex(
-                    array(
-                        'uniqueid' => $ev_data[1],
-                        'event_type' => 'DID_FUTURE',
-                    ),
-                    array(
-                        'timestamp' => $event['timestamp'],
-                        'date' => $event['date'],
-                        'event_type' => 'DID'
-                    )
-                );
-
-                $event['exit_key'] = $ev_data[5];
-                if (!$this->Call_model->get_recording($event['uniqueid'])) {
-                    log_to_file('ERROR', "Could not get recording file for unique ID ".$event['uniqueid']);
-                }
-            }
-
-            /**
-             * We do some custom magic here.
-             *
-             * Since we are interested in DID events in realtion to already finished calls,
-             * we are inserting DID events (which appear at the beginning of the call)
-             * as DID_FUTURE, so that they are not visible to stats related functions.
-             * Once call is finished in one way or another, these DID_FUTURE events
-             * are updated, 'renamed' to be proper DID and updated with timestamp
-             * of the corresponding event, be it COMPLETE, EXIT, or ABANDON
-             */
-            if ($ev_data[4] == 'DID') {
-                $event['event_type'] = 'DID_FUTURE';
-                $event['did'] = trim(preg_replace('/\s+/', '', $ev_data[5]));
-            }
-
-            /**
-             * We use RINGNOANSWER to associate queues ans agents
-             */
-            if ($ev_data[4] == 'RINGNOANSWER') {
-                $event['ringtime'] = $ev_data[5]/1000;
-                $this->Queue_model->add_agent($queue_id, $agent_id);
-                $this->Agent_model->add_primary_queue($agent_id, $queue_id);
-
-                // No need to insert empty ringnoanswer events
-                if ($ev_data[5] == 0) {
-                    continue;
-                }
-            }
-
-            /**
-             * ADDCOMMENT, pretty self explanatory
-             */
-            if ($ev_data[4] == 'ADDCOMMENT') {
-                $t_uniqueid = $ev_data[5];
-                $t_comment = preg_replace('/\n$/','',$ev_data[6]);
-                $this->Call_model->update_by('uniqueid', $t_uniqueid, array('comment' => $t_comment));
-                log_to_file('NOTICE', "Adding comment to ".$t_uniqueid);
-
-                unset($t_comment);
-                unset($t_uniqueid);
-            }
-
-            /**
-             * ADDCATEGORY, pretty self explanatory
-             */
-            if ($ev_data[4] == 'ADDCATEGORY') {
-                $t_uniqueid = $ev_data[5];
-                $t_category = $ev_data[6];
-                $this->Call_model->update_by('uniqueid', $t_uniqueid, array('category_id' => $t_category));
-                log_to_file('NOTICE', "Adding category to ".$t_uniqueid);
-
-                unset($t_category);
-                unset($t_uniqueid);
-            }
-
-            /**
-             * Mark agent as paused
-             */
-            if ($ev_data[4] =='STARTPAUSE') {
-                $l_pause = $this->Event_model->get_agent_last_pause_event($agent_id);
-                if ($l_pause) {
-                    if ($ev_data[4] == $l_pause->event_type) {
-                        log_to_file('NOTICE', 'Skipping duplicate '.$ev_data[4].' event');
-                        continue;
-                    }
-                } else {
-                    log_to_file('DEBUG', 'Got event '.$ev_data[4].'. Agent has no previous pause related events');
-                }
-                $this->Agent_model->update($agent_id, array('on_break' => 'yes', 'last_break' => $event['date']));
-                unset($l_pause);
-            }
-
-            /**
-             * Mark agent as 'active'
-             */
-            if ($ev_data[4] =='STOPPAUSE') {
-                $l_pause = $this->Event_model->get_agent_last_pause_event($agent_id);
-                if ($l_pause) {
-                    if ($ev_data[4] == $l_pause->event_type) {
-                        log_to_file('NOTICE', 'Skipping duplicate '.$ev_data[4].' event');
-                        continue;
-                    }
-                    /**
-                     * If agent last event was STARPAUSE, we need to calculate delta
-                     * between current event and last PAUSE event, to know how much time
-                     * agent was on break.
-                     */
-                    $pausetime = $ev_data[0] - $l_pause->timestamp;
-                    $event['pausetime'] = $pausetime;
-                } else {
-                    log_to_file('DEBUG', 'Got event '.$ev_data[4].'. Agent has no previous pause related events');
-                }
-
-                $this->Agent_model->update($agent_id, array('on_break' => 'no'));
-                unset($l_pause);
-                unset($pausetime);
-            }
-
-            /**
-             * Start agent session
-             */
-            if ($ev_data[4] =='STARTSESSION') {
-                $l_session = $this->Event_model->get_agent_last_session_event($agent_id);
-                if ($l_session) {
-                    if ($ev_data[4] == $l_session->event_type) {
-                        log_to_file('NOTICE', 'Skipping duplicate '.$ev_data[4].' event');
-                        continue;
-                    }
-                } else {
-                    log_to_file('DEBUG', 'Got event '.$ev_data[4].'. Agent has no previous session related events');
-                }
-                $this->Agent_model->update($agent_id, array('in_session' => 'yes', 'last_session' => $event['date']));
-
-                $settings = $this->get_settings($agent_id);
-
-                if (array_key_exists('agent_work_start_time', $settings)) {
-                    $delta = $timestamp - strtotime(date('Y-m-d '.$settings['agent_work_start_time']->value.':00'));
-                    if ($delta > 600) {
-                        $event['session_start_late'] = $delta;
-                    }
-                }
-                unset($l_session);
-            }
-
-            /**
-             * Stop/end agent session
-             */
-            if ($ev_data[4] =='STOPSESSION') {
-                $l_session = $this->Event_model->get_agent_last_session_event($agent_id);
-                if ($l_session) {
-                    if ($ev_data[4] == $l_session->event_type) {
-                        log_to_file('NOTICE', 'Skipping duplicate '.$ev_data[4].' event');
-                        continue;
-                    }
-                    /**
-                     * If agent last event was STARTSESSION, we need to calculate delta
-                     * between current event and last SESSION event, to know how much time
-                     * agent was in.
-                     */
-                    $sessiontime = $ev_data[0] - $l_session->timestamp;
-                    $event['sessiontime'] = $sessiontime;
-                } else {
-                    log_to_file('DEBUG', 'Got event '.$ev_data[4].'. Agent has no previous pause related events');
-                }
-
-                $this->Agent_model->update($agent_id, array('in_session' => 'no'));
-                unset($l_session);
-                unset($sessiontime);
-                $settings = $this->get_settings($agent_id);
-
-                if (array_key_exists('agent_work_end_time', $settings)) {
-                    $delta = $timestamp - strtotime(date('Y-m-d '.$settings['agent_work_end_time']->value.':00'));
-                    if ($delta > 600) {
-                        $event['session_end_early'] = $delta;
-                    }
-                }
-            }
-
-            /**
-             * INCOMINGOFFWORK - This event is triggered by custom QQ dialplan.
-             * This event is triggered when call is made on non-working hours.
-             */
-            if ($ev_data[4] == 'INCOMINGOFFWORK') {
-                $event['src'] = $ev_data[5];
-                $this->Call_model->create($event);
-                log_to_file('debug', "Got event ".$ev_data[4]);
-            }
-
-            /**
-             * SURVEYRESULT - This event is triggered by custom QQ dialplan.
-             * This event should have the same Unique ID as already processed COMPLETECALLER
-             * or COMPLETEAGENT event.
-             * Just collect Survey result and update the call information
-             */
-            if ($ev_data[4] == 'SURVEYRESULT') {
-                $event['src'] = $ev_data[5];
-                log_to_file('NOTICE', "Got survey result for call ".$ev_data[1]);
-
-                $event['survey_result'] = $ev_data[5];
-                $event['survey_complete'] = '1';
-
-                $this->Call_model->update_by_complex(
-                    array('uniqueid' => $ev_data[1], 'event_type' => array('COMPLETEAGENT', 'COMPLETECALLER')),
-                    array(
-                        'survey_result'    => $ev_data[5],
-                        'survey_complete'  => '1',
-                    )
-                );
-
-            }
-
-            /**
-             * Custom DIALOUTATTEMPT event
-             *
-             * This event should be generated prior to executing outgoing call with API.
-             * This event contains real unique ID of call, that can be used later to associate custom ID to real call
-             */
-            if ($ev_data[4] == 'DIALOUTATTEMPT') {
-                $event['custom_uniqueid'] = trim(preg_replace('/\s+/', '', $ev_data[5]));
-            }
-
-            /**
-             * Custom DIALOUTFAILED event
-             *
-             * This event should be generated when generated call fails for some reason
-             */
-            if ($ev_data[4] == 'DIALOUTFAILED') {
-                $event['custom_uniqueid'] = trim(preg_replace('/\s+/', '', $ev_data[5]));
-                $event['dialout_fail_reason'] = $ev_data[6];
-            }
-
-            /** End event processing ******************************************/
-
-            // Create the event
-            if (!$this->Event_model->create($event)) {
-                log_to_file('ERROR', 'Could not insert '.$ev_data[4].' event with unique ID '.$ev_data[1]);
-            }
-
-            $last_event = $ev_data[0];
-            $parsed_events++;
-            unset($agent_id);
-            unset($queue_id);
-            unset($event);
-
-        }
-
-
-        $this->Config_model->set_item('app_last_parsed_event', $last_event);
-        log_to_file('NOTICE', 'Parsed '.$parsed_events.' events');
-
-        $this->collect_outgoing();
-        // $this->collect_custom_dids();
-
-        log_to_file('NOTICE', 'Unlocking parser');
-        parser_unlock();
-    }
-
-
-    public function collect_outgoing()
-    {
-        $collect = $this->Config_model->get_item('app_track_outgoing');
-        $from    = QQ_TODAY_START;
-        $mark_called_back = $this->Config_model->get_item('app_auto_mark_called_back');
-
-        if ($collect == 'no') {
-            log_to_file('NOTICE', 'Collecting outgoing calls is disabled in configuration, aborting.');
-            return 0;
-        }
-
-        log_to_file('NOTICE', 'Collecting outgoing calls');
-
-        $this->cdrdb = $this->load->database('cdrdb', true);
-        $agents = $this->Agent_model->get_all();
-        foreach ($agents as $a) {
-            log_to_file('NOTICE', 'Collecting outgoing calls for agent '.$a->display_name.'...');
-
-            log_to_file('OUT_DEBUG', 'Collecting cnum calls for '.$a->extension);
-
-
-            $this->cdrdb->where('cnum', $a->extension);
-            $this->cdrdb->where('calldate >', $from);
-            $this->cdrdb->where('userfield !=', 'QQCOLLECTED');
-            $this->cdrdb->where_in('dcontext', array('from-internal', 'ext-local'));
-            $calls_cnum = $this->cdrdb->get('cdr');
-
-            if ($calls_cnum->num_rows() == 0) {
-                log_to_file('NOTICE', 'Agent '.$a->display_name.' has no outgoing cnum calls, skipping');
-                continue;
-            }
-            log_to_file('NOTICE', 'Agent '.$a->display_name.' has '.$calls_cnum->num_rows().' outgoing cnum calls, collecting');
-            foreach ($calls_cnum->result() as $c) {
-
-                $event_data = array();
-                $event_data = array();
-                $event_data['agent_id'] = $a->id;
-                $event_data['event_type'] = str_replace(' ', '', 'OUT_'.$c->disposition);
-                $event_data['timestamp'] = strtotime($c->calldate);
-                $event_data['calltime'] = $c->billsec;
-                $event_data['src'] = $c->cnum;
-                $event_data['dst'] = $c->dst;
-                $event_data['date'] = $c->calldate;
-                $event_data['uniqueid'] = $c->uniqueid;
-                if ($a->primary_queue_id) {
-                    $event_data['queue_id'] = $a->primary_queue_id;
-                }
-
-                /**
-                 * If someone set some fields for this call from agent_crm,
-                 * it should be stored in as Future Event.
-                 */
-                $future_event = $this->Future_event_model->get_by('uniqueid',$event_data['uniqueid']);
-                $call_data = $event_data;
-                if (!$future_event) {
-                    log_to_file('DEBUG', 'No future event found for call with uniqueid '.$event_data['uniqueid']);
-                } else {
-                    log_to_file('DEBUG', 'Future event found for call with uniqueid '.$event_data['uniqueid'].', updating call');
-                    $call_data['comment']       = $future_event->comment;
-                    $call_data['status']        = $future_event->status;
-                    $call_data['priority']      = $future_event->priority;
-                    $call_data['curator_id']    = $future_event->curator_id;
-                    $call_data['category_id']   = $future_event->category_id;
-                    $call_data['service_id']    = $future_event->service_id;
-                    $call_data['service_product_id'] = $future_event->service_product_id;
-                    $call_data['service_product_type_id'] = $future_event->service_product_type_id;
-                    $call_data['service_product_subtype_id'] = $future_event->service_product_subtype_id;
-                    $call_data['custom_1']      = $future_event->custom_1;
-                    $call_data['custom_2']      = $future_event->custom_2;
-                    $call_data['custom_3']      = $future_event->custom_3;
-                    $call_data['custom_4']      = $future_event->custom_4;
-                    $call_data['ticket_id']     = $future_event->ticket_id;
-                    $call_data['ticket_department_id'] = $future_event->ticket_department_id;
-                    $call_data['ticket_category_id'] = $future_event->ticket_category_id;
-                    $call_data['ticket_subcategory_id'] = $future_event->ticket_subcategory_id;
-
-                    // log_to_file('DEBUG', 'Deleting Future event with uniqueid '.$ev_data[1]);
-                    // $this->Future_event_model->delete_by('uniqueid', $ev_data[1]);
-                }
-
-
-                $call_data['recording_file'] = $c->recordingfile;
-
-                $this->Event_model->create($event_data);
-                $this->Call_model->create($call_data);
-
-                if ($mark_called_back > 0) {
-                    log_to_file('NOTICE', 'Auto marking of called back calls is enabled, getting relevant calls');
-                    log_to_file('DEBUG', 'Searching for all calls from '.$call_data['dst']);
-                    $mark_from = date('Y-m-d H:i:s', (time() - $mark_called_back * 60));
-
-                    if (strlen($call_data['dst']) > 5) {
-                        if ($call_data['event_type'] == 'OUT_ANSWERED') {
-                            $calls_to_mark = $this->Call_model->get_many_by_complex(
-                                array(
-                                    'src' => $call_data['dst'],
-                                    'date >' => $mark_from,
-                                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT'),
-                                )
-                            );
-
-                            log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as called_back');
-
-                            foreach ($calls_to_mark as $ctm) {
-                                log_to_file('DEBUG', 'Marking '.$ctm->id.' as called_back');
-                                $this->Call_model->update($ctm->id, array('called_back' => 'yes'));
-                            }
-
-                            unset($calls_to_mark);
-                            unset($mark_from);
-                        }
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong or call is internal, not searching for calls to mark as called_back, uniqueid '.$call_data['uniqueid']);
-                    }
-
-                }
-
-
-                $this->cdrdb->update('cdr', array('userfield' => 'QQCOLLECTED'), array('uniqueid' => $c->uniqueid));
-                log_to_file('NOTICE', "Creating event and call ".$event_data['event_type']." for CDR with uniqueid ".$c->uniqueid);
-
-                if ($event_data['timestamp'] > $a->last_call) {
-                    $this->Agent_model->update($a->id, array('last_call' => $event_data['date']));
-                }
-
-                unset($event_data);
-                unset($call_data);
-            }
-
-        }
-
-        foreach ($agents as $a) {
-            log_to_file('NOTICE', 'Collecting outgoing calls for agent '.$a->display_name.'...');
-
-            log_to_file('OUT_DEBUG', 'Collecting src calls for '.$a->extension);
-
-
-            $this->cdrdb->where('src', $a->extension);
-            $this->cdrdb->where('calldate >', $from);
-            $this->cdrdb->where('userfield !=', 'QQCOLLECTED');
-            $this->cdrdb->where_in('dcontext', array('from-internal', 'ext-local'));
-            $calls_src = $this->cdrdb->get('cdr');
-
-            if ($calls_src->num_rows() == 0) {
-                log_to_file('NOTICE', 'Agent '.$a->display_name.' has no outgoing src calls, skipping');
-                continue;
-            }
-            log_to_file('NOTICE', 'Agent '.$a->display_name.' has '.$calls_src->num_rows().' outgoing src calls, collecting');
-            foreach ($calls_src->result() as $c) {
-
-                $event_data = array();
-                $event_data = array();
-                $event_data['agent_id'] = $a->id;
-                $event_data['event_type'] = str_replace(' ', '', 'OUT_'.$c->disposition);
-                $event_data['timestamp'] = strtotime($c->calldate);
-                $event_data['calltime'] = $c->billsec;
-                $event_data['src'] = $c->src;
-                $event_data['dst'] = $c->dst;
-                $event_data['date'] = $c->calldate;
-                $event_data['uniqueid'] = $c->uniqueid;
-                if ($a->primary_queue_id) {
-                    $event_data['queue_id'] = $a->primary_queue_id;
-                }
-
-                /**
-                 * If someone set some fields for this call from agent_crm,
-                 * it should be stored in as Future Event.
-                 */
-                $future_event = $this->Future_event_model->get_by('uniqueid',$event_data['uniqueid']);
-                if (!$future_event) {
-                    log_to_file('DEBUG', 'No future event found for call with uniqueid '.$event_data['uniqueid']);
-                } else {
-                    log_to_file('DEBUG', 'Future event found for call with uniqueid '.$event_data['uniqueid'].', updating call');
-                    $call_data['comment']      = $future_event->comment;
-                    $call_data['status']       = $future_event->status;
-                    $call_data['category_id']  = $future_event->category_id;
-                    $call_data['curator_id']   = $future_event->curator_id;
-
-                    // log_to_file('DEBUG', 'Deleting Future event with uniqueid '.$ev_data[1]);
-                    // $this->Future_event_model->delete_by('uniqueid', $ev_data[1]);
-                }
-
-                $call_data = $event_data;
-                $call_data['recording_file'] = $c->recordingfile;
-
-                $this->Event_model->create($event_data);
-                $this->Call_model->create($call_data);
-
-                if ($mark_called_back > 0) {
-                    log_to_file('NOTICE', 'Auto marking of called back calls is enabled, getting relevant calls');
-                    log_to_file('DEBUG', 'Searching for all calls from '.$call_data['dst']);
-                    $mark_from = date('Y-m-d H:i:s', (time() - $mark_called_back * 60));
-
-                    if (strlen($call_data['dst']) > 5) {
-                        if ($call_data['event_type'] == 'OUT_ANSWERED') {
-                            $calls_to_mark = $this->Call_model->get_many_by_complex(
-                                array(
-                                    'src' => $call_data['dst'],
-                                    'date >' => $mark_from,
-                                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT', 'INCOMINGOFFWORK'),
-                                )
-                            );
-
-                            log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as called_back');
-
-                            foreach ($calls_to_mark as $ctm) {
-                                log_to_file('DEBUG', 'Marking '.$ctm->id.' as called_back');
-                                $this->Call_model->update($ctm->id, array('called_back' => 'yes'));
-                            }
-
-                            unset($calls_to_mark);
-                            unset($mark_from);
-                        }
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong or call is internal, not searching for calls to mark as called_back, uniqueid '.$call_data['uniqueid']);
-                    }
-
-                }
-
-
-                $this->cdrdb->update('cdr', array('userfield' => 'QQCOLLECTED'), array('uniqueid' => $c->uniqueid));
-                log_to_file('NOTICE', "Creating event and call ".$event_data['event_type']." for CDR with uniqueid ".$c->uniqueid);
-
-                if ($event_data['timestamp'] > $a->last_call) {
-                    $this->Agent_model->update($a->id, array('last_call' => $event_data['date']));
-                }
-
-                unset($event_data);
-                unset($call_data);
-            }
-
-        }
-
-        foreach ($agents as $a) {
-            log_to_file('NOTICE', 'Collecting outgoing calls for agent '.$a->display_name.'...');
-
-            log_to_file('OUT_DEBUG', 'Collecting cnam calls for '.$a->extension);
-
-
-            $this->cdrdb->where('cnam', $a->extension);
-            $this->cdrdb->where('calldate >', $from);
-            $this->cdrdb->where('userfield !=', 'QQCOLLECTED');
-            $this->cdrdb->where_in('dcontext', array('from-internal', 'ext-local'));
-            $calls_cnam = $this->cdrdb->get('cdr');
-
-            if ($calls_cnam->num_rows() == 0) {
-                log_to_file('NOTICE', 'Agent '.$a->display_name.' has no outgoing cnam calls, skipping');
-                continue;
-            }
-            log_to_file('NOTICE', 'Agent '.$a->display_name.' has '.$calls_cnam->num_rows().' outgoing cnam calls, collecting');
-            foreach ($calls_cnam->result() as $c) {
-
-                $event_data = array();
-                $event_data = array();
-                $event_data['agent_id'] = $a->id;
-                $event_data['event_type'] = str_replace(' ', '', 'OUT_'.$c->disposition);
-                $event_data['timestamp'] = strtotime($c->calldate);
-                $event_data['calltime'] = $c->billsec;
-                $event_data['src'] = $c->cnam;
-                $event_data['dst'] = $c->dst;
-                $event_data['date'] = $c->calldate;
-                $event_data['uniqueid'] = $c->uniqueid;
-                if ($a->primary_queue_id) {
-                    $event_data['queue_id'] = $a->primary_queue_id;
-                }
-
-                /**
-                 * If someone set some fields for this call from agent_crm,
-                 * it should be stored in as Future Event.
-                 */
-                $future_event = $this->Future_event_model->get_by('uniqueid',$event_data['uniqueid']);
-                if (!$future_event) {
-                    log_to_file('DEBUG', 'No future event found for call with uniqueid '.$event_data['uniqueid']);
-                } else {
-                    log_to_file('DEBUG', 'Future event found for call with uniqueid '.$event_data['uniqueid'].', updating call');
-                    $call_data['comment']      = $future_event->comment;
-                    $call_data['status']       = $future_event->status;
-                    $call_data['category_id']  = $future_event->category_id;
-                    $call_data['curator_id']   = $future_event->curator_id;
-
-                    // log_to_file('DEBUG', 'Deleting Future event with uniqueid '.$ev_data[1]);
-                    // $this->Future_event_model->delete_by('uniqueid', $ev_data[1]);
-                }
-
-                $call_data = $event_data;
-                $call_data['recording_file'] = $c->recordingfile;
-
-                $this->Event_model->create($event_data);
-                $this->Call_model->create($call_data);
-
-                if ($mark_called_back > 0) {
-                    log_to_file('NOTICE', 'Auto marking of called back calls is enabled, getting relevant calls');
-                    log_to_file('DEBUG', 'Searching for all calls from '.$call_data['dst']);
-                    $mark_from = date('Y-m-d H:i:s', (time() - $mark_called_back * 60));
-
-                    if (strlen($call_data['dst']) > 5) {
-                        if ($call_data['event_type'] == 'OUT_ANSWERED') {
-                            $calls_to_mark = $this->Call_model->get_many_by_complex(
-                                array(
-                                    'src' => $call_data['dst'],
-                                    'date >' => $mark_from,
-                                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT'),
-                                )
-                            );
-
-                            log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as called_back');
-
-                            foreach ($calls_to_mark as $ctm) {
-                                log_to_file('DEBUG', 'Marking '.$ctm->id.' as called_back');
-                                $this->Call_model->update($ctm->id, array('called_back' => 'yes'));
-                            }
-
-                            unset($calls_to_mark);
-                            unset($mark_from);
-                        }
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong or call is internal, not searching for calls to mark as called_back, uniqueid '.$call_data['uniqueid']);
-                    }
-
-                }
-
-
-                $this->cdrdb->update('cdr', array('userfield' => 'QQCOLLECTED'), array('uniqueid' => $c->uniqueid));
-                log_to_file('NOTICE', "Creating event and call ".$event_data['event_type']." for CDR with uniqueid ".$c->uniqueid);
-
-                if ($event_data['timestamp'] > $a->last_call) {
-                    $this->Agent_model->update($a->id, array('last_call' => $event_data['date']));
-                }
-
-                unset($event_data);
-                unset($call_data);
-            }
-
-        }
-
-        foreach ($agents as $a) {
-            log_to_file('NOTICE', 'Collecting outgoing calls for agent '.$a->display_name.'...');
-
-            log_to_file('OUT_DEBUG', 'Collecting channel calls for '.$a->extension);
-
-
-            $this->cdrdb->like('channel', $a->extension);
-            $this->cdrdb->like('lastdata', 'trunk');
-            $this->cdrdb->where('calldate >', $from);
-            $this->cdrdb->where('userfield !=', 'QQCOLLECTED');
-            $this->cdrdb->where_in('dcontext', array('from-internal', 'ext-local'));
-            $calls_channel = $this->cdrdb->get('cdr');
-
-            if ($calls_channel->num_rows() == 0) {
-                log_to_file('NOTICE', 'Agent '.$a->display_name.' has no outgoing channel calls, skipping');
-                continue;
-            }
-            log_to_file('NOTICE', 'Agent '.$a->display_name.' has '.$calls_channel->num_rows().' outgoing cnam calls, collecting');
-            foreach ($calls_channel->result() as $c) {
-
-                $event_data = array();
-                $event_data = array();
-                $event_data['agent_id'] = $a->id;
-                $event_data['event_type'] = str_replace(' ', '', 'OUT_'.$c->disposition);
-                $event_data['timestamp'] = strtotime($c->calldate);
-                $event_data['calltime'] = $c->billsec;
-                $event_data['src'] = $a->extension;
-                $event_data['dst'] = $c->dst;
-                $event_data['date'] = $c->calldate;
-                $event_data['uniqueid'] = $c->uniqueid;
-                if ($a->primary_queue_id) {
-                    $event_data['queue_id'] = $a->primary_queue_id;
-                }
-
-                /**
-                 * If someone set some fields for this call from agent_crm,
-                 * it should be stored in as Future Event.
-                 */
-                $future_event = $this->Future_event_model->get_by('uniqueid',$event_data['uniqueid']);
-                if (!$future_event) {
-                    log_to_file('DEBUG', 'No future event found for call with uniqueid '.$event_data['uniqueid']);
-                } else {
-                    log_to_file('DEBUG', 'Future event found for call with uniqueid '.$event_data['uniqueid'].', updating call');
-                    $call_data['comment']      = $future_event->comment;
-                    $call_data['status']       = $future_event->status;
-                    $call_data['category_id']  = $future_event->category_id;
-                    $call_data['curator_id']   = $future_event->curator_id;
-
-                    // log_to_file('DEBUG', 'Deleting Future event with uniqueid '.$ev_data[1]);
-                    // $this->Future_event_model->delete_by('uniqueid', $ev_data[1]);
-                }
-
-                $call_data = $event_data;
-                $call_data['recording_file'] = $c->recordingfile;
-
-                $this->Event_model->create($event_data);
-                $this->Call_model->create($call_data);
-
-                if ($mark_called_back > 0) {
-                    log_to_file('NOTICE', 'Auto marking of called back calls is enabled, getting relevant calls');
-                    log_to_file('DEBUG', 'Searching for all calls from '.$call_data['dst']);
-                    $mark_from = date('Y-m-d H:i:s', (time() - $mark_called_back * 60));
-
-                    if (strlen($call_data['dst']) > 5) {
-                        if ($call_data['event_type'] == 'OUT_ANSWERED') {
-                            $calls_to_mark = $this->Call_model->get_many_by_complex(
-                                array(
-                                    'src' => $call_data['dst'],
-                                    'date >' => $mark_from,
-                                    'event_type' => array('ABANDON', 'EXITEMPTY', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'COMPLETECALLER', 'COMPLETEAGENT'),
-                                )
-                            );
-
-                            log_to_file('DEBUG', 'Found '.count($calls_to_mark). ' calls to mark as called_back');
-
-                            foreach ($calls_to_mark as $ctm) {
-                                log_to_file('DEBUG', 'Marking '.$ctm->id.' as called_back');
-                                $this->Call_model->update($ctm->id, array('called_back' => 'yes'));
-                            }
-
-                            unset($calls_to_mark);
-                            unset($mark_from);
-                        }
-                    } else {
-                        log_to_file('DEBUG', 'Something went wrong or call is internal, not searching for calls to mark as called_back, uniqueid '.$call_data['uniqueid']);
-                    }
-
-                }
-
-
-                $this->cdrdb->update('cdr', array('userfield' => 'QQCOLLECTED'), array('uniqueid' => $c->uniqueid));
-                log_to_file('NOTICE', "Creating event and call ".$event_data['event_type']." for CDR with uniqueid ".$c->uniqueid);
-
-                if ($event_data['timestamp'] > $a->last_call) {
-                    $this->Agent_model->update($a->id, array('last_call' => $event_data['date']));
-                }
-
-                unset($event_data);
-                unset($call_data);
-            }
-
-        }
-
-    }
-
-
-    // public function collect_custom_dids()
-    // {
-    //     /**
-    //      * This potentially can be moved to setting to simulate manual DID events
-    //      */
-    //     log_to_file('NOTICE', 'Collecting custom DID events');
-
-    //     $this->cdrdb = $this->load->database('cdrdb', true);
-    //     $this->cdrdb->where('did', '2560051');
-    //     $this->cdrdb->where('userfield !=', 'QQDID');
-
-    //     $events = $this->cdrdb->get('cdr');
-
-    //     foreach ($events->result() as $e) {
-    //         $this->Event_model->create(array(
-    //             'event_type' => 'DID',
-    //             'timestamp' => strtotime($e->calldate),
-    //             'date' => $e->calldate,
-    //             'did' => '2560051',
-    //             'queue_id' => 1,
-    //         ));
-    //         $this->cdrdb->update('cdr', array('userfield' => 'QQDID'), array('uniqueid' => $e->uniqueid));
-
-    //     }
-
-    //     return 0;
-    // }
-
-
-    public function check_transfer($uniqueid = false)
-    {
-        if (!$uniqueid) {
-            return false;
-        }
-
-        $this->cdrdb = $this->load->database('cdrdb', true);
-        log_to_file('NOTICE', 'Checking if calls is transferred');
-        $this->cdrdb->where('linkedid', $uniqueid);
-        $this->cdrdb->where('eventtype', 'ATTENDEDTRANSFER');
-        $events = $this->cdrdb->get('cel');
-
-        if ($events->num_rows() == 0) {
-            log_to_file('NOTICE', "$uniqueid was not transferred");
-            return false;
-        }
-
-        if ($events->num_rows() > 1) {
-            log_to_file('ERROR', "$uniqueid has too many transfer events");
-            return false;
-        }
-
-        $transferdata = json_decode($events->row()->extra, true);
-
-        $transferdst = $transferdata['transfer_target_channel_name'];
-        $transferdst = explode('/', $transferdst);
-        $transferdst = explode('-', $transferdst[1]);
-        $transferdst = $transferdst[0];
-
-        return array('yes', $transferdst);
-    }
-
-
-    public function show_version()
-    {
-        echo get_qq_version();
-    }
-
-
-    public function qqctl_usage()
-    {
-        echo "qqcltl - Manage Quickqueues from command line\n\n";
-        echo "Usage:\n";
-        echo "  qqctl [command] [options]\n\n";
-        echo "Available commands:\n";
-        echo "version           - Show version version\n";
-        echo "help              - Show this screen\n";
-    }
-
-
-    public function test_db() {
-        include_once(APPPATH.'third_party/xlsxwriter.class.php');
-        $filename = "/root/example.xlsx";
-        $rows = array(
-            array('2003','1','-50.5','2010-01-01 23:00:00','2012-12-31 23:00:00'),
-            array('2003','=B1', '23.5','2010-01-01 00:00:00','2012-12-31 00:00:00'),
-        );
-        $writer = new XLSXWriter();
-        $writer->setAuthor('Some Author');
-        foreach($rows as $row)
-        $writer->writeSheetRow('Sheet1', $row);
-        $writer->writeToFile('/root/example.xlsx');
-
-    }
-
-
-    public function fix_dids()
-    {
-        $dids = $this->Event_model->get_many_by('event_type', 'DID');
-        foreach ($dids as $d) {
-            $c = $this->Call_model->get_one_by_complex(
-                array(
-                    'uniqueid' => $d->uniqueid,
-                    'event_type' => array('COMPLETECALLER', 'COMPLETEAGENT', 'ABANDON', 'EXITWITHTIMEOUT', 'EXITWITHKEY', 'EXITEMPTY')
-                )
-            );
-
-            if (!$c) {
-                echo "ERROR ERROR ERROR ERROR ".$d->uniqueid." - ".$d->date."\n";
-            }
-        }
-    }
-
-
-    public function merge_agents($src = false, $dst = false)
-    {
-        if (!$src || !$dst) {
-            log_to_file('ERROR', 'Can not merge agents - source agent ID and destination agent ID are mandatory');
-            echo "Can not merge agents - source agent ID and destination agent ID are mandatory\n";
-            return 0;
-        }
-        $e = $this->Event_model->update_by('agent_id', $src, array('agent_id' => $dst));
-        $c = $this->Call_model->update_by('agent_id', $src, array('agent_id' => $dst));
-        $p = $this->User_model->update_by('associated_agent_id', $src, array('associated_agent_id' => $dst));
-
-        foreach ($this->Queue_model->get_all() as $q) {
-            $this->Queue_model->remove_agent($q->id, $src);
-            $this->Queue_model->add_agent($q->id, $dst);
-        }
-
-        // foreach ($this->User_model->get_all() as $u) {
-        //     $this->User_model->unassign_agent($u->id, $src);
-        //     $this->User_model->assign_agent($u->id, $dst);
-        // }
-
-
-        $a = $this->Agent_model->delete($src);
-
-        log_to_file('DEBUG', 'Agents merged succesfully - '.$e.' events and '.$c.' calls are affected. '.$a.' agents deleted');
-        echo "Agents merged succesfully - ".$e." events and ".$c." calls are affected. ".$a." agents deleted and ".$p." users changed associated agent ID\n";
-        return 0;
-    }
-
-
-    public function reset_all_agent_settings()
-    {
-        foreach ($this->Agent_model->get_all() as $a) {
-            $this->Agent_model->set_default_settings($a->id);
-        }
-    }
-
-
-    public function create_queue($name = false, $display_name = false)
-    {
-        if (!$name) {
-            echo "Please provide queue name\n";
-            exit();
-        }
-
-        if (!$display_name) {
-            $display_name = $name;
-        }
-
-        $this->Queue_model->create(array('name' => $name, 'display_name' => $display_name));
-        echo "Queue created succesfully\n";
-    }
-
-
-    public function create_agent($name = false, $extension = false, $primary_queue_id = false)
-    {
-        if (!$name || !$extension || !$primary_queue_id) {
-            echo "Please provide agent name, extension, and primary queue ID\n";
-            exit();
-        }
-
-        $agent_id = $this->Agent_model->create(
-            array(
-                'name' => $name,
-                'display_name' => $name,
-                'primary_queue_id' => $primary_queue_id
-            )
-        );
-
-        $this->Agent_model->set_extension($agent_id, $extension);
-
-        $this->Queue_model->add_agent($primary_queue_id, $agent_id);
-
-        echo "Agent created succesfully\n";
-    }
-
-
-    public function perform_survey()
-    {
-        log_to_file('NOTICE', 'Gatheting calls for survey');
-        $calls = $this->Call_model->get_survey_queue();
-
-        if (count($calls) == 0) {
-            log_to_file('NOTICE', 'No calls in survey queue');
-            exit();
-        }
-
-        log_to_file('NOTICE', 'Found '.count($calls).' in survey queue, proceeding...');
-
-        foreach ($calls as $c) {
-            log_to_file('NOTICE', "Performing survey for call with Unique ID ".$c->uniqueid);
-            $this->Call_model->make_survey_call($c);
-        }
-    }
-
-
-    public function reset_queue_config()
-    {
-        foreach ($this->Queue_model->get_all() as $q) {
-            $queue_config = $this->Queue_model->get_config($q->id);
-        }
-    }
-
-
-    public function sync_queues()
-    {
-        $this->Queue_model->ingest_freepbx_queues();
-    }
-
-
-    public function sync_queue_agents()
-    {
-        $this->Queue_model->ingest_freepbx_queue_agents();
-    }
-
-
-    // Helper and temporary functions
-
-    public function test_survey($uniqueid = false)
-    {
-        foreach ($this->Call_model->get_survey_queue() as $c) {
-            print_r($c);
-        }
-    }
-
-
-    public function get_auto_callback_queue()
-    {
-        $calls = $this->Call_model->get_auto_callback_queues();
-        foreach ($calls as $call) {
-            $this->Call_model->make_auto_callback($call);
-        }
-    }
-
-
-    public function test($exten = false)
-    {
-        $this->load->library('Asterisk_manager');
-        $peer = $this->asterisk_manager->get_agent_status($exten);
-        print_r($peer);
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+0pwdpW9HZ5IJa4v2qDLqCdH5kjRwiIop030roW==

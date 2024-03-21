@@ -1,158 +1,66 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * CodeIgniter Download Helpers
- *
- * @package		CodeIgniter
- * @subpackage	Helpers
- * @category	Helpers
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/helpers/download_helper.html
- */
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('force_download'))
-{
-	/**
-	 * Force Download
-	 *
-	 * Generates headers that force a download to happen
-	 *
-	 * @param	string	filename
-	 * @param	mixed	the data to be downloaded
-	 * @param	bool	whether to try and send the actual file MIME type
-	 * @return	void
-	 */
-	function force_download($filename = '', $data = '', $set_mime = FALSE)
-	{
-		if ($filename === '' OR $data === '')
-		{
-			return;
-		}
-		elseif ($data === NULL)
-		{
-			if ( ! @is_file($filename) OR ($filesize = @filesize($filename)) === FALSE)
-			{
-				return;
-			}
-
-			$filepath = $filename;
-			$filename = explode('/', str_replace(DIRECTORY_SEPARATOR, '/', $filename));
-			$filename = end($filename);
-		}
-		else
-		{
-			$filesize = strlen($data);
-		}
-
-		// Set the default MIME type to send
-		$mime = 'application/octet-stream';
-
-		$x = explode('.', $filename);
-		$extension = end($x);
-
-		if ($set_mime === TRUE)
-		{
-			if (count($x) === 1 OR $extension === '')
-			{
-				/* If we're going to detect the MIME type,
-				 * we'll need a file extension.
-				 */
-				return;
-			}
-
-			// Load the mime types
-			$mimes =& get_mimes();
-
-			// Only change the default MIME if we can find one
-			if (isset($mimes[$extension]))
-			{
-				$mime = is_array($mimes[$extension]) ? $mimes[$extension][0] : $mimes[$extension];
-			}
-		}
-
-		/* It was reported that browsers on Android 2.1 (and possibly older as well)
-		 * need to have the filename extension upper-cased in order to be able to
-		 * download it.
-		 *
-		 * Reference: http://digiblog.de/2011/04/19/android-and-the-download-file-headers/
-		 */
-		if (count($x) !== 1 && isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/Android\s(1|2\.[01])/', $_SERVER['HTTP_USER_AGENT']))
-		{
-			$x[count($x) - 1] = strtoupper($extension);
-			$filename = implode('.', $x);
-		}
-
-		if ($data === NULL && ($fp = @fopen($filepath, 'rb')) === FALSE)
-		{
-			return;
-		}
-
-		// Clean output buffer
-		if (ob_get_level() !== 0 && @ob_end_clean() === FALSE)
-		{
-			@ob_clean();
-		}
-
-		// Generate the server headers
-		header('Content-Type: '.$mime);
-		header('Content-Disposition: attachment; filename="'.$filename.'"');
-		header('Expires: 0');
-		header('Content-Transfer-Encoding: binary');
-		header('Content-Length: '.$filesize);
-		header('Cache-Control: private, no-transform, no-store, must-revalidate');
-
-		// If we have raw data - just dump it
-		if ($data !== NULL)
-		{
-			exit($data);
-		}
-
-		// Flush 1MB chunks of data
-		while ( ! feof($fp) && ($data = fread($fp, 1048576)) !== FALSE)
-		{
-			echo $data;
-		}
-
-		fclose($fp);
-		exit;
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

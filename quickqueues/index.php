@@ -1,315 +1,218 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-
-/*
- *---------------------------------------------------------------
- * APPLICATION ENVIRONMENT
- *---------------------------------------------------------------
- *
- * You can load different configurations depending on your
- * current environment. Setting the environment also influences
- * things like logging and error reporting.
- *
- * This can be set to anything, but default usage is:
- *
- *     development
- *     testing
- *     production
- *
- * NOTE: If you change these, also change the error_reporting() code below
- */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
-
-/*
- *---------------------------------------------------------------
- * ERROR REPORTING
- *---------------------------------------------------------------
- *
- * Different environments will require different levels of error reporting.
- * By default development will show errors but testing and live will hide them.
- */
-switch (ENVIRONMENT)
-{
-	case 'development':
-		error_reporting(-1);
-		ini_set('display_errors', 1);
-	break;
-
-	case 'testing':
-	case 'production':
-		ini_set('display_errors', 0);
-		if (version_compare(PHP_VERSION, '5.3', '>='))
-		{
-			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_USER_NOTICE & ~E_USER_DEPRECATED);
-		}
-		else
-		{
-			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_USER_NOTICE);
-		}
-	break;
-
-	default:
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'The application environment is not set correctly.';
-		exit(1); // EXIT_ERROR
-}
-
-/*
- *---------------------------------------------------------------
- * SYSTEM DIRECTORY NAME
- *---------------------------------------------------------------
- *
- * This variable must contain the name of your "system" directory.
- * Set the path if it is not in the same directory as this file.
- */
-	$system_path = 'system';
-
-/*
- *---------------------------------------------------------------
- * APPLICATION DIRECTORY NAME
- *---------------------------------------------------------------
- *
- * If you want this front controller to use a different "application"
- * directory than the default one you can set its name here. The directory
- * can also be renamed or relocated anywhere on your server. If you do,
- * use an absolute (full) server path.
- * For more info please see the user guide:
- *
- * https://codeigniter.com/user_guide/general/managing_apps.html
- *
- * NO TRAILING SLASH!
- */
-	$application_folder = 'application';
-
-/*
- *---------------------------------------------------------------
- * VIEW DIRECTORY NAME
- *---------------------------------------------------------------
- *
- * If you want to move the view directory out of the application
- * directory, set the path to it here. The directory can be renamed
- * and relocated anywhere on your server. If blank, it will default
- * to the standard location inside your application directory.
- * If you do move this, use an absolute (full) server path.
- *
- * NO TRAILING SLASH!
- */
-	$view_folder = '';
-
-
-/*
- * --------------------------------------------------------------------
- * DEFAULT CONTROLLER
- * --------------------------------------------------------------------
- *
- * Normally you will set your default controller in the routes.php file.
- * You can, however, force a custom routing by hard-coding a
- * specific controller class/function here. For most applications, you
- * WILL NOT set your routing here, but it's an option for those
- * special instances where you might want to override the standard
- * routing in a specific front controller that shares a common CI installation.
- *
- * IMPORTANT: If you set the routing here, NO OTHER controller will be
- * callable. In essence, this preference limits your application to ONE
- * specific controller. Leave the function name blank if you need
- * to call functions dynamically via the URI.
- *
- * Un-comment the $routing array below to use this feature
- */
-	// The directory name, relative to the "controllers" directory.  Leave blank
-	// if your controller is not in a sub-directory within the "controllers" one
-	// $routing['directory'] = '';
-
-	// The controller class file name.  Example:  mycontroller
-	// $routing['controller'] = '';
-
-	// The controller function you wish to be called.
-	// $routing['function']	= '';
-
-
-/*
- * -------------------------------------------------------------------
- *  CUSTOM CONFIG VALUES
- * -------------------------------------------------------------------
- *
- * The $assign_to_config array below will be passed dynamically to the
- * config class when initialized. This allows you to set custom config
- * items or override any default config values found in the config.php file.
- * This can be handy as it permits you to share one application between
- * multiple front controller files, with each file containing different
- * config values.
- *
- * Un-comment the $assign_to_config array below to use this feature
- */
-	// $assign_to_config['name_of_config_item'] = 'value of config item';
-
-
-
-// --------------------------------------------------------------------
-// END OF USER CONFIGURABLE SETTINGS.  DO NOT EDIT BELOW THIS LINE
-// --------------------------------------------------------------------
-
-/*
- * ---------------------------------------------------------------
- *  Resolve the system path for increased reliability
- * ---------------------------------------------------------------
- */
-
-	// Set the current directory correctly for CLI requests
-	if (defined('STDIN'))
-	{
-		chdir(dirname(__FILE__));
-	}
-
-	if (($_temp = realpath($system_path)) !== FALSE)
-	{
-		$system_path = $_temp.DIRECTORY_SEPARATOR;
-	}
-	else
-	{
-		// Ensure there's a trailing slash
-		$system_path = strtr(
-			rtrim($system_path, '/\\'),
-			'/\\',
-			DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-		).DIRECTORY_SEPARATOR;
-	}
-
-	// Is the system path correct?
-	if ( ! is_dir($system_path))
-	{
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Your system folder path does not appear to be set correctly. Please open the following file and correct this: '.pathinfo(__FILE__, PATHINFO_BASENAME);
-		exit(3); // EXIT_CONFIG
-	}
-
-/*
- * -------------------------------------------------------------------
- *  Now that we know the path, set the main path constants
- * -------------------------------------------------------------------
- */
-	// The name of THIS file
-	define('SELF', pathinfo(__FILE__, PATHINFO_BASENAME));
-
-	// Path to the system directory
-	define('BASEPATH', $system_path);
-
-	// Path to the front controller (this file) directory
-	define('FCPATH', dirname(__FILE__).DIRECTORY_SEPARATOR);
-
-	// Name of the "system" directory
-	define('SYSDIR', basename(BASEPATH));
-
-	// The path to the "application" directory
-	if (is_dir($application_folder))
-	{
-		if (($_temp = realpath($application_folder)) !== FALSE)
-		{
-			$application_folder = $_temp;
-		}
-		else
-		{
-			$application_folder = strtr(
-				rtrim($application_folder, '/\\'),
-				'/\\',
-				DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-			);
-		}
-	}
-	elseif (is_dir(BASEPATH.$application_folder.DIRECTORY_SEPARATOR))
-	{
-		$application_folder = BASEPATH.strtr(
-			trim($application_folder, '/\\'),
-			'/\\',
-			DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-		);
-	}
-	else
-	{
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Your application folder path does not appear to be set correctly. Please open the following file and correct this: '.SELF;
-		exit(3); // EXIT_CONFIG
-	}
-
-	define('APPPATH', $application_folder.DIRECTORY_SEPARATOR);
-
-	// The path to the "views" directory
-	if ( ! isset($view_folder[0]) && is_dir(APPPATH.'views'.DIRECTORY_SEPARATOR))
-	{
-		$view_folder = APPPATH.'views';
-	}
-	elseif (is_dir($view_folder))
-	{
-		if (($_temp = realpath($view_folder)) !== FALSE)
-		{
-			$view_folder = $_temp;
-		}
-		else
-		{
-			$view_folder = strtr(
-				rtrim($view_folder, '/\\'),
-				'/\\',
-				DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-			);
-		}
-	}
-	elseif (is_dir(APPPATH.$view_folder.DIRECTORY_SEPARATOR))
-	{
-		$view_folder = APPPATH.strtr(
-			trim($view_folder, '/\\'),
-			'/\\',
-			DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR
-		);
-	}
-	else
-	{
-		header('HTTP/1.1 503 Service Unavailable.', TRUE, 503);
-		echo 'Your view folder path does not appear to be set correctly. Please open the following file and correct this: '.SELF;
-		exit(3); // EXIT_CONFIG
-	}
-
-	define('VIEWPATH', $view_folder.DIRECTORY_SEPARATOR);
-
-/*
- * --------------------------------------------------------------------
- * LOAD THE BOOTSTRAP FILE
- * --------------------------------------------------------------------
- *
- * And away we go...
- */
-require_once BASEPATH.'core/CodeIgniter.php';
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

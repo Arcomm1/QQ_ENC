@@ -1,273 +1,142 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-/** Queue_model.php - Quickqueues Queue abstration */
-
-
-class Queue_model extends MY_Model {
-
-
-    public function __construct()
-    {
-        $this->_table_prefix = 'qq_';
-        $this->_soft_delete = true;
-        parent::__construct();
-
-        $this->_queue_names = 'qq_queues';
-        $this->_queue_agents_table = 'qq_queue_agents';
-        $this->_queue_config_table = 'qq_queue_config';
-        $this->_freepbx_queue_config_table = 'queues_config';
-        $this->_freepbx_queue_details_table = 'queues_details';
-        $this->_freepbx_devices_table = 'devices';
-
-
-        $this->pbx_bridge_url = 'http://localhost/pbx-bridge/queues/';
-
-    }
-
-
-    /**
-     * Add agent to the queue
-     *
-     * @param int $id Queue ID
-     * @param in $agent_id Agent ID
-     * @return bool True or false based on whether queue was added to queue or not
-     */
-    public function add_agent($id = false, $agent_id = false)
-    {
-        if (!$id || !$agent_id) {
-            return false;
-        }
-        $q = 'INSERT IGNORE INTO '.$this->_queue_agents_table.' (queue_id, agent_id) ';
-        $q .= 'VALUES('.$id.','.$agent_id.');';
-        $this->db->query($q);
-        return true;
-    }
-
-
-    /**
-     * Remove agent from the queue
-     *
-     * @param int $id Queue ID
-     * @param in $agent_id Agent ID
-     * @return bool True or false based on whether queue was added to queue or not
-     */
-    public function remove_agent($id = false, $agent_id = false)
-    {
-        if (!$id || !$agent_id) {
-            return false;
-        }
-        $this->db->where('queue_id', $id);
-        $this->db->where('agent_id', $agent_id);
-        $this->db->delete($this->_queue_agents_table);
-        return true;
-    }
-
-
-    /**
-     * Get agents belonging to specific queue
-     *
-     * @param int $id Queue ID
-     * @return array List of agents
-     */
-    public function get_agents($id)
-    {
-        $agents = array();
-        if (!isset($agents)) {
-            return $agents;
-        }
-        foreach ($this->db->get_where($this->_queue_agents_table, array('queue_id' => $id))->result() as $agent_id) {
-            $agents[$agent_id->agent_id] = $this->Agent_model->get($agent_id->agent_id);
-        }
-        return $agents;
-    }
-
-
-    /**
-     * Get queue configuration
-     *
-     * @param int $id Queue ID
-     * @param string $name Configuration name
-     * @return mixed List of configuration values or false on error
-     */
-    public function get_config($id = false, $name = false)
-    {
-        if (!$id) {
-            return false;
-        }
-
-        if ($name) {
-            $this->db->where('name', $name);
-        }
-
-        $this->db->where('queue_id', $id);
-
-        $config = $this->db->get($this->_queue_config_table)->result();
-
-        if (count($config) == 0) {
-            // Queue has no configuration, get default config
-
-            $config = $this->Config_model->get_many_by('category', 'queue');
-
-            foreach ($config as $c) {
-                $this->db->insert($this->_queue_config_table, array(
-                    'queue_id'  => $id,
-                    'name'      => $c->name,
-                    'value'     => $c->value,
-                    'default'   => $c->default
-                ));
-            }
-
-        }
-
-        $r = array();
-        foreach ($config as $c) {
-            $r[$c->name] = $c;
-        }
-
-        return $r;
-
-    }
-
-
-    /**
-     * Get queue configuration
-     *
-     * @param int $id Queue ID
-     * @param string $name Configuration item name
-     * @param string $value Configuration item value
-     *
-     * @return mixed List of configuration values or false on error
-     */
-    public function set_config($id = false, $name = false, $value = false)
-    {
-        if (!$id || !$name || !$value) {
-            return false;
-        }
-
-        $this->db->where('queue_id', $id);
-        $this->db->where('name', $name);
-        $this->db->update($this->_queue_config_table, array('value' => $value));
-
-        return true;
-    }
-
-
-    /**
-     * Get FreePBX queues and ingest them if they don't exist
-     *
-     * @param void
-     * @return bool Always TRUE
-     */
-    public function ingest_freepbx_queues()
-    {
-        $freepbx_queues = $this->db->get($this->_freepbx_queue_config_table)->result();
-
-        foreach ($freepbx_queues as $fq) {
-            if ($this->get_by('name', $fq->extension)) {
-                log_to_file('NOTICE', 'Queue_model->ingset_freepbx_queues: Not creating queue '.$fq->extension.' since it already exists');
-            } else {
-                log_to_file('NOTICE', 'Queue_model->ingset_freepbx_queues: Creating queue '.$fq->extension);
-                $this->create(
-                    array(
-                        'name' => $fq->extension,
-                        'display_name' => $fq->extension,
-                    )
-                );
-            }
-        }
-        return true;
-    }
-
-
-    /**
-     * Get agents based on FreePBX, not based on QQ relations
-     *
-     * @param bool $id Queue ID
-     * @return mixed False on error, array of agents on success
-     */
-    public function get_freepbx_agents($id = false)
-    {
-        if (!$id) {
-            return false;
-        }
-
-        $queue = $this->get($id);
-
-        if (!$queue) {
-            return false;
-        }
-
-        $this->db->where('keyword', 'member');
-        $this->db->where('id', $queue->name);
-        $freepbx_members = $this->db->get($this->_freepbx_queue_details_table)->result();
-
-        $agents = array();
-
-        foreach ($freepbx_members as $fm) {
-            if (substr($fm->data, 0, 6) != 'Local/') {
-                continue;
-            }
-            $num = explode('@', $fm->data);
-            $num = explode('/', $num[0]);
-            $num = $num[1];
-
-            $agent = $this->Agent_model->get_by('extension', $num);
-            if ($agent) {
-                $agents[$agent->id] = $agent;
-            }
-            unset($num);
-            unset($agent);
-        }
-
-        return $agents;
-    }
-
-
-    /**
-     * Get agents based on FreePBX, not based on QQ relations
-     *
-     * @return mixed False on error, array of agents on success
-     */
-    public function get_all_freepbx_agents($id = false)
-    {
-        $agents = array();
-
-        $this->db->where('keyword', 'member');
-        $freepbx_members = $this->db->get($this->_freepbx_queue_details_table)->result();
-
-        $temp = array();
-        foreach ($freepbx_members as $fm) {
-            if (!in_array($fm->data, $temp)) {
-                $temp[] = $fm->data;
-            }
-        }
-
-        foreach ($temp as $t) {
-            if (substr($t, 0, 6) != 'Local/') {
-                continue;
-            }
-            $num = explode('@', $t);
-            $num = explode('/', $num[0]);
-            $num = $num[1];
-
-            $agent = $this->Agent_model->get_by('extension', $num);
-            if ($agent) {
-                $agents[] = $agent;
-            }
-            unset($num);
-            unset($agent);
-        }
-
-        return $agents;
-    }
-
-    public function get_queue_entries()
-    {
-        $this->db->select('id');
-        $this->db->select('name');
-        $this->db->select('display_name');
-        return $this->db->get($this->_table)->result_array();
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+ck1eQBaBrpBT

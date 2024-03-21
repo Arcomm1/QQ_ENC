@@ -1,144 +1,76 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight\net;
-
-/**
- * The Route class is responsible for routing an HTTP request to
- * an assigned callback function. The Router tries to match the
- * requested URL against a series of URL patterns.
- */
-class Route {
-    /**
-     * @var string URL pattern
-     */
-    public $pattern;
-
-    /**
-     * @var mixed Callback function
-     */
-    public $callback;
-
-    /**
-     * @var array HTTP methods
-     */
-    public $methods = array();
-
-    /**
-     * @var array Route parameters
-     */
-    public $params = array();
-
-    /**
-     * @var string Matching regular expression
-     */
-    public $regex;
-
-    /**
-     * @var string URL splat content
-     */
-    public $splat = '';
-
-    /**
-     * @var boolean Pass self in callback parameters
-     */
-    public $pass = false;
-
-    /**
-     * Constructor.
-     *
-     * @param string $pattern URL pattern
-     * @param mixed $callback Callback function
-     * @param array $methods HTTP methods
-     * @param boolean $pass Pass self in callback parameters
-     */
-    public function __construct($pattern, $callback, $methods, $pass) {
-        $this->pattern = $pattern;
-        $this->callback = $callback;
-        $this->methods = $methods;
-        $this->pass = $pass;
-    }
-
-    /**
-     * Checks if a URL matches the route pattern. Also parses named parameters in the URL.
-     *
-     * @param string $url Requested URL
-     * @param boolean $case_sensitive Case sensitive matching
-     * @return boolean Match status
-     */
-    public function matchUrl($url, $case_sensitive = false) {
-        // Wildcard or exact match
-        if ($this->pattern === '*' || $this->pattern === $url) {
-            return true;
-        }
-
-        $ids = array();
-        $last_char = substr($this->pattern, -1);
-
-        // Get splat
-        if ($last_char === '*') {
-            $n = 0;
-            $len = strlen($url);
-            $count = substr_count($this->pattern, '/');
-
-            for ($i = 0; $i < $len; $i++) {
-                if ($url[$i] == '/') $n++;
-                if ($n == $count) break;
-            }
-
-            $this->splat = (string)substr($url, $i+1);
-        }
-
-        // Build the regex for matching
-        $regex = str_replace(array(')','/*'), array(')?','(/?|/.*?)'), $this->pattern);
-
-        $regex = preg_replace_callback(
-            '#@([\w]+)(:([^/\(\)]*))?#',
-            function($matches) use (&$ids) {
-                $ids[$matches[1]] = null;
-                if (isset($matches[3])) {
-                    return '(?P<'.$matches[1].'>'.$matches[3].')';
-                }
-                return '(?P<'.$matches[1].'>[^/\?]+)';
-            },
-            $regex
-        );
-
-        // Fix trailing slash
-        if ($last_char === '/') {
-            $regex .= '?';
-        }
-        // Allow trailing slash
-        else {
-            $regex .= '/?';
-        }
-
-        // Attempt to match route and named parameters
-        if (preg_match('#^'.$regex.'(?:\?.*)?$#'.(($case_sensitive) ? '' : 'i'), $url, $matches)) {
-            foreach ($ids as $k => $v) {
-                $this->params[$k] = (array_key_exists($k, $matches)) ? urldecode($matches[$k]) : null;
-            }
-
-            $this->regex = $regex;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if an HTTP method matches the route methods.
-     *
-     * @param string $method HTTP method
-     * @return bool Match status
-     */
-    public function matchMethod($method) {
-        return count(array_intersect(array($method, '*'), $this->methods)) > 0;
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

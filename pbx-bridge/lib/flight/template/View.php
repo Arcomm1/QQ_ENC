@@ -1,184 +1,78 @@
-<?php
-/**
- * Flight: An extensible micro-framework.
- *
- * @copyright   Copyright (c) 2011, Mike Cao <mike@mikecao.com>
- * @license     MIT, http://flightphp.com/license
- */
-
-namespace flight\template;
-
-/**
- * The View class represents output to be displayed. It provides
- * methods for managing view data and inserts the data into
- * view templates upon rendering.
- */
-class View {
-    /**
-     * Location of view templates.
-     *
-     * @var string
-     */
-    public $path;
-
-    /**
-     * File extension.
-     *
-     * @var string
-     */
-    public $extension = '.php';
-
-    /**
-     * View variables.
-     *
-     * @var array
-     */
-    protected $vars = array();
-
-    /**
-     * Template file.
-     *
-     * @var string
-     */
-    private $template;
-
-    /**
-     * Constructor.
-     *
-     * @param string $path Path to templates directory
-     */
-    public function __construct($path = '.') {
-        $this->path = $path;
-    }
-
-    /**
-     * Gets a template variable.
-     *
-     * @param string $key Key
-     * @return mixed Value
-     */
-    public function get($key) {
-        return isset($this->vars[$key]) ? $this->vars[$key] : null;
-    }
-
-    /**
-     * Sets a template variable.
-     *
-     * @param mixed $key Key
-     * @param string $value Value
-     */
-    public function set($key, $value = null) {
-        if (is_array($key) || is_object($key)) {
-            foreach ($key as $k => $v) {
-                $this->vars[$k] = $v;
-            }
-        }
-        else {
-            $this->vars[$key] = $value;
-        }
-    }
-
-    /**
-     * Checks if a template variable is set.
-     *
-     * @param string $key Key
-     * @return boolean If key exists
-     */
-    public function has($key) {
-        return isset($this->vars[$key]);
-    }
-
-    /**
-     * Unsets a template variable. If no key is passed in, clear all variables.
-     *
-     * @param string $key Key
-     */
-    public function clear($key = null) {
-        if (is_null($key)) {
-            $this->vars = array();
-        }
-        else {
-            unset($this->vars[$key]);
-        }
-    }
-
-    /**
-     * Renders a template.
-     *
-     * @param string $file Template file
-     * @param array $data Template data
-     * @throws \Exception If template not found
-     */
-    public function render($file, $data = null) {
-        $this->template = $this->getTemplate($file);
-
-        if (!file_exists($this->template)) {
-            throw new \Exception("Template file not found: {$this->template}.");
-        }
-
-        if (is_array($data)) {
-            $this->vars = array_merge($this->vars, $data);
-        }
-
-        extract($this->vars);
-
-        include $this->template;
-    }
-
-    /**
-     * Gets the output of a template.
-     *
-     * @param string $file Template file
-     * @param array $data Template data
-     * @return string Output of template
-     */
-    public function fetch($file, $data = null) {
-        ob_start();
-
-        $this->render($file, $data);
-        $output = ob_get_clean();
-
-        return $output;
-    }
-
-    /**
-     * Checks if a template file exists.
-     *
-     * @param string $file Template file
-     * @return bool Template file exists
-     */
-    public function exists($file) {
-        return file_exists($this->getTemplate($file));
-    }
-
-    /**
-     * Gets the full path to a template file.
-     *
-     * @param string $file Template file
-     * @return string Template file location
-     */
-    public function getTemplate($file) {
-        $ext = $this->extension;
-
-        if (!empty($ext) && (substr($file, -1 * strlen($ext)) != $ext)) {
-            $file .= $ext;
-        }
-
-        if ((substr($file, 0, 1) == '/')) {
-            return $file;
-        }
-        
-        return $this->path.'/'.$file;
-    }
-
-    /**
-     * Displays escaped output.
-     *
-     * @param string $str String to escape
-     * @return string Escaped string
-     */
-    public function e($str) {
-        echo htmlentities($str);
-    }
-}
-
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+wGoyPA6akW==

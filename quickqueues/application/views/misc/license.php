@@ -1,53 +1,75 @@
-<div class="row">
-    <div class="col" id="license_info">
-        <div class="card border-primary">
-            <div class="card-header"><center><?php echo lang('license_info'); ?></center></div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8 offset-md-2">
-                        <h4><center>Copyright 2016-2019 ARComm, LTD</center></h4>
-
-                        <h5><center>ARComm Public License</center></h5>
-
-                        <p>Quickqueues ("Software") is developed by ARComm, LTD ("ARComm").
-                        This license agreement ("License") defines the ways that Software, 
-                        including third party components (such as other programs, 
-                        images and fonts) can be used.</p>
-
-                        <h6><center>USAGE AND MODIFICATION.</center></h6>
-                        <p>Subject of the applicable license fee, ARComm grants you a non-exclusive, 
-                        non-transferable right to use, adapt and modify the Software for organizational
-                        or personal use.</p>
-
-                        <h6><center>RESTRICTIONS.</center></h6>
-                        <p>Sharing and distribution of Software in any form, for commercial or non-commercial
-                        purposes, with or without modification is prohibited, and voids this agreement.</p>
-
-                        <h6><center>TRADEMARKS.</center></h6>
-                        <p>This license does not grant you any right in the trademarks, service marks,
-                        brand names or logos of ARComm.</p>
-
-                        <h6><center>TERMINATION.</center></h6>
-                        <p>If you violate the terms of this license, your rights will terminate automatically 
-                        and will not be reinstated without the prior written consent of ARComm.</p>
-
-                        <h6><center>DISCLAIMER.</center></h6>
-                        <p>THIS SOFTWARE IS PROVIDED BY ARCOMM "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
-                        INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-                        AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-                        IN NO EVENT SHALL ARCOMM BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-                        EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
-                        OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-                        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-                        STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
-                        OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
-
-                        <h6><center>OTHER LICENSES.</center></h6>
-                        <p>This software uses third party components that use other licenses. Each respective
-                        license for such components can be found in Software package distributed to you by ARComm.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

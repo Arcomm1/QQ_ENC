@@ -1,135 +1,74 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Migration_create_service_module_tables extends CI_Migration {
-
-
-    public function up()
-    {
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 200,
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_services');
-
-
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 200,
-                ),
-                'service_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_service_products');
-
-
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 200,
-                ),
-                'service_product_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_service_product_types');
-
-
-        $this->dbforge->add_field(
-            array(
-                'id' => array(
-                    'type' => 'INT',
-                    'constraint' => 3,
-                    'unsigned' => true,
-                    'auto_increment' => true,
-                ),
-                'name' => array(
-                    'type' => 'VARCHAR',
-                    'constraint' => 200,
-                ),
-                'service_product_type_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 5,
-                ),
-            )
-        );
-        $this->dbforge->add_key('id');
-        $this->dbforge->create_table('qq_service_product_subtypes');
-
-        $fields = array(
-            'service_id' => array(
-                'type' => 'INT',
-                'constraint' => 5,
-                'null' => true,
-                'default' => NULL
-            ),
-            'service_product_id' => array(
-                'type' => 'INT',
-                'constraint' => 5,
-                'null' => true,
-                'default' => NULL
-            ),
-            'service_product_type_id' => array(
-                'type' => 'INT',
-                'constraint' => 5,
-                'null' => true,
-                'default' => NULL
-            ),
-            'service_product_subtype_id' => array(
-                'type' => 'INT',
-                'constraint' => 5,
-                'null' => true,
-                'default' => NULL
-            ),
-        );
-
-        $this->dbforge->add_column('qq_calls', $fields);
-    }
-
-    public function down()
-    {
-        $this->dbforge->drop_table('qq_services');
-        $this->dbforge->drop_table('qq_service_products');
-        $this->dbforge->drop_table('qq_service_product_types');
-        $this->dbforge->drop_table('qq_service_product_subtypes');
-        $this->dbforge->drop_column('qq_calls', 'service_id');
-        $this->dbforge->drop_column('qq_calls', 'service_product_id');
-        $this->dbforge->drop_column('qq_calls', 'service_product_type_id');
-        $this->dbforge->drop_column('qq_calls', 'service_product_subtype_id');
-
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

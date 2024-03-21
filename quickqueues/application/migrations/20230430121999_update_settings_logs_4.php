@@ -1,35 +1,40 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-class Migration_update_settings_logs_4 extends CI_Migration 
-{
-    public function up()
-    {
-        // Check if 'queue_id' column exists before trying to add it
-        if (!$this->db->field_exists('queue_id', 'qq_settings_logs')) {
-            $fields = array(
-                'queue_id' => array(
-                    'type' => 'INT',
-                    'constraint' => 11,
-                ),
-            );
-            $this->dbforge->add_column('qq_settings_logs', $fields);
-        }
-
-        // Use $this->db->field_exists() to check if other columns exist before dropping them
-        if ($this->db->field_exists('calls_without_service_queue_id', 'qq_settings_logs')) 
-        {
-            $this->dbforge->drop_column('qq_settings_logs', 'calls_without_service_queue_id');
-        }
-
-        if ($this->db->field_exists('date', 'qq_settings_logs')) 
-        {
-            $this->dbforge->drop_column('qq_settings_logs', 'date');
-        }
-    }
-
-    public function down()
-    {
-        // Add the logic to revert the 'up' method changes if necessary
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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

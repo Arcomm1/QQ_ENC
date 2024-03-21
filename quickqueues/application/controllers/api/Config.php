@@ -1,400 +1,221 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Config extends MY_Controller {
-
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->r = new stdClass();
-        // Just default to error
-        $this->r->status = 'FAIL';
-        $this->r->message = 'Internal error';
-        $this->r->data = new stdClass();
-    }
-
-
-    private function _respond() {
-        header('Content-Type: application/json');
-        echo json_encode($this->r, JSON_FORCE_OBJECT);
-    }
-
-
-    public function get_items_by_category($category = false)
-    {
-        if (!$category) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $t = $this->Config_model->get_many_by('category', $category);
-        $items = array();
-        foreach ($t as $i) {
-            $items[$i->name] = $i;
-        }
-
-        $this->r->status = 'OK';
-        $this->r->message = 'Configuration items for category '.$category.' will follow';
-        $this->r->data = $items;
-
-        $this->_respond();
-    }
-
-
-    public function set_item($item = false)
-    {
-        if (!$item) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-        if ($this->input->post('value') == "") {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-        $this->r->data = $this->Config_model->set_item($item, $this->input->post('value'));
-        $this->r->status = 'OK';
-        $this->r->message = 'Number of affected configutation items will follow';
-
-        $this->_respond();
-
-    }
-
-
-    public function get_service_products($service_id = false)
-    {
-        $this->r->data = $this->Service_product_model->get_many_by('service_id', $service_id);
-        $this->r->status = 'OK';
-        $this->r->message = 'Service products will follow';
-
-        $this->_respond();
-    }
-
-
-    public function get_service_product_types($service_product_id = false)
-    {
-        $this->r->data = $this->Service_product_type_model->get_many_by('service_product_id', $service_product_id);
-        $this->r->status = 'OK';
-        $this->r->message = 'Service product types will follow';
-
-        $this->_respond();
-    }
-
-
-    public function get_service_product_subtypes($service_product_type_id = false)
-    {
-        $this->r->data = $this->Service_product_subtype_model->get_many_by('service_product_type_id', $service_product_type_id);
-        $this->r->status = 'OK';
-        $this->r->message = 'Service product subtypes will follow';
-
-        $this->_respond();
-    }
-
-
-    public function create_call_subcategory($category_id = false)
-    {
-        if (!$this->input->post('name')) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        if (!$category_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Call_subcategory_model->create(array('name' => $this->input->post('name'), 'category_id' => $category_id));
-        $this->r->status = 'OK';
-        $this->r->message = lang('subcat_create_success');
-        $this->_respond();
-
-    }
-
-
-    public function delete_call_subcategory($call_subcategory_id = false)
-    {
-        if (!$call_subcategory_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $s = $this->Call_subcategory_model->get($call_subcategory_id);
-
-        $this->Call_subcategory_model->delete($call_subcategory_id);
-
-        $calls = $this->Call_model->update_by('subcategory_id', $call_subcategory_id, array('subcategory_id' => null));
-
-        set_flash_notif('success', lang('cat_delete_success'));
-        redirect(site_url('config/call_subcategories/'.$s->category_id));
-    }
-
-
-    public function get_blacklist()
-    {
-        $this->r->status = 'OK';
-        $this->r->message = 'Blacklisted numbers will follow';
-        $this->load->library('Asterisk_manager');
-        $blacklist = array();
-        $result = $this->asterisk_manager->database_get('blacklist');
-        foreach ($result as $b) {
-            $blacklist[] = array(str_replace('/blacklist/', '', $b[0]), $b[1]);
-        }
-        $this->r->data = $blacklist;
-        $this->_respond();
-    }
-
-
-    public function add_blacklist()
-    {
-        if (!$this->input->post('number')) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-        $this->load->library('Asterisk_manager');
-
-        $this->asterisk_manager->database_put('blacklist', $this->input->post('number'), $this->input->post('number'));
-
-        $this->r->status = 'OK';
-        $this->r->message = lang('blacklist_add_success');
-        $this->_respond();
-    }
-
-
-    public function delete_blacklist($number = false)
-    {
-        if (!$number) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-        $this->load->library('Asterisk_manager');
-
-        $this->asterisk_manager->database_del('blacklist', $number);
-
-        set_flash_notif('success', lang('blacklist_del_success'));
-        redirect(site_url('config/blacklist'));
-    }
-
-
-    public function get_call_tags()
-    {
-        $this->r->data = $this->Call_tag_model->get_all();
-        $this->r->status = 'OK';
-        $this->r->message = 'Call tags will follow';
-
-        $this->_respond();
-    }
-
-
-    public function create_call_tag()
-    {
-        if (!$this->input->post('name')) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Call_tag_model->create(array('name' => $this->input->post('name')));
-        $this->r->status = 'OK';
-        $this->r->message = lang('tag_create_success');
-        $this->_respond();
-
-    }
-
-
-    public function delete_call_tag($call_tag_id = false)
-    {
-        if (!$call_tag_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Call_tag_model->delete($call_tag_id);
-
-        $calls = $this->Call_model->update_by('tag_id', $call_tag_id, array('tag_id' => null));
-
-        set_flash_notif('success', lang('tag_delete_success'));
-        redirect(site_url('config/call_tags'));
-    }
-
-
-    public function get_ticket_departments()
-    {
-        $this->r->data = $this->Ticket_department_model->get_all();
-        $this->r->status = 'OK';
-        $this->r->message = 'Ticket departments will follow';
-
-        $this->_respond();
-    }
-
-
-    public function create_ticket_department()
-    {
-        if (!$this->input->post('name')) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Ticket_department_model->create(array('name' => $this->input->post('name')));
-        $this->r->status = 'OK';
-        $this->r->message = lang('cat_create_success');
-        $this->_respond();
-
-    }
-
-
-    public function delete_ticket_department($ticket_department_id = false)
-    {
-        if (!$ticket_department_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Ticket_department_model->delete($ticket_department_id);
-
-        $categories = $this->Ticket_category_model->get_many_by('department_id', $ticket_department_id);
-
-        $this->Ticket_category_model->delete_by('department_id', $ticket_department_id);
-
-        // $this->Call_model->update_by('category_id', $call_category_id, array('category_id' => null));
-        // foreach ($subcategories as $s) {
-        //     $this->Call_model->update_by('subcategory_id', $s->id, array('subcategory_id' => null));
-        // }
-
-        set_flash_notif('success', lang('cat_delete_success'));
-        redirect(site_url('config/ticket_departments'));
-    }
-
-
-    public function get_ticket_categories($department_id = false)
-    {
-        $this->r->data = $this->Ticket_category_model->get_many_by('department_id', $department_id);
-        $this->r->status = 'OK';
-        $this->r->message = 'Ticket departments will follow';
-
-        $this->_respond();
-    }
-
-
-    public function create_ticket_category($department_id = false)
-    {
-        if (!$this->input->post('name')) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        if (!$department_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Ticket_category_model->create(array('name' => $this->input->post('name'), 'department_id' => $department_id));
-        $this->r->status = 'OK';
-        $this->r->message = lang('cat_create_success');
-        $this->_respond();
-
-    }
-
-
-    public function delete_ticket_category($ticket_category_id = false)
-    {
-        if (!$ticket_category_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $s = $this->Ticket_category_model->get($ticket_category_id);
-
-        $this->Ticket_category_model->delete($ticket_category_id);
-
-        // $calls = $this->Call_model->update_by('ticket_category_id', $ticket_category_id, array('ticket_category_id' => null));
-
-        set_flash_notif('success', lang('cat_delete_success'));
-        redirect(site_url('config/ticket_categories/'.$s->department_id));
-    }
-
-
-    public function get_ticket_subcategories($category_id = false)
-    {
-        $this->r->data = $this->Ticket_subcategory_model->get_many_by('category_id', $category_id);
-        $this->r->status = 'OK';
-        $this->r->message = 'Ticket departments will follow';
-
-        $this->_respond();
-    }
-
-
-    public function create_ticket_subcategory($category_id = false)
-    {
-        if (!$this->input->post('name')) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        if (!$category_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $this->Ticket_subcategory_model->create(array('name' => $this->input->post('name'), 'category_id' => $category_id));
-        $this->r->status = 'OK';
-        $this->r->message = lang('cat_create_success');
-        $this->_respond();
-
-    }
-
-
-    public function delete_ticket_subcategory($ticket_subcategory_id = false)
-    {
-        if (!$ticket_subcategory_id) {
-            $this->r->status = 'FAIL';
-            $this->r->message = "Invalid request";
-            $this->_respond();
-            exit();
-        }
-
-        $s = $this->Ticket_subcategory_model->get($ticket_subcategory_id);
-
-        $this->Ticket_subcategory_model->delete($ticket_subcategory_id);
-
-        // $calls = $this->Call_model->update_by('ticket_category_id', $ticket_category_id, array('ticket_category_id' => null));
-
-        set_flash_notif('success', lang('cat_delete_success'));
-        redirect(site_url('config/ticket_subcategories/'.$s->category_id));
-    }
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+7mYBZm3vrX6/0SavkG==

@@ -1,199 +1,74 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * MySQL Result Class
- *
- * This class extends the parent result class: CI_DB_result
- *
- * @category	Database
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/database/
- */
-class CI_DB_mysql_result extends CI_DB_result {
-
-	/**
-	 * Class constructor
-	 *
-	 * @param	object	&$driver_object
-	 * @return	void
-	 */
-	public function __construct(&$driver_object)
-	{
-		parent::__construct($driver_object);
-
-		// Required, due to mysql_data_seek() causing nightmares
-		// with empty result sets
-		$this->num_rows = mysql_num_rows($this->result_id);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Number of rows in the result set
-	 *
-	 * @return	int
-	 */
-	public function num_rows()
-	{
-		return $this->num_rows;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Number of fields in the result set
-	 *
-	 * @return	int
-	 */
-	public function num_fields()
-	{
-		return mysql_num_fields($this->result_id);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fetch Field Names
-	 *
-	 * Generates an array of column names
-	 *
-	 * @return	array
-	 */
-	public function list_fields()
-	{
-		$field_names = array();
-		mysql_field_seek($this->result_id, 0);
-		while ($field = mysql_fetch_field($this->result_id))
-		{
-			$field_names[] = $field->name;
-		}
-
-		return $field_names;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Field data
-	 *
-	 * Generates an array of objects containing field meta-data
-	 *
-	 * @return	array
-	 */
-	public function field_data()
-	{
-		$retval = array();
-		for ($i = 0, $c = $this->num_fields(); $i < $c; $i++)
-		{
-			$retval[$i]			= new stdClass();
-			$retval[$i]->name		= mysql_field_name($this->result_id, $i);
-			$retval[$i]->type		= mysql_field_type($this->result_id, $i);
-			$retval[$i]->max_length		= mysql_field_len($this->result_id, $i);
-			$retval[$i]->primary_key	= (int) (strpos(mysql_field_flags($this->result_id, $i), 'primary_key') !== FALSE);
-		}
-
-		return $retval;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Free the result
-	 *
-	 * @return	void
-	 */
-	public function free_result()
-	{
-		if (is_resource($this->result_id))
-		{
-			mysql_free_result($this->result_id);
-			$this->result_id = FALSE;
-		}
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Data Seek
-	 *
-	 * Moves the internal pointer to the desired offset. We call
-	 * this internally before fetching results to make sure the
-	 * result set starts at zero.
-	 *
-	 * @param	int	$n
-	 * @return	bool
-	 */
-	public function data_seek($n = 0)
-	{
-		return $this->num_rows
-			? mysql_data_seek($this->result_id, $n)
-			: FALSE;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Result - associative array
-	 *
-	 * Returns the result set as an array
-	 *
-	 * @return	array
-	 */
-	protected function _fetch_assoc()
-	{
-		return mysql_fetch_assoc($this->result_id);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Result - object
-	 *
-	 * Returns the result set as an object
-	 *
-	 * @param	string	$class_name
-	 * @return	object
-	 */
-	protected function _fetch_object($class_name = 'stdClass')
-	{
-		return mysql_fetch_object($this->result_id, $class_name);
-	}
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+n61faS8CiEO2gQBINorK

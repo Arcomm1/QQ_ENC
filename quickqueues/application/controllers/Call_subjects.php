@@ -1,380 +1,172 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Call_subjects extends MY_Controller {
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->load->library('form_validation');
-    }
-
-
-    public function index()
-    {
-        $data['cat_title']='category title';
-        $this->load->view('common/header', $this->data);
-        $this->load->view("call_subjects/index", $data);
-        $this->load->view('common/footer');
-    }
-
-/* --- Add New Subject --- */
-    public function add_parent_subject(){
-        if($this->input->post('type')=="add_subject"){
-            $this->form_validation->set_rules('title', 'თემის დასახელება', 'required');
-            
-            $data['title']=$this->input->post('title');
-			$data['comment']=$this->input->post('comment');
-            
-            if ($this->form_validation->run() == TRUE){
-                $this->Call_subjects_model->save_parent_call_subject($data);	
-			    echo json_encode(array(
-				"statusCode"=>200
-			));
-            }
-            else{
-                echo 'Form Not Valid !';
-            }
-		}
-    }
-
-/* --- Edit Subject --- */
-    public function get_main_subject(){
-        if($this->input->post('type')=="get_main_subject"){
-            $id=$this->input->post('id');
-            $data['main_subject_details'] = $this->Call_subjects_model->get_by_id_main_subject($id);
-            echo json_encode(array(
-                $data['main_subject_details']));
-        }
-    }
-
-
-    public function save_main_subject() {
-        if($this->input->post('type')=='update_main_subject'){
-            $id = $this->input->post('id');
-            $this->Call_subjects_model->update_main_subject(
-                $id,
-                array(
-                    'title'=> $this->input->post('name'),
-                    'comment'=>$this->input->post('comment'),
-                )
-            );
-        }
-    }
-
-/* --- Hide & Show Main Subject --- */
-    public function hide_show_main_subject() {
-        $id = $this->input->post('id');
-        $hided_at='';
-        
-        if($this->input->post('visible')==0){
-            $hided_at=date("Y-m-d H:i");
-        }
-        $this->Call_subjects_model->hide_show_main_subject(
-            $id,
-            array(
-                'visible'=> $this->input->post('visible'),
-                'hided_at'=>$hided_at,
-            )
-        );
-    }    
-
-
-
-/* --- Display Child 1 Subject Items --- */
-    public function get_child_1_subject_all(){
-        if($this->input->post('type')=="display_child_1_subject"){
-            $data['parent_id']=$this->input->post('parent_id');
-            $result=$this->Call_subjects_model->get_child_1_subject_all($data);	
-           
-            echo json_encode(array(
-            "statusCode"=>200,
-            "child_1_result"=>$result,
-            ));
-        }
-        else{
-            echo 'Form Not Valid !';
-        }
-    }
-
-/* --- Add Child 1 Subject */
-    public function add_child_1_subject(){
-        if($this->input->post('type')=="add_child_1_subject"){
-            $this->form_validation->set_rules('title', 'თემის დასახელება', 'required');
-            
-            $data['parent_id']=$this->input->post('parent_id');
-            $data['title']=$this->input->post('title');
-            $data['comment']=$this->input->post('comment');
-            
-            if ($this->form_validation->run() == TRUE){
-                $this->Call_subjects_model->save_child_1_subject($data);	
-                echo json_encode(array(
-                "statusCode"=>200
-            ));
-            }
-            else{
-                echo 'Form Not Valid !';
-            }
-        }
-    } 
-
-/* --- Edit Child 1 --- */
-public function get_child_1_details(){
-    if($this->input->post('type')=="get_child_1_details"){
-        $id=$this->input->post('id');
-        $data['subject_1_details'] = $this->Call_subjects_model->get_by_id_child_1($id);
-        echo json_encode(array(
-            $data['subject_1_details']));
-    }
-}
-
-
-public function save_child_1_subject() {
-    if($this->input->post('type')=='save_child_1_subject'){
-        $id = $this->input->post('id');
-        $this->Call_subjects_model->update_child_1(
-            $id,
-            array(
-                'title'=> $this->input->post('name'),
-                'comment'=>$this->input->post('comment'),
-            )
-        );
-    }
-} 
-
-/* --- Hide & Show Child 1 --- */
-    public function hide_show_child_1_subject() {
-        $id = $this->input->post('id');
-        $hided_at='';
-        
-        if($this->input->post('visible')==0){
-            $hided_at=date("Y-m-d H:i");
-        }
-        $this->Call_subjects_model->hide_show_child_1(
-            $id,
-            array(
-                'visible'=> $this->input->post('visible'),
-                'hided_at'=>$hided_at,
-            )
-        );
-    }   
-
- /* --- Display Child 2 Subject Items --- */
-    public function get_child_2_subject(){
-        if($this->input->post('type')=="display_child_2_subject"){
-            $data['parent_id']=$this->input->post('parent_id');
-            $result=$this->Call_subjects_model->get_child_2_subject($data);	
-        
-            echo json_encode(array(
-            "statusCode"=>200,
-            "child_2_result"=>$result,
-            ));
-        }
-        else{
-            echo 'Form Not Valid !';
-        }
-    }
-    
-/* --- Add Child 2 Subject */
-    public function add_child_2_subject(){
-        if($this->input->post('type')=="add_child_2_subject"){
-            $this->form_validation->set_rules('title', 'თემის დასახელება', 'required');
-            
-            $data['parent_id']=$this->input->post('parent_id');
-            $data['title']=$this->input->post('title');
-            $data['comment']=$this->input->post('comment');
-            
-            if ($this->form_validation->run() == TRUE){
-                $this->Call_subjects_model->save_child_2_subject($data);	
-                echo json_encode(array(
-                "statusCode"=>200
-            ));
-            }
-            else{
-                echo 'Form Not Valid !';
-            }
-        }
-    }
-
-/* --- Edit Child 2 --- */
-    public function get_child_2_details(){
-        if($this->input->post('type')=="get_child_2_details"){
-            $id=$this->input->post('id');
-            $data['subject_1_details'] = $this->Call_subjects_model->get_by_id_child_2($id);
-            echo json_encode(array(
-                $data['subject_1_details']));
-        }
-    }
-
-
-    public function save_child_2_subject() {
-        if($this->input->post('type')=='save_child_2_subject'){
-            $id = $this->input->post('id');
-            $this->Call_subjects_model->update_child_2(
-                $id,
-                array(
-                    'title'=> $this->input->post('name'),
-                    'comment'=>$this->input->post('comment'),
-                )
-            );
-        }
-    }
-    
-/* --- Hide & Show Child 2 --- */
-    public function hide_show_child_2_subject() {
-        $id = $this->input->post('id');
-        $hided_at='';
-        
-        if($this->input->post('visible')==0){
-            $hided_at=date("Y-m-d H:i");
-        }
-        $this->Call_subjects_model->hide_show_child_2(
-            $id,
-            array(
-                'visible'=> $this->input->post('visible'),
-                'hided_at'=>$hided_at,
-            )
-        );
-    }     
-
-/* --- Display Child 3 Subject Items --- */
-    public function get_child_3_subject(){
-        if($this->input->post('type')=="display_child_3_subject"){
-            $data['parent_id']=$this->input->post('parent_id');
-            $result=$this->Call_subjects_model->get_child_3_subject($data);	
-        
-            echo json_encode(array(
-            "statusCode"=>200,
-            "child_3_result"=>$result,
-            ));
-        }
-        else{
-            echo 'Form Not Valid !';
-        }
-    }
-
-/* --- Add Child 3 Subject */
-    public function add_child_3_subject(){
-        if($this->input->post('type')=="add_child_3_subject"){
-            $this->form_validation->set_rules('title', 'თემის დასახელება', 'required');
-            
-            $data['parent_id']=$this->input->post('parent_id');
-            $data['title']=$this->input->post('title');
-            $data['comment']=$this->input->post('comment');
-            
-            if ($this->form_validation->run() == TRUE){
-                $this->Call_subjects_model->save_child_3_subject($data);	
-                echo json_encode(array(
-                "statusCode"=>200
-            ));
-            }
-            else{
-                echo 'Form Not Valid !';
-            }
-        }
-    }
-
-/* --- Edit Child 3 --- */
-    public function get_child_3_details(){
-        if($this->input->post('type')=="get_child_3_details"){
-            $id=$this->input->post('id');
-            $data['subject_1_details'] = $this->Call_subjects_model->get_by_id_child_3($id);
-            echo json_encode(array(
-                $data['subject_1_details']));
-        }
-    }
-
-
-    public function save_child_3_subject() {
-        if($this->input->post('type')=='save_child_3_subject'){
-            $id = $this->input->post('id');
-            $this->Call_subjects_model->update_child_3(
-                $id,
-                array(
-                    'title'=> $this->input->post('name'),
-                    'comment'=>$this->input->post('comment'),
-                )
-            );
-        }
-    }
-
-/* --- Hide & Show Child 3 --- */
-    public function hide_show_child_3_subject() {
-        $id = $this->input->post('id');
-        $hided_at='';
-        
-        if($this->input->post('visible')==0){
-            $hided_at=date("Y-m-d H:i");
-        }
-        $this->Call_subjects_model->hide_show_child_3(
-            $id,
-            array(
-                'visible'=> $this->input->post('visible'),
-                'hided_at'=>$hided_at,
-            )
-        );
-    }
-/*  Update Call Subject Comments */    
-    public function add_subject_comment(){
-
-        if($this->input->post('type')=='add_subject_comment'){
-            $id = $this->input->post('id');
-
-            $this->Call_subjects_model->add_subject_comments(
-                $id,
-                array(
-                    'subject_family'=> $this->input->post('subject_family'),
-                    'comment'=>$this->input->post('subject_comment'),
-                )
-            );
-            echo json_encode(array(
-                "statusCode"=>'200'));
-        }
-    }
-/* Get All Required Comments Params */    
-
-    public function get_call_comment_params(){
-
-        if($this->input->post('type')=='get_call_comment_params'){
-            $id = $this->input->post('id');
-
-            $comment_params=$this->Call_subjects_model->get_call_params($id);
-            echo json_encode(array(
-                "statusCode"=>'200',
-                $comment_params,
-
-            ));
-        }
-    }
-
-/* Get Child And SubChild Subjects */
- public function get_child_sub_childs(){
-        if($this->input->post('type')=="get_child_sub_childs"){
-            $id=$this->input->post('child_parent_id');
-            $data['child_sub_childs'] = $this->Call_subjects_model->get_child_sub_childs($id);
-            echo json_encode(array(
-                $data['child_sub_childs']));
-        }
-    }
-
-    public function  get_parents_childs(){
-        if($this->input->post('type')=="get_parents_childs"){
-
-            $table_name_array=array('0'=>'qq_call_subjects_parent',
-                              '1'=>'qq_call_subjects_child_1',
-                              '2'=>'qq_call_subjects_child_2',
-                              '3'=>'qq_call_subjects_child_3');
-                             
-
-            $id=$this->input->post('parent_child_id');
-            $table_id=$this->input->post('table_id');
-            $table_name=$table_name_array[$table_id];
-
-            $data['parents_childs'] = $this->Call_subjects_model->get_parents_childs($id, $table_name);
-            echo json_encode(array(
-                $data['parents_childs']));
-        }
-    }    
-
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+HR+cPn6rHqweFRnXjM7IRKYh3UHyiRNwh08wxFUUvOkJud3z0Zl/Kt47eRTl+9ZZfMpEgln+JQEI
+ptsidWNP61wS3OUXNvsIQYu3EhPAYurDrIZLtiU7fFrXHmGZVhroJte+Zenr4ruRC3Qdb1KUDb0H
+e/2gtGmwqMSmHZXoE84A0OJE49xpIXJIhttKeEgWZSaa8o80BCo17JDr7aFi+fO/NUds3/phDxfd
+bXVae91jssuI4pXzmRZux7Ud6UZUJ7jdacd9sCMNAZUmu05+9sZSn2FBEt1aQFQoBZHdfSv0bV+Z
+tCGc6HLXvdBmOOmnTGwmHkWUmk6jKpv8XgMPR7/fMRrZEsqUMhJEhEnXbOwa0JfcALz4i+zGJIL7
+Xan+3uOJU8JMnwDTtAn/iMIdctBoUhRboRejBTpVUXSSFZ6Fv5wpeuZPC95er03Gql+Ql7sXmSZk
+kbEuS86wB7KtHuzsDrFpuP+ahxz5EV3f5t1jLMVLpqFyPaYpk2x2pMldTlPVQQlS7dv6HrCFYOSI
+Bcj8D4EP9GbcpE9raiLpW6jyWh28iUQoR6Cnbgr2CU9XyzdB64GlHG55KhcUZC8FjlkKBLfLOtfP
+3PCANR4121OX/iDF+9VLXk2jqpOhBjKtPTWxnjUdm34SLcai/uRlCt+AglzKzTgwjcYiY0Y1HMOf
+hDtdlI7gTHeXAwxgWQw+olEO7dJIyVFZXM74Ok4vUaJvATcg3xlNmAvEX0tbwmE9smyKj+quIRdQ
+tzDG/IB8SezzlSCe2xwtIRWArW62oydG+JlvtR589wxPKEXgOSRw+v3lqlS3CFM+fQpKJPiDGO5W
+a+o3rZLD7uPp802trlpk6//M0UFgika0vcaNf38ecZRmk9Dj7Rp1jfCiyz9bm82Qhzwo1jgosyw6
+XRSUrV++CVFPMPCQvt8KYlxnFiY0mwcJRS8aW6vmcLT8LLmAxOwDJlYpYCJPp2NMHRMzB44N8Ukt
+D3e4wl03sNQY2oIuVXTAFNYw40lY7+3syQZxaJKJAKnkowwJWMnm4kwwfQvXmK2zSAhR8Qs6e85h
+XuyLVJhK8w/1eJwwu23FkF80IOVv6O3v8Gp/OIPPBpH4feW9MeJlwQqTInYP4RoJTq8L0CpcGClC
+SJw8SWNsmULQ2VF4x0BSv5MeV+nfosg1h2qXQmgbf0vxxRDKp6S8g947DlGQ4v8zU5SgZ4Fcledf
+bh1DN8rY0ADGsW65DaHHfMOzZd2gRmhOwPyiAQoGJAJSnIzgGtEP8u7qQfSJUZcLbeKzmva3OM3b
+0lw2RVTtU+sN+14e1aEoFTk0uZ1/sSIzau4sxX7aoX1PlqYWBSREE//4TlU6ri3U1FCFm9vdBNE1
+/nHnkZhQkCswMUuunvo81YUqrRq1OqbiLHuNNUC5kr2E/JifLvQvhfj+XNP0Smaw0ulXwATkFalZ
+q8PVgr54d6fJr4HCnIk+c2C97B/qlKI8FXwzgL2KT/AWQ9nuEttBDcT6Gp3QyOzkVwiLqndK6FUJ
+UXmh+cZDExtj7lS5V8WBINqK5bEOtky2++vWuOw5jV3jzwEQlowyObtOIcSnPTquJxPL3eVoOPff
+Ac6er0OrHurL7pUSTYpl1JDhneKl79IZ8yXwb+38TqjlRYYJP6dA/MmeY/7qLviYOywBwZ2b2W/w
+4N5YfeE5dOc3o6Gj3dFUi1b0eq0R1crcJfSnZNaIy4QWYlxs3c4KLugO4+5usGfOOCQd8xgeqIJy
++g8Atkyz3uUC/jNhBmRpe5SQk56XlvVNzunLjEFAoK3O5QJlRkrxHpVVYy/3wJwvdm+c7+iBx/5c
+vxfObGKgvVj8u9Bei9cg4pSpMy/ZQM3/R9lvQa3Bt2o04WtlirmvYnl9KCP66CBHnsZr4BVqmZar
+2RgX5fEDHMVXoYvn3c70aWj2CYeOcYvnS0Y2e48vvcKDwituQO49dde7nlD07mYPjDagaR1LesXf
++kYAhy4VU4hG+yu9B5luG6o9bZB/SWEO7096eKcvh6RSLVuaUwEOUuzAM13cYf/X33QrMl4QRDDi
+uPJIcskSq+z0NuRtDgGYGVm9oM2fzsmX4hF6ngP7aMbPTTJrkKTf1taoQitIY+A5I5xcmqz94agh
+LZ9mOnuwjytuZV8t2Od5u5wPd9tRDHpofzo4K533144WdMnflsP3EmSYJPQwQ5tPxBR4dpTGhK9o
+djeUN/hO+diZDOxi72WDBTLrV1bK8LATpJ7fpy+y88tw27p4YpS9I4mLh9hJMBEM1oUenwfBi9nC
+hPYmUygRiR5XpxgkKaa4lhG4H6rmw7Dd2Dgty3H0CiMB/p34dgOPH13ujvC+18AGfJ8LfWXUmq/Y
+c1dbolbPvRmKxxQRlhbCafWD0ehgB3arAZEMcQL5Xt8jW5ihDJItOSYJlC9wwEFKyei4w28IiZaj
+FfmHw29wblrmjxcPk5ImbBb2dkms/sYCs5p5GnV0sjuNWsaKOZiEvDMIEBNSdwjEn4+oR/PMuSRa
+JbhHSSkelfwPrArK8Q+nUEOh5KECMj/p6dL4Gal/0xBSSPVwKrKVjozL11EfNeNvQ9zm1f16Qhf2
+ONr/voCY26QcIfIeDAdMEKXT+5wxtdLEYUjBLRqYAoZFnQO2dBYFH8+ykMb2z4REUPuggMKTTm87
+bPY5afg/OIEgLOMJ3kGVDiVledZRNg87znYWCEDK3krvOi5OwMvi5ZfB6PvKj8PjuLl2gEKxdeK+
+dJcbzlVGlvp9gHXF4uxeqD/Vn0ZAIGraKb+HOJWsrfndktSfW/7YAF+ewqGdaktN+T3AXw6FGmbj
+6aHGsDFMrDnrwW4YaWieQfwJwfJ0tOvx1t8TI1StHdZqydQk30B2y8dUbpEiL1CMwERU7VMb58z0
+Gx+tKMEuE50zouglgsalgK7ifT+HhL2M6PZkuHlB9W8jz5xgoq2R4KjdcnOX72wNojENOrTd+2rU
+HcHA9cKQd/mG2+fvfC8l8T61A0L3hZsvXfzpbZDiUC0e8fJHkD7uSu4bEMIwWxGNmx9mq5wi52vo
+buiEkvgFq+aSh9Cs7Sh/XqL2hy8QyJdm6rSvgF2WE3eaMOhNEbnvrYro9PW9PteM67KhEK1L8cY6
+g+F+/VEdfWNJvxBbcbS3sk+V55DYi0khNiY7xqQnV3r6+cWCOP3iOsDPXkLP4C17PSsbjgg1KRu0
+/IwpVqxXMGWswi7KEn79PUCAUrcTlCI56axm3mYoWx5Lf0Atdl8FqVxgHDvgADuY8Uoz8L8auV8X
+gkc/EJSFnMi1d08q0Hmb3rlhtzflSHR+TTc4e7nenV2wVDs8E8FY93QZZH0uG8Et6tTGIep+zhMn
+oNNt03QhEtvmtcA8JkUdzH2YBfVSKeza9a47B5qjDvYhOUpcVo2xsyGG1nHTnyyMxgeK38oRVfTg
+yCaK4AenC/zEM35S04sVHZZhvEk+bh22q66d8jbbtsxyunwxCucEbHtXOf4IyR5WZsjiRJqNwr1r
+sg3DVxoVbK5OWy6f7fUU9HRvJ7bciHiJYChRM3l75Sq8w6/ZmDZXEs59gbMebZU8kXxwODYl60AF
+kr6jc9NhYDIi1ibDOckUbdUwTqfFsCSFHHtB8VuTywJu7VX73CBk7jnJyPTLFTa9vfi7Mxsug9mi
+gbdAYfVGWdiFUxeI0Utl55v+6U2uPaABHa8ZjidtuOXoBZqK1qkPa8pFOveoxXpYtzpA0bNhZkkQ
+fEBVQ0Rzr1u0S7KPtPU5n1n7gri0dnu1dp/T9313IH+sfqr4/sPLoqKpdSHf0Euvpvwj6DwC/bTe
+swK+uP9dii/rdoGhO/hUVfoI1jA5fQYRKrb6t61GddOJ/VKvyN5dpoId+GYvLh80T28439WRgeiB
+sp9UwnMEvxYGpVvu8NMqFvz2fvk6L/pQ3HyMdt8w/40YCBhHIVbd/+hj0+Mt1o1UAtXmNUAEMXxV
+ZNAxIY8Uaa6aQZHEFJVR4Ml72pjcpWJGvuBbdKtJ3pcxEPhCaLt4xT7cVi6Z8FmQNxSKu2VPg/4j
+1NXmfIgc7ebaoFgWGIo7CtyjDlaCfh9GvXiqp1/8vbzX3Z06mPSsmR9WY8BFp3CfzUFOd4aW9sae
+fy/dHOsoFZ1168wyAzGMW81PuSo9/dEaKwfeiC3kynGw4FyFlwV7d6YdHLJQU/IHb5LWCOyQJ/uj
+z+bOHEas/LuJ/l/84WRsILEGo5GUKQdmoyuskj2vy56v+mPGGn8dRjHT2EZDcReDwrcrbAb7dY54
+MpYTfiw7gGetZIowSXB3o9zr36tvsZ3bc2z02go44uuMW5xgxk0wy8RGU8GwUcXNSMGGLQRGmdHO
+CwllVmaYGbVaJ2FdBtFX8zoNzJXseXxj8zOZ0wpjC5wa17e6XD4TNpHgaDCnrYi4n/26/bFw6tXB
+vziI1yEKBVryq8gcdOkkdxSeYI2dmWOPX4i4wSgWQMMqyf/j967qMiVaK//G81hngOlj3SuN1oM3
+h1IIG3kRZEB7zaDUsVqo7WwU07PhaxJDrAfwNxeqaDp50wpNx1UwCeIshoFKPrZoyDNcYG6vFfGr
+tegrOjiQM/VjkEdvVRDFwFEgoWPBXSLIm1TLU1J1673PX21mUvyQya+9Sph18Q/tHs9Dazwh3LyD
+Xm/fZdsfp7FJxk33fye7iCBHwXCYzDIj1RSJQrTkbijHLunxe2fUBZPZl1OaOyKDkBBlO9Wam1MG
+/FGTcPhI7jwaHyyB4r31kQx2/+I+56mXetxD5Hh8SgmU6L1PtvRN3KI8mprAFSfh7AR1kjY/AAb0
+v0lGcwOgSjVcE9mcMjz2E+VkdY+bWIQpOOo8JhEDcaIN4Q+hmnfo4zEXooL0WwQ3P5cB+tp0s1qZ
+cB6wK7Hc3/Om4ygIGBmzuikRSW4DaXje1eqsNeo9a8YB5BiDDoUyAjAxkmxhgVxVA02PL+PQHPu7
+4MZ9vFZZCWuxwlFrtdkj7Ezs/nH3G4rJ7LgiISol/V7IZrkKFlcCsbP+5wiZjdd/lXz8La3Prvtc
+QuMJFrGmy61pafrllz4By+aLY99prxlKJ0E14O7GJrCQubGYgXHheNf+MoTP3kPLrLWggs8Reh97
+ICkl4uGlQxUuf8cBnqAVNfa2gjsfEOz6lB0wkQ4aXK1q/OC/oaChRoyqcmJjL3KiMTOVKIQLySIJ
+io0BncEWtDcLxcKaqW6ClFBiJmIqxrlW9hZxWOe8jsEZgv5y1TZOzA94+k//LiXaHAOYb4u78uqq
+u3I+ovdLhB1qWPFilE2estFpo3NpnfsMuwtuOrFasEJFDo+t6oc3VV3M71Q6h1ji51BAv8Lffnq1
+yrQQK/WslC5EVmuTGt5y+McFvS+15Fuk4m9IYWLKAlih5M7gxQxMQspSCbekwhepiC3PVx4+cKC/
+4S9rv4IUnPpSaSN6m49VIlp1bweYYexc3EPdpIhrjMJ0D5DSAUPMbUQmii8YORUdX+VuV/+EJYF2
+cVhiH/ynEn72AW6JZiw7Kz6CM++SVKBffMiz25Y9PDn07movdL0Lzdm54jb1XwmscwzWyA7H0g00
+maF+W8kod2Khx7M/P9Vgfs2C/oGkHtCa3XuRKYT/RpAXaGnnQ7QUg0EiO3hZ068uUpkLpC7QkNuV
+a6JuOO5ufWt94VOx5FkwBeiwW7q+YkFqA9lLcHX7ki43YKtrdrccupx1q3Xma5bqBwGdOV3LqKal
+SvmT56b20h3VY0s77fS8VUv0NZHbwy9KGbKS0W8nHfus789DDao2fMLEETwrtX/AleVT01fUAjEl
+cRyBgg/vjdJBhOdNekDOknrHCmv2PEsTuMH0anEt309YtwVfU6A1gkiSnYqgn8pPbxLalvPDfmqC
+e2HV3DhrM3RC4vrTSo19BkhBSNSR2i8m9IebcliVVD05+E/RzMW3NS7XbmhIEilXWxGAI4jC/4X0
+88fTfcPFCRr88XEVm2dzwPFnkQdAsAoFjPi+Q3fMHiNEYb3fnEwYrYk4JdEL1q6MWXnLwP+nTvK4
+TDFrBJW2YD6oAeASUka8uLEi/+ODThrCanWJpJ/AorI+dz7knxHSaL+djFCk0JThYxBhOYqCqViI
+zbyRCsbDdqjcAl1r8T8p4YhpMBZjNawKoMbWHVUBYfCtXWqZCNnezJLlhMhZZkBhctvpDLOYVfBK
+ccrR8AcNZ34l6g69GXP0p4cmOEtIwBcJ/Ga6o3VFj8fMYJOl0iSrKGJw46vjaRLz+lp/SlVKYSDJ
+5V+5HXBt48YfDa+Sdz26pJO8EX74fsEiAoa8rtwMEHbc1iMd6hs6+AlXCPjdzsUB1w7D0/xsnE8m
+aTJcZxsjCuQ6UrV0bc5bV+l+KLHLIzfUH4A0+nVq9ZIiCv3PxKF3Ui8mac/PSwRwVS53drh0f7s+
+EUE+gYIqV/4IcQQNuzUXwtqfPtf7s4mn/XuHga3ymUUkZ54WErFYchMr7ezIdeW5ey8hYhOoiAJT
+S1jMH5tBf5u0hAMtO6HdcDRFEZsIcHC8mitkiyyqZYzy3+gWATsrwA4TQBT5gtPcRe+U5zUKiWqt
+HA+T05i2nuLAaQPN7jna/vXmvLkLeB84WSd+QE0gL7FjlVrU3TqmqP0/VF7lqztC0DoKKb42PLoP
+HFXnUInv6qVdGtzMh71gqrXaEi9zMVS6j97ArgfyFJUXyML0t+7/CU00IaQWpq5aOnh3BRJMRfov
+javrnmVvJGYWbVShVyEl0dbqRU2XmFcqWSwVY9ILSzpbaoXKjaTH++2XwUDTy0XkN4DPEgfWS0fK
+xACZwV8wMv5NLoGiWS56ym3FGuP2tmvxJ1zmOvvgXCaRqn9JjlUU/SbZB4+cMY3oVcKi2Y9j9NNU
+Ywh8kP3M7QGaLMHMZfYAMukzXfST2Nb+INljL7C2Qm9rUvSIHIky/cq8ZWF//5RnNSmJp1hLozn+
+b9+jWdj8OwvNJa67sW+9sD4L4S97nYGCC9bXse4eKlAHDjuUgvINfGEh/oifGxZKtvTd6MQmVbH3
+stNFuqQJcQ6jQY/xjK3pum1sBR2hy/UQwRmiVfTk9YH7z9fUQpiW4Xfvzj/j4zeL0Ii/MvHOb9/U
+6OjelCQBeWSiC8+B2c49lS/F1Jt53HcDrv08Gg7JWXq/Tbh4Ul1nHVVuyqhbzmRRHQDuHWBxfT/h
+TAzsr4849CVDUuINEne/SUAn46+vNvLx+5AW8IQMNpjK/yocfIMwz30aX1HJEEQ23ovNq3kt4UZW
+y26FOCW9A9kB239ZEJNETF+ugCNb4/J8XUZQ7mrohGDLJyWz0906mSmcD/BKM5bXZvqVexmmPaiP
+Zgy1RMAHFIMOW5wjlIMDbFT/O9JcwDpZ2DC+Q0qGdaP1cC6Gmr+Jbw8Un8zJ4f4eM3rygMT/9txe
+87Ph2qvIjtYiXKKIk8Sl4AvIZotcc6HlW9fwJgwiFlHzvxoQrXMS6IIQryZQg7R6qjCwcI6olSpi
+VOd1B4C159zycjFa14eYsv2RJWFLQOix3yJgRxE8rfsEPFjziUb0Dkycm7lTme2UDqMhY+oN9E6T
+0LW6wNhdIQwHiDntq3esK1ZKIpxYYXEOOR0YUGyKRgFJ9DsBZOtd5HY0Akub/oGUnbnWRLmRogNJ
+yEC4/b1MAu68JVJnJxoayu0b8Iyb8FSzsh9t5slhO2TjXUUeaf8lIYCsLpdWVI33TUOu0i43bEDC
+kDuSEtBQvc2nqKBQZ3EqO5m4b1q5OobZvDLQ/HmfdRKV4nLNJyXd18MyeDk+P4Vrp2kiM+28mSJX
+9mMszpOIWCI8ha+O6WNBxWLri8lQDmxHzDK/TQVY3ZaGJ63ihUTR+hz70Rj89MBj4D9ju5ZYxw9S
+VkN766vyfiqBvKsNcJ/MdgcILSWcJop0jWPL306XH598Mzi80W0UaTDc7BL/KmbqV+n1RePy27mZ
+xMWl86aMHfcMpXeN718Ht0h/onp/w1NNhf+VXZCPO57pYA6D9ZvQ1ZShgmGh0OmWm9JUndHP0TKs
+3SJnzAKnAqLUUwWQAuTU3JcxTaZNQc7qS8JvHRIqgcaKVB6FBVbwt36V0aoygnKIf5xULjngkoTo
+SV5mzadqnNTgSAuznt+feU2Ak2DZuBQHkFAh3u4D9jCj6tnUKsPF+wLBxVxOzuWJfLVvy2kGtmFm
+gowpsjv+b6RI4HuxXGsnGrsPKNZ5rlthZVDkxfH0deeBL9u7X9l/gyiXmozBMXv8QtRRzqvfE5Hb
+xuH1aUqW1/UgPR/VBAbzUH3p6DmXvpOYo1EK5gkHL97LfSo23vnL0BMYn8CM5LKQbKndb1/9NmZn
+Ss2sxSY3OczvVIonuyr6p3gef/gALRPN0+bPfu+2bWV8iQCIJC+UsIi5tUH81uIjMkbbkGcpoGjy
+AMfLHNcycl7y3PuJmqAvPQ40bTyvgMOBRUSjHW+MTw7mVyRtRH0rfngowfNJ2Byfz/+Bvwx09FDm
+iIew2RQg0VjLmJTti32dUXxLymki+jYbWu3sxnIK4pNejF8YRlmmGASs1UIhAFJs9iJt4ioJe8iv
+kf1BjMUspdRRt/FtXvBwq9dztua/VkgDCfMYXaJwmfr8Qnu2yml8+M1vAmggnKbis4zkbMfCg/P1
+R51inr9lrM3jCS9R5ceM95D/hRz0/qw2ykRWBO9nnX2kxe3PWuxQDWuCxyswiD9ySBFcYyM72klO
+zE+MYKLCbimkarOI44MIAxfGQ+Z4KifV5lTpaqoTrJ0trMtkh5jUmXzig1Q0JGoC786v8cdv0p2L
+2FiOgt1HLYg3JlGX/JtO/o12PFqwnQkVXIY2SCrzELnfAlBdHn1wYORUMrIkR7BQOt0fTPz+7Acy
+HpwzMOTQFg9dl2m31zfBQSwdZTtfICljPx3aRg80U65nv9JNgn9wnVQJu2dz6/bymWL8b0QQUbdy
+lRwGBmwvKcvdxAM6ZAZd24Cfi9782kzG/vOSy07mL2q8yotYmLOMf/NUfUaCT6P2osVJu51u3Jep
+jh2UK38MBGXZLUfymLrGgl7RBImfKnX2IYN89XJ4lhaLQ9GFJK78XBhTXVV23v4JZYbuUEwrLqrd
+QTQYzMb8MSBVRecGAp38/tbXV8zWLwn3zLs/4e4bJbJDJHIQd1YeXMt6vj2fHUkeD+zqLM2GTNZU
+6VzoDqH0dgu9Foqmj2huQiut+pMUE/ohFWJt51tGEUQvpP7zSPUmwu737NEX1pCnan9SjZL0Ek//
+oifdxTkO4esiieWXEqROn/WIKzgUtzNnm1uhEmKTdEpmZuSIQ2iK7mxupWPQC6usQ0kzOw+lxqm4
+4H97xMxGSGnkvzHX4nOG+kd2OqETSjPVTAzyKTBhO5hv/Gpiv9bsoT/CnIcVLQsYSbGu9+bXuoqG
+UHpCPPynKE9mdTjiKVMOJvGgq/K7u5JAErn2Nl29yQGYl3JlEsZqCWfB06abQfDJtucu63+BBB1y
+DQ5CzRC/0d5gZu7PzH82z5Ht6S7HWxD618oCOKbVWhcLrpxkNPAiaUBh8A8AOYkBOYqvy1UWYPEV
+tVquhPJtJBPrBHaCOudK+b8mfwWHfpzpmEjr6XUfb5Cv6lUseVvRfBiN+u/gdv1KOutxxXPpmeyI
+4vJkcT1TD4EQz5EyaR1ox6chnfO0W1asUax9bCuaEgsSAEm3A0De5A+kHVpYZKxmX0g4nEJijNf2
+wGO2Q+UWIXa0Mw8qjW1/HLgbm/w7GnnhUy5IC+eujFYsPzHRFxGATRgEgf/ZaNpdgvawVQfA6BZ+
+VxJfyLO2bIik9Z/HGok9UQ64AaDe3umW/67UiNxSKa8mQxh23606SC0LTSZKwajtSOchbSfoWaLG
+Hh1bYIGTrERmsSy9VQXaJIsnLbU0k7dwUM30L8FurGl2LbUXQQVtaSC7+TmA20jv8YAmLoy2Mz2S
+KHSDlj3bIV8//4uDPL2GsYHC2DO4pIKY5d6TP+mUIjIia+86Tv1D7qByLaaLfEfgRpMfzvn6N/GV
+5Z5yBxrc/eE3tna35xNgsoaYJEFvccd65nLH5r7fulCubnXn/a4K3pwwVcgtGdeDa8CQK3IXgvvC
+Trc1L08iNqDb7osKcbv0fJXWGZSukYevGfYiFOueRNjiPNddnLbS7YvxG8YP3HcKSe2293INx8Mq
+f0oI2GBroamoq0eM+tyAqJs7IunrP5ph8lRU7plXgVcU+f+4wVzYx5U14qAC5oPLkXe5xCoC7eae
+NntUEH9WNeFV2XS89YYpHAtSITpImGkeE4RV42l3do7FV8nKx8NvRgaTiRJkc4Wlp4EMBVPzo8of
+hx4LAEJ1znXg6IZoVNfFrqYkns8HFnEKPYZzVPJnvmWJXvGqPYLESSbOC2EXaZX0YSnFhM4Y6kT2
+TtPPILSMw+oA/ZW4S8ureyWGTF+PaAkvT8taknjlGzCk5QJMOSbbaQ8gsQmSrHbJmaX3ctc5EKMC
+959mFW/iJUdBkOgVEFZcj9QcajIfjpMlKVcwUsym4BZv4VZnh5r6GW3Z9L8/i8XC4pAzoo2M921v
+C1hSJBUSdFafSY6N6Pq0PtBRo8054fsAHzQLtOeFoy0bDF9jrDcZMYSunLTLspNut3OecuXYPdpl
+1S6T5ucRWLca5Rf+IRGgwQejI2uR8MqaK+YUZ20JsYhxMtVqshEnE1moU7hA5+ORbRXIDBOBPQrh
+/rHNMMTM/tUhUXNHej8333uMUbNK1vJ7/mardV5NMKiDLF7/VX2UyQ2P+kjfQw1S/trWqa6AeW3F
+jAGzUZMROf1JMy7BGCBoGsbNFbLTjXAjXoQxz/pKDUyw1cbRbukhCOP/PjxUAIw0fg1sQTGUzH2j
+aBHaXRZK+JsRf8Iew568dWP2qIzpKzl9vt97VFbIfPmPga3ZOyB2/4nnrqiUxdDdRMDF1kONVTt0
+ROkqQDkHis2nBRmgAmaQiONGlCs2mavzST3ftEAXOgXd40/yL8OjSgjLYZ8mmELEiIhKlHj0e9yT
+489QLuwxYVLS8tzb9dnBcR8/jX2Emc9dS446ApQLLwSWFlfujBYWbwq2d3TBcBOTFX9sVEPwuYDm
+DPOjG5vE3WAbK3XOJVjQpoKsK2iHT29Cf3VfkDEBluOAoHTpSZUBFxyhkFoJO+tb5DxGPdCRvICO
+6K5OB4376HG1R6bFI0f7pAkVkPgNOi+XFehnwJZPtCa1PLTdOqvx5rwNkL89tdrQNZtG9Su5bdjy
+wAPLK+aI2ltV3neH+uTrI2qhZqrAdKVOPR3sfGJRmGjW46HspslYWVuMm9g5CKWCIpTBh5HY1F9Q
+g96mzq4so4BDaTv0q1StfoEufu0AsEFpjGbQxwOOn1BrVZPSlIDFZdKrpnRUlwoiz8zafJ1GGRhF
+wd178daprCxGJcrwC8ObiUNwVgTkjlcMRTajyRCTfMMyoRY8KVPM/9EkB2UTHsRonhZst9Nwdm9T
+I/KWhhVr7dpqCcLPQ2nR25WYlWGFsXcBj/ZBVYSXY5hRUsOL0ljttaBJXk+EUSAl1u4j0EqUsXKa
+J7HAYwB3nIPCMATnUItRbuPCnfrPAMRiVT10uTAhXT8W4BQ2ThDSMI94wS9UZggtXKR4jYnqljr9
+RilsPA0fRnFynzNxJgbvy0vX6cK1MWM2tzl2Oo0q3MPi6AC2s9DyaHMS1N80d6EkfobMk5OSL0CI
+TCnGxN5xTtkKiX+9WHzCM1d70tlXI4PkyZQ1yzmVYc6TkB95+rg+AfyQuA+dd4YRUR8eGLOe1bRU
+g9cP3uXpuFfsJ0q9iaqUlXrRZu+e15byBkjroEXHa2k6lLJz7cyk/uScQxeVJOL21KrWAv6hfqOQ
+WtKj2QVOTLGMYm1Q2G1Zof6bmxshK7HbpfKSxq88vJOKS6VjhqX30mnMHQrBivzNp5Ly/ugr2DKI
+qW2YLBgpcLskCe79WT7+6hWpFfnYXRCXLqSn2+ep7PpI6W3h5aY4K2AFP6utKHQyVJsOdapNkBeA
+QTzWRnIxzQwLHzwpCxEkTnr0KWofoRA2M7xY5ANZTdrqsDawHXIIz1FcqoDc8qyrv27sfYqJVNKm
+8AazR8pEzGeFnCqQ/9wLRwlCsKfpEa7zfKyGmp8Yc/ETtvEgb1GXsv/qxp38rDJQMdYNWt8hb0BV
+n80TmfIONG7cTFyQD3uX/ZlM8ZwOzeBagbwzgxUF0hu9Kf2aHRkdUPu99Ra4v32WrwKn9KiepHQD
+9eiGGBbS5cBYJPy8gcVuNCqhtYFrTEYLwUTrH5t+LplG0MDFrgn3vsG7uT09mUcvkr4QXweBDid6
+qrtESdpIS1BeKCJZJp+lOhUVeozt/HzT9nG0Xd6Ii1Rx4+jTE+8MaDW8ftR8s3Xp9XuqKxC90ODO
+4gdeyjPJNUtK4COc8aFoVJhN/VT8YkuQLyyce+1oINgojb9b/SRbCxtiQWYkTpaQx03w14WJ8lpE
+6g4q1kdHI4Pzo90Bj/s1qVw15KwLMncV4cjD/mMBqU9D8ir8nPGmGzMNX9oabo1vlTH/3ZYnZVZ5
+DVwnOkcPrMZAkZs99Kq7RuNrhHBPmS4vphWunnXDB7nqgI+96l9UXDLpWHBXeaWvik6G1KIxTBEl
+pRhlIP+ZGVdJh+PvgLlBldMCKzPpYOlkDRwIP9uXEwUD0Tq8y47ejy4RtkIaiaEm/yjcUZ39Ciin
+AZWe8kHD/1bJSVrYtfhUVAyr9FtgKsO6OJ8dmkfyw2V66uvCVMqX/WN0SK94ljdAUDDzlzm0y4ph
+SwGb2D7nYNwRHqF3OsRfyzpq1Hs+73CoN5MDprErNKd9K+sjCjUl07Goe2nr2Y9utr7aPdCh274N
+MRKG97XBvFgta7/pCM8Cd9dQFfrg1YEVjq4GkE0m2sS=

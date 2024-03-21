@@ -1,62 +1,48 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-class Migration_add_settings_logs_2 extends CI_Migration 
-{
-    public function up()
-    {
-        $columnsToAdd = [
-            'calls_without_service_queue_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => TRUE,
-            ],
-            'sla_callbacks' => [
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ],
-            'timeout_callbacks' => [
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ],
-            'sla_calls' => [
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ],
-            'timeout_calls' => [
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-            ],
-            'date' => [
-                'type' => 'DATETIME',
-                // Note: Using '0000-00-00 00:00:00' as a default value might cause issues with strict SQL modes in MySQL 5.7+.
-                // Consider using a valid default DATETIME value or CURRENT_TIMESTAMP if appropriate for your application.
-                'default' => '0000-00-00 00:00:00',
-            ],
-        ];
-
-        foreach ($columnsToAdd as $columnName => $columnDefinition) {
-            if (!$this->db->field_exists($columnName, 'qq_settings_logs')) {
-                $this->dbforge->add_column('qq_settings_logs', [$columnName => $columnDefinition]);
-            }
-        }
-    }
-
-    public function down()
-    {
-        $columnsToDrop = [
-            'calls_without_service_queue_id',
-            'sla_callbacks',
-            'timeout_callbacks',
-            'sla_calls',
-            'timeout_calls',
-            'date',
-        ];
-
-        foreach ($columnsToDrop as $columnName) {
-            if ($this->db->field_exists($columnName, 'qq_settings_logs')) {
-                $this->dbforge->drop_column('qq_settings_logs', $columnName);
-            }
-        }
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+7i9L4TiFVzQkjBYa/j9+PBDQwRQz7sh9O0==

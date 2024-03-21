@@ -1,182 +1,129 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-
-class Call_subjects_statistics extends MY_Controller {
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->load->library('form_validation');
-    }
-
-/* --- Display Subjects Items --- */
-    public function get_parent_subjects(){
-        $parent_subject_id=array();
-        $parent_subject_title=array();
-        $parent_subject_count=array();
-
-
-        $date_gt = $this->input->post('date_gt') ? $this->input->post('date_gt') : QQ_TODAY_START;
-        $date_lt = $this->input->post('date_lt') ? $this->input->post('date_lt') : QQ_TODAY_END;
-
-        $all_parent_subjects=$this->Call_subjects_model->get_main_subjects();
-        //print_r($all_parent_subjects);
-        foreach($all_parent_subjects as $parent_subject){
-            //echo $parent_subject['title']."<br>";
-            $call_counter=0;
-            $subject_family=$parent_subject['id'].'|';
-            
-            $filtered_subjects=$this->Call_subjects_model->get_stat_childs($subject_family, $date_gt, $date_lt);
-            
-            //Child 1 amount
-            foreach($filtered_subjects as $filtered_subject){
-                $call_counter++;
-            }
-
-            if($call_counter>0){
-                array_push($parent_subject_id, $parent_subject['id']);
-                array_push($parent_subject_title, $parent_subject['title']);
-                array_push($parent_subject_count, $call_counter);
-                
-            }
-        }
-       //print_r($parent_subject_title);
-        echo json_encode(array(
-            "statusCode"=>200,
-            "parent_subjects_id"=>$parent_subject_id,
-            "parent_subjects_title"=>$parent_subject_title,
-            "parent_subjects_count"=>$parent_subject_count,
-            ));
-    }
-/* --- Display Child 1 Items --- */
-    public function get_child_1_subjects(){
-        $child_2_count=array();
-        $child_1_count=array();
-        $child_2_subject_array=array();
-        $child_1_item_array=[];
-        $child_1_subject_array=array();
-
-        $parent_id=$this->input->post('parent_id');
-
-        $date_gt=$this->input->post('date_gt');
-        $date_lt=$this->input->post('date_lt');
-
-        $child_1_subjects=$this->Call_subjects_model->get_child_1_subject_all(array('parent_id'=>$parent_id));
-
-        foreach($child_1_subjects as $child_1_subject){
-            $subject_family_1=$parent_id.'|'.$child_1_subject['id'].'|'; //first 2 digits
-
-            $child_1_id_result=$this->Call_subjects_model->get_stat_childs($subject_family_1, $date_gt, $date_lt);
-            array_push($child_1_count, count($child_1_id_result));
-            foreach ($child_1_id_result as $child_1_id){
-                $child_1_id=explode('|', $child_1_id['subject_family']);
-                $child_1_id=$child_1_id['1'];
-                $child_1_item_array[]=$this->Call_subjects_model->get_by_id_child_1($child_1_id);
-
-            }
-          //Child 2 amount;
-            $child_2_subjects_result=$this->Call_subjects_model->get_child_2_subject(array('parent_id'=>$child_1_subject['id']));
-
-            foreach($child_2_subjects_result as $child_2_subjects){
-                $subject_family_2=$parent_id.'|'.$child_1_subject['id'].'|'.$child_2_subjects['id'].'|';
-                $stat_child_2_result=$this->Call_subjects_model->get_stat_childs($subject_family_2, $date_gt, $date_lt);
-                array_push($child_2_count, count($stat_child_2_result));
-
-            }
-        }
-          foreach($child_1_item_array as $child_1_item){
-              if(!in_array($child_1_item, $child_1_subject_array)) {
-                  array_push($child_1_subject_array, $child_1_item);
-              }
-          }
-
-        echo json_encode(array(
-            "statusCode"=>200,
-            "child_1_subject" => $child_1_subject_array,
-            "child_1_count"=>$child_1_count,
-            "child_2_count"=>$child_2_count,
-        ));
-    }
-
-/* --- Display Child 2 Items --- */
-    public function get_child_2_subjects(){
-        $child_2_subject_array=array();
-        $child_3_count=array();
-        $child_2_count=array();
-        $child_2_item_array=[];
-
-        $main_subject_id=$this->input->post('main_subject_id');
-        $parent_id=$this->input->post('parent_id');
-
-        $date_gt=$this->input->post('date_gt');
-        $date_lt=$this->input->post('date_lt');
-
-        $child_2_subjects=$this->Call_subjects_model->get_child_2_subject(array('parent_id'=>$parent_id));
-
-        foreach($child_2_subjects as $child_2_subject){
-            $subject_family_2=$main_subject_id.'|'.$parent_id.'|'.$child_2_subject['id'].'|';
-
-            $child_2_id_result=$this->Call_subjects_model->get_stat_childs($subject_family_2, $date_gt, $date_lt);
-            array_push($child_2_count, count($child_2_id_result));
-
-            foreach ($child_2_id_result as $child_2_id){
-                $child_2_id=explode('|', $child_2_id['subject_family']);
-                $child_2_id=$child_2_id['2'];
-                $child_2_item_array[]=$this->Call_subjects_model->get_by_id_child_2($child_2_id);
-
-            }
-             //Child 3 amount;
-             $child_3_subjects_result=$this->Call_subjects_model->get_child_3_subject(array('parent_id'=>$child_2_subject['id']));
-
-             foreach($child_3_subjects_result as $child_3_subjects){
-                 $subject_family_3=$main_subject_id.'|'.$parent_id.'|'.$child_2_subject['id'].'|';
-                 $stat_child_3_result=$this->Call_subjects_model->get_stat_childs($subject_family_3, $date_gt, $date_lt);
-                 array_push($child_3_count, count($stat_child_3_result));
-
-             }
-            array_push($child_2_subject_array, $child_2_subject);
-        }
-        //print_r($stat_child_3_result);
-        foreach($child_2_item_array as $child_2_item){
-            if(!in_array($child_2_item, $child_2_subject_array)) {
-                array_push($child_2_subject_array, $child_2_item);
-            }
-        }
-        echo json_encode(array(
-            "statusCode"=>200,
-            "child_2_subject" => $child_2_subject_array,
-            "child_2_count" =>$child_2_count,
-            "child_3_count"=>$child_3_count,
-        ));
-    }
-
-    /* --- Display Child 3 Items --- */
-    public function get_child_3_subjects(){
-        $child_3_subject_array=array();
-        $child_4_count=array();
-        $main_subject_id=$this->input->post('main_subject_id');
-        $main_sub_subject_id=$this->input->post('main_sub_subject_id');
-        $parent_id=$this->input->post('parent_id');
-
-        $date_gt=$this->input->post('date_gt');
-        $date_lt=$this->input->post('date_lt');
-
-        $child_3_subjects=$this->Call_subjects_model->get_child_3_subject(array('parent_id'=>$parent_id));
-        
-        foreach($child_3_subjects as $child_3_subject){
-            array_push($child_3_subject_array, $child_3_subject);
-            //print_r($child_3_subject);
-            $subject_family_4=$main_subject_id.'|'.$main_sub_subject_id.'|'.$parent_id.'|'.$child_3_subject['id'].'|';
-            $stat_child_4_result=$this->Call_subjects_model->get_stat_childs($subject_family_4, $date_gt, $date_lt);
-            array_push($child_4_count, count($stat_child_4_result));
-            //echo $subject_family_4."<br>";
-        }
-        //echo $main_subject_id.'-'.$parent_id.'-'.$child_3_subject['parent_id']."-".$child_3_subject['id']."<br>";
-        echo json_encode(array(
-            "statusCode"=>200,
-            "child_3_subject" => $child_3_subject_array,
-            "child_4_count"=>$child_4_count,
-        ));
-    }
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+9lKEmzu6r7mY+JHiJaQ+w6EmJ0==

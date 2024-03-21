@@ -1,101 +1,47 @@
-<?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
-
-/**
- * CodeIgniter Directory Helpers
- *
- * @package		CodeIgniter
- * @subpackage	Helpers
- * @category	Helpers
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/helpers/directory_helper.html
- */
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('directory_map'))
-{
-	/**
-	 * Create a Directory Map
-	 *
-	 * Reads the specified directory and builds an array
-	 * representation of it. Sub-folders contained with the
-	 * directory will be mapped as well.
-	 *
-	 * @param	string	$source_dir		Path to source
-	 * @param	int	$directory_depth	Depth of directories to traverse
-	 *						(0 = fully recursive, 1 = current dir, etc)
-	 * @param	bool	$hidden			Whether to show hidden files
-	 * @return	array
-	 */
-	function directory_map($source_dir, $directory_depth = 0, $hidden = FALSE)
-	{
-		if ($fp = @opendir($source_dir))
-		{
-			$filedata	= array();
-			$new_depth	= $directory_depth - 1;
-			$source_dir	= rtrim($source_dir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-
-			while (FALSE !== ($file = readdir($fp)))
-			{
-				// Remove '.', '..', and hidden files [optional]
-				if ($file === '.' OR $file === '..' OR ($hidden === FALSE && $file[0] === '.'))
-				{
-					continue;
-				}
-
-				is_dir($source_dir.$file) && $file .= DIRECTORY_SEPARATOR;
-
-				if (($directory_depth < 1 OR $new_depth > 0) && is_dir($source_dir.$file))
-				{
-					$filedata[$file] = directory_map($source_dir.$file, $new_depth, $hidden);
-				}
-				else
-				{
-					$filedata[] = $file;
-				}
-			}
-
-			closedir($fp);
-			return $filedata;
-		}
-
-		return FALSE;
-	}
-}
+<?php //002cd
+if(extension_loaded('ionCube Loader')){die('The file '.__FILE__." is corrupted.\n");}echo("\nScript error: the ".(($cli=(php_sapi_name()=='cli')) ?'ionCube':'<a href="https://www.ioncube.com">ionCube</a>')." Loader for PHP needs to be installed.\n\nThe ionCube Loader is the industry standard PHP extension for running protected PHP code,\nand can usually be added easily to a PHP installation.\n\nFor Loaders please visit".($cli?":\n\nhttps://get-loader.ioncube.com\n\nFor":' <a href="https://get-loader.ioncube.com">get-loader.ioncube.com</a> and for')." an instructional video please see".($cli?":\n\nhttp://ioncu.be/LV\n\n":' <a href="http://ioncu.be/LV">http://ioncu.be/LV</a> ')."\n\n");exit(199);
+?>
+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
+WmIsby7iRYiQWFWkLiDcXQawFdRx
